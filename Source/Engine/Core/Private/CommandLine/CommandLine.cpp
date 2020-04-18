@@ -8,16 +8,16 @@ std::wstring SCommandLine::GetCommandLine()
 	return SWindowsPlatformApi::GetCommandLine();
 }
 
-std::pair<bool, std::wstring> SCommandLine::GetRawArgumentValue(std::wstring_view _key)
+std::pair<bool, std::wstring_view> SCommandLine::GetRawArgumentValue(std::wstring_view _key)
 {
-	auto skipWhiteSpcae = [](std::wstring_view& _commandLine)
+	static auto skipWhiteSpcae = [](std::wstring_view& _commandLine)
 	{
 		size_t pos = _commandLine.find_first_not_of(L' ');
 		if (pos != std::wstring_view::npos)
 			_commandLine.remove_prefix(pos);
 	};
 
-	auto getNextToken = [](std::wstring_view& _commandLine) {
+	static auto getNextToken = [](std::wstring_view& _commandLine) {
 		if (_commandLine.empty()) return std::wstring_view();
 
 		size_t tokenEnd = 0;
@@ -30,7 +30,7 @@ std::pair<bool, std::wstring> SCommandLine::GetRawArgumentValue(std::wstring_vie
 		return token;
 	};
 
-	std::wstring rawCommandLine = GetCommandLine();
+	static std::wstring rawCommandLine = GetCommandLine();
 	std::wstring_view restCommandLine = rawCommandLine;
 	//第一个参数为exe路径，无用
 	getNextToken(restCommandLine);
@@ -57,9 +57,9 @@ std::pair<bool, std::wstring> SCommandLine::GetRawArgumentValue(std::wstring_vie
 				value.remove_prefix(1);
 				value.remove_suffix(1);
 			}
-			return std::make_pair(true, std::wstring(value));
+			return std::make_pair(true, value);
 		}
 	}
 
-	return std::make_pair(false, std::wstring());
+	return std::make_pair(false, std::wstring_view());
 }

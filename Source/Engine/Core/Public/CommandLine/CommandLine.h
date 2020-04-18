@@ -26,5 +26,5 @@ struct SCommandLine
 		return res.first ? res : std::make_pair(false, _defaultValue);
 	}
 
-	NO_DISCARD_RETURN static std::pair<bool, std::wstring> GetRawArgumentValue(std::wstring_view _key);
+	NO_DISCARD_RETURN static std::pair<bool, std::wstring_view> GetRawArgumentValue(std::wstring_view _key);
 };
