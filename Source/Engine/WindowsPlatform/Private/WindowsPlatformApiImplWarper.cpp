@@ -89,4 +89,118 @@ namespace WindowsPlatformApiWarp_Impl
 		std::wstring message(_message.begin(), _message.end());
 		OutputDebugStringW(message.c_str());
 	}
+
+	bool RegisterClass_WindowsImpl(
+		uint32_t _style,
+		void* _wndProc,
+		void* _instance,
+		void* _icon,
+		void* _cursor,
+		void* _background,
+		std::wstring_view _className,
+		void* _smallIcon,
+		uint32_t* _errorCode
+	)
+	{
+		std::wstring className(_className.begin(), _className.end());
+
+		WNDCLASSEXW wndClass;
+		wndClass.cbSize = sizeof(WNDCLASSEXW);
+		wndClass.style = _style;
+		wndClass.lpfnWndProc = reinterpret_cast<LRESULT(CALLBACK*)(HWND, UINT, WPARAM, LPARAM)>(_wndProc);
+		wndClass.cbClsExtra = 0;
+		wndClass.cbWndExtra = DLGWINDOWEXTRA;
+		wndClass.hInstance = reinterpret_cast<HINSTANCE>(_instance);
+		wndClass.hIcon = reinterpret_cast<HICON>(_icon);
+		wndClass.hCursor = reinterpret_cast<HCURSOR>(_cursor);
+		wndClass.hbrBackground = reinterpret_cast<HBRUSH>(_background);
+		wndClass.lpszClassName = className.c_str();
+		wndClass.hIconSm = reinterpret_cast<HICON>(_smallIcon);
+
+		ATOM res = RegisterClassExW(&wndClass);
+		if (_errorCode) *_errorCode = GetLastError();
+		return res != 0;
+	}
+
+	bool GetClassInfo_WindowsImpl(
+		void* _instance,
+		std::wstring_view _className,
+		uint32_t* _style,
+		void** _wndProc,
+		void** _icon,
+		void** _cursor,
+		void** _background,
+		void** _smallIcon,
+		uint32_t* _errorCode
+	)
+	{
+		WNDCLASSEXW wndClass;
+
+		std::wstring className(_className.begin(), _className.end());
+		BOOL res = GetClassInfoExW(reinterpret_cast<HINSTANCE>(_instance), className.c_str(), &wndClass);
+		if (_errorCode) *_errorCode = GetLastError();
+
+		if (res == TRUE)
+		{
+			if (_style) *_style = wndClass.style;
+			if (_wndProc) *_wndProc = wndClass.lpfnWndProc;
+			if (_icon) *_icon = wndClass.hIcon;
+			if (_cursor) *_cursor = wndClass.hCursor;
+			if (_background) *_background = wndClass.hbrBackground;
+			if (_smallIcon) *_smallIcon = wndClass.hIconSm;
+		}
+
+		return res == TRUE;
+	}
+
+	bool UnregisterClass_WindowsImpl(std::wstring_view _className, void* _instance, uint32_t* _errorCode)
+	{
+		std::wstring className(_className.begin(), _className.end());
+		BOOL res = UnregisterClassW(className.c_str(), reinterpret_cast<HINSTANCE>(_instance));
+		if (_errorCode) *_errorCode = GetLastError();
+		return res == TRUE;
+	}
+
+	void* CreateWindow_WindowsImpl(
+		std::wstring_view _className,
+		std::wstring_view _windowName,
+		uint64_t _style,
+		int32_t _x,
+		int32_t _y,
+		int32_t _width,
+		int32_t _height,
+		void* _wndParent,
+		void* _menu,
+		void* _instance,
+		void* _param,
+		uint32_t* _errorCode
+	)
+	{
+		std::wstring className(_className.begin(), _className.end());
+		std::wstring windowName(_windowName.begin(), _windowName.end());
+
+		uint32_t exStyle = static_cast<uint32_t>(_style >> 32U);
+		uint32_t style = static_cast<uint32_t>(_style & 0x00000000ffffffffULL);
+		
+		HWND hwnd = CreateWindowExW(exStyle, className.c_str(), windowName.c_str(), style, _x, _y, _width, _height, reinterpret_cast<HWND>(_wndParent), reinterpret_cast<HMENU>(_menu), reinterpret_cast<HINSTANCE>(_instance), _param);
+		if (_errorCode) *_errorCode = GetLastError();
+		return hwnd;
+	}
+
+	void* FindWindow_WindowsImpl(void* _wndParent, void* _wndChildAfter, std::wstring_view _className, std::wstring_view _windowName, uint32_t* _errorCode)
+	{
+		std::wstring className(_className.begin(), _className.end());
+		std::wstring windowName(_windowName.begin(), _windowName.end());
+
+		HWND hwnd = FindWindowExW(reinterpret_cast<HWND>(_wndParent), reinterpret_cast<HWND>(_wndChildAfter), className.c_str(), windowName.c_str());
+		if (_errorCode) *_errorCode = GetLastError();
+		return hwnd;
+	}
+
+	bool DestroyWindow_WindowsImpl(void* _wnd, uint32_t* _errorCode)
+	{
+		BOOL res = DestroyWindow(reinterpret_cast<HWND>(_wnd));
+		if (_errorCode) *_errorCode = GetLastError();
+		return res == TRUE;
+	}
 }

@@ -32,4 +32,12 @@ struct SWindowsPlatformApi
 	static void* LoadRawProcAddress(HMODULE _module, std::wstring_view _funcSignature, SErrorCode* _errorCode = nullptr) noexcept;
 
 	static void OutputDebugString(std::wstring_view _message) noexcept;
+
+	static bool RegisterClass(EClassStyle _style, SWndProcFuncType* _wndProc, HINSTANCE _instance, HICON _icon, HCURSOR _cursor, HBRUSH _background, std::wstring_view _classsName, HICON _samllIcon, SErrorCode* _errorCode);
+	static bool GetClassInfo(HINSTANCE* _instance, std::wstring_view _className, _Out_ EClassStyle* _classStyle, _Out_ SWndProcFuncType** _wndProc, _Out_ HICON* _icon, _Out_ HCURSOR* _cursor, _Out_ HBRUSH* _background, _Out_ HICON* _smallIcon, SErrorCode* _errorCode);
+	static bool UnregisterClass(std::wstring_view _className, HINSTANCE _instance, SErrorCode* _errorCode);
+
+	static HWND CreateWindow(std::wstring_view _className, std::wstring_view _windowName, EWindowStyle _style, int32_t _x, int32_t _y, int32_t _width, int32_t _height, HWND _wndParent, HMENU _menu, HINSTANCE _instance, void* _param, SErrorCode* _errorCode);
+	static HWND FindWindow(HWND _wndParent, HWND _wndChildAfter, std::wstring_view _className, std::wstring_view _windowName, SErrorCode* _errorCode);
+	static bool DestroyWindow(HWND _wnd, SErrorCode* _errorCode);
 };
