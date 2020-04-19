@@ -100,7 +100,7 @@ namespace WindowsPlatformApiWarp_Impl
 		std::wstring_view _className,
 		void* _smallIcon,
 		uint32_t* _errorCode
-	)
+	) noexcept
 	{
 		std::wstring className(_className.begin(), _className.end());
 
@@ -132,7 +132,7 @@ namespace WindowsPlatformApiWarp_Impl
 		void** _background,
 		void** _smallIcon,
 		uint32_t* _errorCode
-	)
+	) noexcept
 	{
 		WNDCLASSEXW wndClass;
 
@@ -153,7 +153,7 @@ namespace WindowsPlatformApiWarp_Impl
 		return res == TRUE;
 	}
 
-	bool UnregisterClass_WindowsImpl(std::wstring_view _className, void* _instance, uint32_t* _errorCode)
+	bool UnregisterClass_WindowsImpl(std::wstring_view _className, void* _instance, uint32_t* _errorCode) noexcept
 	{
 		std::wstring className(_className.begin(), _className.end());
 		BOOL res = UnregisterClassW(className.c_str(), reinterpret_cast<HINSTANCE>(_instance));
@@ -174,7 +174,7 @@ namespace WindowsPlatformApiWarp_Impl
 		void* _instance,
 		void* _param,
 		uint32_t* _errorCode
-	)
+	) noexcept
 	{
 		std::wstring className(_className.begin(), _className.end());
 		std::wstring windowName(_windowName.begin(), _windowName.end());
@@ -187,7 +187,7 @@ namespace WindowsPlatformApiWarp_Impl
 		return hwnd;
 	}
 
-	void* FindWindow_WindowsImpl(void* _wndParent, void* _wndChildAfter, std::wstring_view _className, std::wstring_view _windowName, uint32_t* _errorCode)
+	void* FindWindow_WindowsImpl(void* _wndParent, void* _wndChildAfter, std::wstring_view _className, std::wstring_view _windowName, uint32_t* _errorCode) noexcept
 	{
 		std::wstring className(_className.begin(), _className.end());
 		std::wstring windowName(_windowName.begin(), _windowName.end());
@@ -197,7 +197,7 @@ namespace WindowsPlatformApiWarp_Impl
 		return hwnd;
 	}
 
-	bool DestroyWindow_WindowsImpl(void* _wnd, uint32_t* _errorCode)
+	bool DestroyWindow_WindowsImpl(void* _wnd, uint32_t* _errorCode) noexcept
 	{
 		BOOL res = DestroyWindow(reinterpret_cast<HWND>(_wnd));
 		if (_errorCode) *_errorCode = GetLastError();

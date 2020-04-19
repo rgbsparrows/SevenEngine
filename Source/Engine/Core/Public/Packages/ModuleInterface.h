@@ -2,12 +2,12 @@
 
 __interface IModuleInterface
 {
-	bool Init();
-	void Clear();
+	bool Init() noexcept;
+	void Clear() noexcept;
 };
 
 struct SDefaultModule : IModuleInterface
 {
-	bool Init() override {}
-	void Clear() override {}
+	bool Init() noexcept override {}
+	void Clear() noexcept override {}
 };

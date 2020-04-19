@@ -49,34 +49,34 @@ void SWindowsPlatformApi::OutputDebugString(std::wstring_view _message) noexcept
 	WindowsPlatformApiWarp_Impl::OutputDebugString_WindowsImpl(_message);
 }
 
-bool SWindowsPlatformApi::RegisterClass(EClassStyle _style, SWndProcFuncType* _wndProc, HINSTANCE _instance, HICON _icon, HCURSOR _cursor, HBRUSH _background, std::wstring_view _classsName, HICON _samllIcon, SErrorCode* _errorCode)
+bool SWindowsPlatformApi::RegisterClass(EClassStyle _style, SWndProcFuncType* _wndProc, HINSTANCE _instance, HICON _icon, HCURSOR _cursor, HBRUSH _background, std::wstring_view _classsName, HICON _samllIcon, SErrorCode* _errorCode) noexcept
 {
 	return WindowsPlatformApiWarp_Impl::RegisterClass_WindowsImpl(EnumToInt(_style), _wndProc, _instance, _icon, _cursor, _background, _classsName, _samllIcon, _errorCode ? reinterpret_cast<uint32_t*>(&_errorCode->mErrorCode) : nullptr);
 }
 
-bool SWindowsPlatformApi::GetClassInfo(HINSTANCE* _instance, std::wstring_view _className, EClassStyle* _classStyle, SWndProcFuncType** _wndProc, HICON* _icon, HCURSOR* _cursor, HBRUSH* _background, HICON* _smallIcon, SErrorCode* _errorCode)
+bool SWindowsPlatformApi::GetClassInfo(HINSTANCE* _instance, std::wstring_view _className, EClassStyle* _classStyle, SWndProcFuncType** _wndProc, HICON* _icon, HCURSOR* _cursor, HBRUSH* _background, HICON* _smallIcon, SErrorCode* _errorCode) noexcept
 {
 	return WindowsPlatformApiWarp_Impl::GetClassInfo_WindowsImpl(_instance, _className, reinterpret_cast<uint32_t*>(&_classStyle), reinterpret_cast<void**>(_wndProc), reinterpret_cast<void**>(_icon), reinterpret_cast<void**>(_cursor), reinterpret_cast<void**>(_background), reinterpret_cast<void**>(_smallIcon), _errorCode ? reinterpret_cast<uint32_t*>(&_errorCode->mErrorCode) : nullptr);
 }
 
-bool SWindowsPlatformApi::UnregisterClass(std::wstring_view _className, HINSTANCE _instance, SErrorCode* _errorCode)
+bool SWindowsPlatformApi::UnregisterClass(std::wstring_view _className, HINSTANCE _instance, SErrorCode* _errorCode) noexcept
 {
 	return WindowsPlatformApiWarp_Impl::UnregisterClass_WindowsImpl(_className, _instance, _errorCode ? reinterpret_cast<uint32_t*>(&_errorCode->mErrorCode) : nullptr);
 }
 
-HWND SWindowsPlatformApi::CreateWindow(std::wstring_view _className, std::wstring_view _windowName, EWindowStyle _style, int32_t _x, int32_t _y, int32_t _width, int32_t _height, HWND _wndParent, HMENU _menu, HINSTANCE _instance, void* _param, SErrorCode* _errorCode)
+HWND SWindowsPlatformApi::CreateWindow(std::wstring_view _className, std::wstring_view _windowName, EWindowStyle _style, int32_t _x, int32_t _y, int32_t _width, int32_t _height, HWND _wndParent, HMENU _menu, HINSTANCE _instance, void* _param, SErrorCode* _errorCode) noexcept
 {
 	void* wnd = WindowsPlatformApiWarp_Impl::CreateWindow_WindowsImpl(_className, _windowName, EnumToInt(_style), _x, _y, _width, _height, _wndParent, _menu, _instance, _param, _errorCode ? reinterpret_cast<uint32_t*>(&_errorCode->mErrorCode) : nullptr);
 	return reinterpret_cast<HWND>(wnd);
 }
 
-HWND SWindowsPlatformApi::FindWindow(HWND _wndParent, HWND _wndChildAfter, std::wstring_view _className, std::wstring_view _windowName, SErrorCode* _errorCode)
+HWND SWindowsPlatformApi::FindWindow(HWND _wndParent, HWND _wndChildAfter, std::wstring_view _className, std::wstring_view _windowName, SErrorCode* _errorCode) noexcept
 {
 	void* wnd = WindowsPlatformApiWarp_Impl::FindWindow_WindowsImpl(_wndParent, _wndChildAfter, _className, _windowName, _errorCode ? reinterpret_cast<uint32_t*>(&_errorCode->mErrorCode) : nullptr);
 	return reinterpret_cast<HWND>(wnd);
 }
 
-bool SWindowsPlatformApi::DestroyWindow(HWND _wnd, SErrorCode* _errorCode)
+bool SWindowsPlatformApi::DestroyWindow(HWND _wnd, SErrorCode* _errorCode) noexcept
 {
 	return WindowsPlatformApiWarp_Impl::DestroyWindow_WindowsImpl(_wnd, _errorCode ? reinterpret_cast<uint32_t*>(&_errorCode->mErrorCode) : nullptr);
 }

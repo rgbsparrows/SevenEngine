@@ -10,13 +10,13 @@ template<typename _type>
 struct TStringParser
 {
 	using Type = _type;
-	bool operator()(std::wstring_view _str, Type& _value) = delete;
+	bool operator()(std::wstring_view _str, Type& _value) noexcept = delete;
 };
 
 template<>
 struct TStringParser<std::wstring>
 {
-	bool operator()(std::wstring_view _str, std::wstring_view& _value)
+	bool operator()(std::wstring_view _str, std::wstring_view& _value) noexcept
 	{
 		_value = _str;
 		return true;
@@ -26,7 +26,7 @@ struct TStringParser<std::wstring>
 template<>
 struct TStringParser<wchar_t>
 {
-	bool operator()(std::wstring_view _str, wchar_t& _value)
+	bool operator()(std::wstring_view _str, wchar_t& _value) noexcept
 	{
 		if (_str.size() == 1)
 		{
@@ -40,7 +40,7 @@ struct TStringParser<wchar_t>
 template<>
 struct TStringParser<bool>
 {
-	bool operator()(std::wstring_view _str, bool& _value)
+	bool operator()(std::wstring_view _str, bool& _value) noexcept
 	{
 		if (_str == L"true") _value = true;
 		else if (_str == L"false") _value = false;
@@ -52,7 +52,7 @@ struct TStringParser<bool>
 template<>
 struct TStringParser<std::filesystem::path>
 {
-	bool operator()(std::wstring_view _str, std::filesystem::path& _value)
+	bool operator()(std::wstring_view _str, std::filesystem::path& _value) noexcept
 	{
 		_value = _str;
 		return true;

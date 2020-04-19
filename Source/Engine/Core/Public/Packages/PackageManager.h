@@ -44,40 +44,40 @@ public:
 	static constexpr std::wstring_view GamePackageName = L"Game";
 	static constexpr std::wstring_view EnginePackageName = L"Engine";
 
-	void RegistModule(std::wstring_view _packageName, std::wstring_view _moduleName, SModuleCreateFuncType* _moduleCreateFunc)
+	void RegistModule(std::wstring_view _packageName, std::wstring_view _moduleName, SModuleCreateFuncType* _moduleCreateFunc) noexcept
 	{
 		mModuleInfos.push_back(SModuleInfo{ _packageName, _moduleName, _moduleCreateFunc, nullptr, 0 });
 	}
 
-	void Init();
-	void Clear();
+	void Init() noexcept;
+	void Clear() noexcept;
 
-	void EnablePackage(std::wstring_view _packageName);
-	void DisablePackage(std::wstring_view _packageName);
-	bool IsPackageEnable(std::wstring_view _packageName);
+	void EnablePackage(std::wstring_view _packageName) noexcept;
+	void DisablePackage(std::wstring_view _packageName) noexcept;
+	bool IsPackageEnable(std::wstring_view _packageName) noexcept;
 
-	std::filesystem::path GetPackagePath(std::wstring_view _packageName);
-	bool IsPlugin(std::wstring_view _pluginName) { return IsEnginePlugin(_pluginName) || IsGamePlugin(_pluginName); }
-	bool IsEnginePlugin(std::wstring_view _pluginName) { return GetEnginePlugin(_pluginName) != nullptr; }
-	bool IsGamePlugin(std::wstring_view _pluginName) { return mWithGamePackage && GetGamePlugin(_pluginName) != nullptr; }
-	bool GetPluginDesc(std::wstring_view _pluginName, SPluginInfo& _desc);
+	std::filesystem::path GetPackagePath(std::wstring_view _packageName) noexcept;
+	bool IsPlugin(std::wstring_view _pluginName) noexcept { return IsEnginePlugin(_pluginName) || IsGamePlugin(_pluginName); }
+	bool IsEnginePlugin(std::wstring_view _pluginName) noexcept { return GetEnginePlugin(_pluginName) != nullptr; }
+	bool IsGamePlugin(std::wstring_view _pluginName) noexcept { return mWithGamePackage && GetGamePlugin(_pluginName) != nullptr; }
+	bool GetPluginDesc(std::wstring_view _pluginName, SPluginInfo& _desc) noexcept;
 
-	bool IsEnginePackage(std::wstring_view _packageName) { return _packageName == EnginePackageName || IsEnginePlugin(_packageName); }
-	bool IsGamePackage(std::wstring_view _packageName) { return mWithGamePackage && (_packageName == GamePackageName || GetGamePlugin(_packageName)); }
+	bool IsEnginePackage(std::wstring_view _packageName) noexcept { return _packageName == EnginePackageName || IsEnginePlugin(_packageName); }
+	bool IsGamePackage(std::wstring_view _packageName) noexcept { return mWithGamePackage && (_packageName == GamePackageName || GetGamePlugin(_packageName)); }
 
-	bool LoadModule(std::wstring_view _moduleName);
+	bool LoadModule(std::wstring_view _moduleName) noexcept;
 	template<typename _moduleClass = IModuleInterface>
-	auto GetModule(std::wstring_view _moduleName) { return static_cast<_moduleClass>(GetRawModule(_moduleName)); }
-	void UnloadModule(std::wstring_view _moduleName);
+	auto GetModule(std::wstring_view _moduleName) noexcept { return static_cast<_moduleClass>(GetRawModule(_moduleName)); }
+	void UnloadModule(std::wstring_view _moduleName) noexcept;
 
 private:
-	void LoadPluginManifestFile(std::filesystem::path _pluginManifestFile, std::vector<SPluginInfo>& _pluginInfo);
-	SPluginInfo* GetPlugin(std::wstring_view _pluginName);
-	SPluginInfo* GetEnginePlugin(std::wstring_view _pluginName);
-	SPluginInfo* GetGamePlugin(std::wstring_view _pluginName);
-	SModuleInfo* GetModuleInfo(std::wstring_view _moduleName);
+	void LoadPluginManifestFile(std::filesystem::path _pluginManifestFile, std::vector<SPluginInfo>& _pluginInfo) noexcept;
+	SPluginInfo* GetPlugin(std::wstring_view _pluginName) noexcept;
+	SPluginInfo* GetEnginePlugin(std::wstring_view _pluginName) noexcept;
+	SPluginInfo* GetGamePlugin(std::wstring_view _pluginName) noexcept;
+	SModuleInfo* GetModuleInfo(std::wstring_view _moduleName) noexcept;
 
-	IModuleInterface* GetRawModule(std::wstring_view _moduleName);
+	IModuleInterface* GetRawModule(std::wstring_view _moduleName) noexcept;
 
 private:
 	bool mWithGamePackage = true;

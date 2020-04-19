@@ -16,7 +16,7 @@ struct SErrorCode final
 
 	std::wstring GetDesc()const noexcept;
 	EErrorCode GetErrorCode()const noexcept { return mErrorCode; }
-	void Clear()noexcept { mErrorCode = EErrorCode::ERROR_SUCCESS; }
+	void Clear() noexcept { mErrorCode = EErrorCode::ERROR_SUCCESS; }
 	bool IsSuccess()const noexcept { return mErrorCode == EErrorCode::ERROR_SUCCESS; }
 
 	EErrorCode mErrorCode = EErrorCode::ERROR_SUCCESS;

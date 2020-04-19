@@ -11,7 +11,7 @@ namespace StringParserDetail
 		static constexpr bool IsUnsigned = std::is_unsigned_v<IntType>;
 		static_assert(std::is_integral_v<IntType>, "_intType must be integral type");
 
-		IntType ParseCharacter(wchar_t _character)
+		IntType ParseCharacter(wchar_t _character) noexcept
 		{
 			constexpr IntType Error = std::numeric_limits<IntType>::max();
 			constexpr IntType map[55] = {
@@ -25,7 +25,7 @@ namespace StringParserDetail
 			return Error;
 		}
 
-		bool operator()(std::wstring_view _str, IntType& _value)
+		bool operator()(std::wstring_view _str, IntType& _value) noexcept
 		{
 			IntType valueSignal = 1;
 			if (_str.size() >= 1 && _str[0] == L'-')

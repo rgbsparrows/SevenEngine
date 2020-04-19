@@ -3,12 +3,12 @@
 
 #include <mutex>
 
-std::wstring SCommandLine::GetCommandLine()
+std::wstring SCommandLine::GetCommandLine() noexcept
 {
 	return SWindowsPlatformApi::GetCommandLine();
 }
 
-std::pair<bool, std::wstring_view> SCommandLine::GetRawArgumentValue(std::wstring_view _key)
+std::pair<bool, std::wstring_view> SCommandLine::GetRawArgumentValue(std::wstring_view _key) noexcept
 {
 	static auto skipWhiteSpcae = [](std::wstring_view& _commandLine)
 	{

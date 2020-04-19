@@ -7,7 +7,7 @@
 
 #include <fstream>
 
-void SPackageManager::Init()
+void SPackageManager::Init() noexcept
 {
 	mWithGamePackage = SProgramConfiguation::IsWithProject();
 
@@ -16,7 +16,7 @@ void SPackageManager::Init()
 		LoadPluginManifestFile(SBasicPath::GetProjectPlatformBinaryPath() / SBuildConfiguation::GPluginMainfestFileName, mProjectPlugins);
 }
 
-void SPackageManager::Clear()
+void SPackageManager::Clear() noexcept
 {
 #if WITH_DEBUG_CODE
 	for (const auto& _module : mModuleInfos)
@@ -24,7 +24,7 @@ void SPackageManager::Clear()
 #endif
 }
 
-void SPackageManager::EnablePackage(std::wstring_view _packageName)
+void SPackageManager::EnablePackage(std::wstring_view _packageName) noexcept
 {
 	if (_packageName == EnginePackageName || (mWithGamePackage && _packageName == GamePackageName)) return;
 
@@ -42,7 +42,7 @@ void SPackageManager::EnablePackage(std::wstring_view _packageName)
 	plugin->mIsEnable = true;
 }
 
-void SPackageManager::DisablePackage(std::wstring_view _packageName)
+void SPackageManager::DisablePackage(std::wstring_view _packageName) noexcept
 {
 	CHECK(_packageName != GamePackageName && _packageName != EnginePackageName);
 
@@ -64,7 +64,7 @@ void SPackageManager::DisablePackage(std::wstring_view _packageName)
 	plugin->mIsEnable = false;
 }
 
-bool SPackageManager::IsPackageEnable(std::wstring_view _packageName)
+bool SPackageManager::IsPackageEnable(std::wstring_view _packageName) noexcept
 {
 	if (_packageName == EnginePackageName || (mWithGamePackage && _packageName == GamePackageName)) return true;
 
@@ -75,7 +75,7 @@ bool SPackageManager::IsPackageEnable(std::wstring_view _packageName)
 	return plugin->mIsEnable;
 }
 
-std::filesystem::path SPackageManager::GetPackagePath(std::wstring_view _packageName)
+std::filesystem::path SPackageManager::GetPackagePath(std::wstring_view _packageName) noexcept
 {
 	if (_packageName == EnginePackageName) return SBasicPath::GetEnginePath();
 	if (mWithGamePackage && _packageName == GamePackageName) return SBasicPath::GetProjectPath();
@@ -87,7 +87,7 @@ std::filesystem::path SPackageManager::GetPackagePath(std::wstring_view _package
 	return plugin->mPluginPath;
 }
 
-bool SPackageManager::GetPluginDesc(std::wstring_view _pluginName, SPluginInfo& _desc)
+bool SPackageManager::GetPluginDesc(std::wstring_view _pluginName, SPluginInfo& _desc) noexcept
 {
 	SPluginInfo* plugin = GetPlugin(_pluginName);
 
@@ -98,7 +98,7 @@ bool SPackageManager::GetPluginDesc(std::wstring_view _pluginName, SPluginInfo& 
 	return true;
 }
 
-bool SPackageManager::LoadModule(std::wstring_view _moduleName)
+bool SPackageManager::LoadModule(std::wstring_view _moduleName) noexcept
 {
 	SModuleInfo* module = GetModuleInfo(_moduleName);
 
@@ -109,7 +109,8 @@ bool SPackageManager::LoadModule(std::wstring_view _moduleName)
 	if (module->mRefCount == 0)
 	{
 		module->mModule = (module->mModuleCreateFunc)();
-		module->mModule->Init();
+		if (!module->mModule->Init())
+			return false;
 	}
 
 	module->mRefCount++;
@@ -117,7 +118,7 @@ bool SPackageManager::LoadModule(std::wstring_view _moduleName)
 	return true;
 }
 
-void SPackageManager::UnloadModule(std::wstring_view _moduleName)
+void SPackageManager::UnloadModule(std::wstring_view _moduleName) noexcept
 {
 	SModuleInfo* module = GetModuleInfo(_moduleName);
 
@@ -133,7 +134,7 @@ void SPackageManager::UnloadModule(std::wstring_view _moduleName)
 	module->mRefCount--;
 }
 
-void SPackageManager::LoadPluginManifestFile(std::filesystem::path _pluginManifestFile, std::vector<SPluginInfo>& _pluginInfo)
+void SPackageManager::LoadPluginManifestFile(std::filesystem::path _pluginManifestFile, std::vector<SPluginInfo>& _pluginInfo) noexcept
 {
 	REWRITE_WHEN_SE_STREAM_AVAILABLE("")
 		std::ifstream ifs(_pluginManifestFile, std::ios::in | std::ios::binary);
@@ -205,7 +206,7 @@ void SPackageManager::LoadPluginManifestFile(std::filesystem::path _pluginManife
 	CHECK(!ifs.bad());
 }
 
-SPluginInfo* SPackageManager::GetPlugin(std::wstring_view _pluginName)
+SPluginInfo* SPackageManager::GetPlugin(std::wstring_view _pluginName) noexcept
 {
 	SPluginInfo* plugin = nullptr;
 	plugin = GetEnginePlugin(_pluginName);
@@ -215,7 +216,7 @@ SPluginInfo* SPackageManager::GetPlugin(std::wstring_view _pluginName)
 	return plugin;
 }
 
-SPluginInfo* SPackageManager::GetEnginePlugin(std::wstring_view _pluginName)
+SPluginInfo* SPackageManager::GetEnginePlugin(std::wstring_view _pluginName) noexcept
 {
 	for (auto& _plugin : mEnginePlugins)
 		if (_plugin.mFriendlyName == _pluginName)
@@ -224,7 +225,7 @@ SPluginInfo* SPackageManager::GetEnginePlugin(std::wstring_view _pluginName)
 	return nullptr;
 }
 
-SPluginInfo* SPackageManager::GetGamePlugin(std::wstring_view _pluginName)
+SPluginInfo* SPackageManager::GetGamePlugin(std::wstring_view _pluginName) noexcept
 {
 	if (!mWithGamePackage) return nullptr;
 
@@ -235,7 +236,7 @@ SPluginInfo* SPackageManager::GetGamePlugin(std::wstring_view _pluginName)
 	return nullptr;
 }
 
-SPackageManager::SModuleInfo* SPackageManager::GetModuleInfo(std::wstring_view _moduleName)
+SPackageManager::SModuleInfo* SPackageManager::GetModuleInfo(std::wstring_view _moduleName) noexcept
 {
 	for (auto& _module : mModuleInfos)
 		if (_module.mModuleName == _moduleName)
@@ -244,7 +245,7 @@ SPackageManager::SModuleInfo* SPackageManager::GetModuleInfo(std::wstring_view _
 	return nullptr;
 }
 
-IModuleInterface* SPackageManager::GetRawModule(std::wstring_view _moduleName)
+IModuleInterface* SPackageManager::GetRawModule(std::wstring_view _moduleName) noexcept
 {
 	SModuleInfo* module = GetModuleInfo(_moduleName);
 
