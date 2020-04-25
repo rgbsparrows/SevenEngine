@@ -38,10 +38,6 @@
 # Re-ignore vs host manifest
 *.vshost.exe.manifest
 
-# Java source files
-!*.java
-!*.java.template
-
 # C# source files
 !*.cs
 !*.cs.template
@@ -109,103 +105,19 @@
 !VERSION
 !ChangeLog
 
-# Ignore Unix backup files
-*~
-
 # Exceptions
 /*.sln
-/*.xcodeproj
 /Makefile
 /CMakeLists.txt
 /cmake-build-debug
-*.target.xml
-*.dll.config
-*.exe.config
-*.exe.manifest
-/.kdev4/
-/UE4CodeCompletionFolders.txt
-/UE4CodeLitePreProcessor.txt
-
-# Add exceptions for Mac Mono binaries needed to run GitDependencies.exe.
-!/Binaries/ThirdParty/Mono/Mac/bin/*
-!/Binaries/ThirdParty/Mono/Mac/etc/mono/config
-!/Binaries/ThirdParty/Mono/Mac/etc/mono/4.5/machine.config
-!/Binaries/ThirdParty/Mono/Mac/lib/libMonoPosixHelper.dylib
-!/Binaries/ThirdParty/Mono/Mac/lib/mono/4.5/mscorlib.dll
-!/Binaries/ThirdParty/Mono/Mac/lib/mono/gac/Mono.Posix/4.0.0.0__0738eb9f132ed756/Mono.Posix.dll
-!/Binaries/ThirdParty/Mono/Mac/lib/mono/gac/Mono.Security/4.0.0.0__0738eb9f132ed756/Mono.Security.dll
-!/Binaries/ThirdParty/Mono/Mac/lib/mono/gac/System/4.0.0.0__b77a5c561934e089/System.dll
-!/Binaries/ThirdParty/Mono/Mac/lib/mono/gac/System.Configuration/4.0.0.0__b03f5f7f11d50a3a/System.Configuration.dll
-!/Binaries/ThirdParty/Mono/Mac/lib/mono/gac/System.Core/4.0.0.0__b77a5c561934e089/System.Core.dll
-!/Binaries/ThirdParty/Mono/Mac/lib/mono/gac/System.Xml/4.0.0.0__b77a5c561934e089/System.Xml.dll
-
-# Ignore the automatically created mono symlink
-/Binaries/ThirdParty/Mono/Mac/bin/mono
-
-# Add exceptions for Linux Mono binaries needed to run GitDependencies.exe.
-!/Binaries/ThirdParty/Mono/Linux/bin/*
-!/Binaries/ThirdParty/Mono/Linux/etc/mono/config
-!/Binaries/ThirdParty/Mono/Linux/etc/mono/4.5/machine.config
-!/Binaries/ThirdParty/Mono/Linux/x86_64-unknown-linux-gnu/bin/mono-boehm
-!/Binaries/ThirdParty/Mono/Linux/x86_64-unknown-linux-gnu/bin/mono-sgen
-!/Binaries/ThirdParty/Mono/Linux/x86_64-unknown-linux-gnu/lib/libMonoPosixHelper.so
-!/Binaries/ThirdParty/Mono/Linux/lib/mono/4.5/mscorlib.dll
-!/Binaries/ThirdParty/Mono/Linux/lib/mono/gac/Mono.Posix/4.0.0.0__0738eb9f132ed756/Mono.Posix.dll
-!/Binaries/ThirdParty/Mono/Linux/lib/mono/gac/Mono.Security/4.0.0.0__0738eb9f132ed756/Mono.Security.dll
-!/Binaries/ThirdParty/Mono/Linux/lib/mono/gac/System/4.0.0.0__b77a5c561934e089/System.dll
-!/Binaries/ThirdParty/Mono/Linux/lib/mono/gac/System.Configuration/4.0.0.0__b03f5f7f11d50a3a/System.Configuration.dll
-!/Binaries/ThirdParty/Mono/Linux/lib/mono/gac/System.Core/4.0.0.0__b77a5c561934e089/System.Core.dll
-!/Binaries/ThirdParty/Mono/Linux/lib/mono/gac/System.Xml/4.0.0.0__b77a5c561934e089/System.Xml.dll
-
-# Ignore the automatically created mono symlink
-/Binaries/ThirdParty/Mono/Linux/bin/mono
-/Binaries/ThirdParty/Mono/Linux/bin/mono-boehm
-/Binaries/ThirdParty/Mono/Linux/bin/mono-sgen
-
-# ...and GitDependencies.exe
-!/Binaries/DotNET/GitDependencies.exe
-!/Binaries/DotNET/GitDependencies.exe.config
-
-# Ignore documentation generated for C# tools
-Binaries/DotNET/UnrealBuildTool.xml
-Binaries/DotNET/AutomationScripts/BuildGraph.Automation.xml
-Source/Programs/AutomationTool/BuildGraph/BuildGraph.Automation.xml
-
-# Ignore version files in the Binaries directory created by UBT
-/Binaries/**/*.version
-
-# Ignore exp files in the the Binaries directory as they aren't C/C++ source files
-/Binaries/**/*.exp
-
-# Ignore plugin.manifest files in the Binaries directory created by UBT
-/Binaries/**/*.manifest
 
 # Ignore content folders
 Content/
-
-# Ignore DDC
-/DerivedDataCache/**
 
 # Ignore intermediate folders
 Intermediate/
 obj/
 
-# Ignore any saved local files
-Saved/
-/Programs/MemoryProfiler2/**
-/Programs/UnrealBuildTool/**
-/LocalBuilds/
-
-# Ignore Swarm local save files
-Binaries/DotNET/SwarmAgent.DeveloperOptions.xml
-Binaries/DotNET/SwarmAgent.Options.xml
-
-# Explcitly ignore Mac DS_Store files, regardless of where they are
-.DS_Store
-
 # Ignore VS / VS Code settings directory
 .vs
 .vscode
-
-# Ignore CLion directory
-.idea/
