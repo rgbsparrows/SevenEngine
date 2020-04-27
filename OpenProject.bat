@@ -1,3 +1,2 @@
-if not exist Build\SevenEngine.sln call GerneateProjectFile.bat
-
-Build\SevenEngine.sln
+if not exist Intermediate\SevenEngine.sln call GerneateProjectFile.bat
+if exist Intermediate\SevenEngine.sln Intermediate\SevenEngine.sln else echo generate sln failed

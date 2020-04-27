@@ -1,5 +1,5 @@
-if exist Build if "%~1" == "-force" rmdir /s /q Build
-if not exist Build md Build
-cd Build
+if exist Intermediate if "%~1" == "-force" rmdir /s /q Intermediate
+if not exist Intermediate md Intermediate
+cd Intermediate
 cmake ..\CMakeFile
 cd ..

@@ -22,6 +22,7 @@ set(CMAKE_EXE_LINKER_FLAGS_SHIPPING ${CMAKE_EXE_LINKER_FLAGS_RELEASE})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${ENGINE_DIR}/Binaries/${CMAKE_BUILD_TYPE})
 
 add_compile_options("/std:c++latest")
+add_compile_definitions("$<$<CONFIG:Debug>:SE_BUILD_DEBUG>$<$<CONFIG:Shipping>:SE_BUILD_SHIPPING>$<$<CONFIG:Profile>:SE_BUILD_PROFILE>$<$<CONFIG:Test>:SE_BUILD_TEST>=1")
 
 include(SdkList.txt)
 

@@ -18,7 +18,7 @@
 !*/
 
 # cmake generate files
-Build/
+Intermediate/
 
 # C/C++ source files
 !*.c
