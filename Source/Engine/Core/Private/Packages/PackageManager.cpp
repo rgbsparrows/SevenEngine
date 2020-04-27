@@ -7,16 +7,8 @@
 
 #include <fstream>
 
-void SPackageManager::Init() noexcept
-{
-	mWithGamePackage = SProgramConfiguation::IsWithProject();
 
-	LoadPluginManifestFile(SBasicPath::GetEnginePlatformBinaryPath() / SBuildConfiguation::GPluginMainfestFileName, mEnginePlugins);
-	if (mWithGamePackage)
-		LoadPluginManifestFile(SBasicPath::GetProjectPlatformBinaryPath() / SBuildConfiguation::GPluginMainfestFileName, mProjectPlugins);
-}
-
-void SPackageManager::Clear() noexcept
+void SModuleManager::Clear() noexcept
 {
 #if WITH_DEBUG_CODE
 	for (const auto& _module : mModuleInfos)
@@ -24,87 +16,11 @@ void SPackageManager::Clear() noexcept
 #endif
 }
 
-void SPackageManager::EnablePackage(std::wstring_view _packageName) noexcept
-{
-	if (_packageName == EnginePackageName || (mWithGamePackage && _packageName == GamePackageName)) return;
-
-	SPluginInfo* plugin = GetPlugin(_packageName);
-
-	CHECK(plugin != nullptr && L"package not found");
-
-#if WITH_DEVELOPMENT_CODE
-	if (plugin->mIsEnable)
-	{
-		LogWarn(L"plugin[", std::wstring(_packageName.begin(), _packageName.end()), L"] has been enabled");
-	}
-#endif
-
-	plugin->mIsEnable = true;
-}
-
-void SPackageManager::DisablePackage(std::wstring_view _packageName) noexcept
-{
-	CHECK(_packageName != GamePackageName && _packageName != EnginePackageName);
-
-	SPluginInfo* plugin = GetPlugin(_packageName);
-
-	CHECK(plugin != nullptr && L"package not found");
-
-#if WITH_DEVELOPMENT_CODE
-	if (plugin->mIsEnable)
-		LogWarn(L"plugin[", std::wstring(_packageName.begin(), _packageName.end()), L"] has been disabled");
-#endif
-
-#if WITH_DEBUG_CODE
-	for (auto& _module : mModuleInfos)
-		if (_module.mPackageName == _packageName)
-			CHECK(_module.mRefCount == 0);
-#endif 
-
-	plugin->mIsEnable = false;
-}
-
-bool SPackageManager::IsPackageEnable(std::wstring_view _packageName) noexcept
-{
-	if (_packageName == EnginePackageName || (mWithGamePackage && _packageName == GamePackageName)) return true;
-
-	SPluginInfo* plugin = GetPlugin(_packageName);
-
-	CHECK(plugin != nullptr && L"package not found");
-
-	return plugin->mIsEnable;
-}
-
-std::filesystem::path SPackageManager::GetPackagePath(std::wstring_view _packageName) noexcept
-{
-	if (_packageName == EnginePackageName) return SBasicPath::GetEnginePath();
-	if (mWithGamePackage && _packageName == GamePackageName) return SBasicPath::GetProjectPath();
-
-	SPluginInfo* plugin = GetPlugin(_packageName);
-
-	CHECK(plugin != nullptr && L"package not found");
-
-	return plugin->mPluginPath;
-}
-
-bool SPackageManager::GetPluginDesc(std::wstring_view _pluginName, SPluginInfo& _desc) noexcept
-{
-	SPluginInfo* plugin = GetPlugin(_pluginName);
-
-	CHECK(plugin != nullptr && L"package not found");
-
-	_desc = *plugin;
-
-	return true;
-}
-
-bool SPackageManager::LoadModule(std::wstring_view _moduleName) noexcept
+bool SModuleManager::LoadModule(std::wstring_view _moduleName) noexcept
 {
 	SModuleInfo* module = GetModuleInfo(_moduleName);
 
 	CHECK(module != nullptr);
-
-	if (!IsPackageEnable(module->mPackageName)) return false;
 
 	if (module->mRefCount == 0)
 	{
@@ -118,7 +34,7 @@ bool SPackageManager::LoadModule(std::wstring_view _moduleName) noexcept
 	return true;
 }
 
-void SPackageManager::UnloadModule(std::wstring_view _moduleName) noexcept
+void SModuleManager::UnloadModule(std::wstring_view _moduleName) noexcept
 {
 	SModuleInfo* module = GetModuleInfo(_moduleName);
 
@@ -134,109 +50,7 @@ void SPackageManager::UnloadModule(std::wstring_view _moduleName) noexcept
 	module->mRefCount--;
 }
 
-void SPackageManager::LoadPluginManifestFile(std::filesystem::path _pluginManifestFile, std::vector<SPluginInfo>& _pluginInfo) noexcept
-{
-	REWRITE_WHEN_SE_STREAM_AVAILABLE("")
-		std::ifstream ifs(_pluginManifestFile, std::ios::in | std::ios::binary);
-
-	CHECK(!ifs.bad());
-
-	uint64_t pluginCount;
-	ifs.read(reinterpret_cast<char*>(&pluginCount), sizeof(uint64_t));
-
-	for (uint64_t i = 0; i != pluginCount; ++i)
-	{
-		SPluginInfo pluginInfo;
-
-		std::wstring directory;
-		uint16_t strSize;
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		directory.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&directory[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mFileVersion), sizeof(int32_t));
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mVersion), sizeof(int32_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mVersionName.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mVersionName[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mFriendlyName.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mFriendlyName[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mDescription.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mDescription[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mCategory.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mCategory[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mCreatedBy.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mCreatedBy[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mCreatedByURL.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mCreatedByURL[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mDocsURL.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mDocsURL[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mMarketplaceURL.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mMarketplaceURL[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mSupportURL.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mSupportURL[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		ifs.read(reinterpret_cast<char*>(&strSize), sizeof(uint16_t));
-		pluginInfo.mEngineVersion.resize(strSize);
-		ifs.read(reinterpret_cast<char*>(&pluginInfo.mEngineVersion[0]), static_cast<std::streamsize>(strSize) * sizeof(uint16_t));
-
-		pluginInfo.mPluginPath = directory;
-
-		_pluginInfo.push_back(std::move(pluginInfo));
-	}
-
-	CHECK(!ifs.bad());
-}
-
-SPluginInfo* SPackageManager::GetPlugin(std::wstring_view _pluginName) noexcept
-{
-	SPluginInfo* plugin = nullptr;
-	plugin = GetEnginePlugin(_pluginName);
-	if (plugin == nullptr)
-		plugin = GetGamePlugin(_pluginName);
-
-	return plugin;
-}
-
-SPluginInfo* SPackageManager::GetEnginePlugin(std::wstring_view _pluginName) noexcept
-{
-	for (auto& _plugin : mEnginePlugins)
-		if (_plugin.mFriendlyName == _pluginName)
-			return &_plugin;
-
-	return nullptr;
-}
-
-SPluginInfo* SPackageManager::GetGamePlugin(std::wstring_view _pluginName) noexcept
-{
-	if (!mWithGamePackage) return nullptr;
-
-	for (auto& _plugin : mProjectPlugins)
-		if (_plugin.mFriendlyName == _pluginName)
-			return &_plugin;
-
-	return nullptr;
-}
-
-SPackageManager::SModuleInfo* SPackageManager::GetModuleInfo(std::wstring_view _moduleName) noexcept
+SModuleManager::SModuleInfo* SModuleManager::GetModuleInfo(std::wstring_view _moduleName) noexcept
 {
 	for (auto& _module : mModuleInfos)
 		if (_module.mModuleName == _moduleName)
@@ -245,7 +59,7 @@ SPackageManager::SModuleInfo* SPackageManager::GetModuleInfo(std::wstring_view _
 	return nullptr;
 }
 
-IModuleInterface* SPackageManager::GetRawModule(std::wstring_view _moduleName) noexcept
+IModuleInterface* SModuleManager::GetRawModule(std::wstring_view _moduleName) noexcept
 {
 	SModuleInfo* module = GetModuleInfo(_moduleName);
 

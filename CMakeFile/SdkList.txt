@@ -1,0 +1,8 @@
+# eg:
+#   set(SUBSTANCE_SDK_DEBUGLIB ${ENGINE_SDK_DIR}/Substance/Lib/Debug)
+#   set(SUBSTANCE_SDK_RELEASELIB ${ENGINE_SDK_DIR}/Substance/Lib/Release)
+#   set(SUBSTANCE_SDK_INCLUDE ${ENGINE_SDK_DIR}/Substance/Include)
+#   set(ENGINE_SDK SUBSTANCE_SDK FBX_SDK XXX_SDK)
+
+# 暂时不依赖于其他sdk
+set(ENGINE_SDKS)
