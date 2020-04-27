@@ -65,3 +65,11 @@ source_group(TREE ${ENGINE_DIR}/ FILES ${ENGINE_FILES} )
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 SET_PROPERTY(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "_CmakeProject")
 SET_PROPERTY(TARGET SevenEngine PROPERTY FOLDER "Engine")
+
+file(WRITE ${ENGINE_DIR}/Intermediate/SevenEngine.vcxproj.user "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<Project ToolsVersion=\"Current\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">
+  <PropertyGroup>
+    <LocalDebuggerCommandArguments>EnginePath=$(SolutionDir)..</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+</Project>")
