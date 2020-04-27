@@ -20,9 +20,11 @@ set(CMAKE_EXE_LINKER_FLAGS_TEST ${CMAKE_EXE_LINKER_FLAGS_RELEASE})
 set(CMAKE_EXE_LINKER_FLAGS_PROFILE ${CMAKE_EXE_LINKER_FLAGS_RELEASE})
 set(CMAKE_EXE_LINKER_FLAGS_SHIPPING ${CMAKE_EXE_LINKER_FLAGS_RELEASE})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${ENGINE_DIR}/Binaries/${CMAKE_BUILD_TYPE})
+set(CMAKE_WIN32_EXECUTABLE ON)
 
 add_compile_options("/std:c++latest")
 add_compile_definitions("$<$<CONFIG:Debug>:SE_BUILD_DEBUG>$<$<CONFIG:Shipping>:SE_BUILD_SHIPPING>$<$<CONFIG:Profile>:SE_BUILD_PROFILE>$<$<CONFIG:Test>:SE_BUILD_TEST>=1")
+add_compile_definitions("SE_BUILD_CONFIG=$<CONFIGURATION>")
 
 include(SdkList.txt)
 
@@ -45,20 +47,18 @@ foreach(includeDir ${srcDir})
     endif()
 endforeach(includeDir)
 
-foreach(sdk in ${ENGINE_SDKS})
-    file(GLOB_RECURSE sdkFiles ${sdk}_INCLUDE)
+foreach(sdk IN ${ENGINE_SDKS})
+    file(GLOB_RECURSE sdkFiles ${${sdk}_INCLUDE})
     list(APPEND ENGINE_FILES ${sdkFiles})
     list(APPEND ENGINE_INCLUDE ${sdkFiles})
-    list(APPEND ENGINE_DEBUG_LIB ${sdk}_DEBUGLIB)
-    list(APPEND ENGINE_RELEASE_LIB ${sdk}_RELEASELIB)
+    list(APPEND ENGINE_DEBUG_LIB ${${sdk}_DEBUGLIB})
+    list(APPEND ENGINE_RELEASE_LIB ${${sdk}_RELEASELIB})
 endforeach()
 
 add_executable(SevenEngine ${ENGINE_FILES})
 include_directories(SevenEngine ${ENGINE_INCLUDE})
-target_link_libraries(SevenEngine Debug ${ENGINE_DEBUG_LIB})
-target_link_libraries(SevenEngine Test ${ENGINE_RELEASE_LIB})
-target_link_libraries(SevenEngine Profile ${ENGINE_RELEASE_LIB})
-target_link_libraries(SevenEngine Shipping ${ENGINE_RELEASE_LIB})
+
+target_link_libraries(SevenEngine $<$<CONFIG:Debug>:${ENGINE_DEBUG_LIB}>$<$<CONFIG:Shipping>:${ENGINE_RELEASE_LIB}>$<$<CONFIG:Profile>:${ENGINE_RELEASE_LIB}>$<$<CONFIG:Test>:${ENGINE_RELEASE_LIB}>)
 
 source_group(TREE ${ENGINE_DIR}/ FILES ${ENGINE_FILES} )
 

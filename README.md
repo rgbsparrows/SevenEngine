@@ -1,4 +1,10 @@
 ﻿# SevenEngine
 * 我们想要的从不是一个完整的引擎，我们想要的只是一个用来实验算法的小角落。记住不要在各种各样的在其他引擎中有意义的工作流上浪费太多的时间。
+## 构建
+* 安装cmake（3.6或更高版本）
+* 安装visualstudio（2019或更高版本）
+* 运行OpenProject.bat（如果已经成功生成项目会打开相应的sln，否则会生成相应的项目后打开sln）
+* 当需要重新生成项目时，可以运行GerneateProjectFile.bat，如果需要强制刷新，可以增加-force命令
+## 文档及开发看板
 * [SevenEngineWiki](https://github.com/rgbsparrows/SevenEngine/wiki)
 * [Terllo开发路线](https://trello.com/b/irnV6VNs/seven-engine)
