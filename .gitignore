@@ -17,6 +17,9 @@
 *
 !*/
 
+# cmake generate files
+Build/
+
 # C/C++ source files
 !*.c
 !*.cc
