@@ -1,8 +1,8 @@
-#include "Packages/PackageManager.h"
+#include "Modules/ModuleManager.h"
 #include "Macros/Assert.h"
 #include "Path/BasicPath.h"
 #include "Logging/Logging.h"
-#include "Packages/ModuleInterface.h"
+#include "Modules/ModuleInterface.h"
 #include "ProgramConfiguation/ProgramConfiguation.h"
 
 #include <fstream>

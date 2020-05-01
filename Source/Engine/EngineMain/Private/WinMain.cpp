@@ -1,5 +1,5 @@
-#include "WindowsPlatform/Public/WindowsPlatformApi.h"
-#include "EngineMain/Public/EngineMain.h"
+#include "WindowsPlatformApi.h"
+#include "EngineMain.h"
 
 int _stdcall wWinMain(
 	HINSTANCE hInstance,
