@@ -8,7 +8,7 @@
 
 __interface IModuleInterface;
 
-using SModuleCreateFuncType = IModuleInterface * ();
+using SModuleCreateFuncType = IModuleInterface * () noexcept;
 
 class SModuleManager : public TAsSingleton<SModuleManager>
 {
@@ -22,18 +22,16 @@ private:
 	};
 
 public:
-
 	void RegistModule(std::wstring_view _moduleName, SModuleCreateFuncType* _moduleCreateFunc) noexcept
 	{
 		mModuleInfos.push_back(SModuleInfo{_moduleName, _moduleCreateFunc, nullptr, 0 });
 	}
 
-	void Init() noexcept {}
+	void Init() noexcept;
 	void Clear() noexcept;
 
 	bool LoadModule(std::wstring_view _moduleName) noexcept;
-	template<typename _moduleClass = IModuleInterface>
-	auto GetModule(std::wstring_view _moduleName) noexcept { return static_cast<_moduleClass>(GetRawModule(_moduleName)); }
+	template<typename _moduleClass = IModuleInterface> auto GetModule(std::wstring_view _moduleName) noexcept { return static_cast<_moduleClass>(GetRawModule(_moduleName)); }
 	void UnloadModule(std::wstring_view _moduleName) noexcept;
 
 private:
