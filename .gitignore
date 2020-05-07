@@ -19,6 +19,10 @@
 
 # cmake generate files
 Intermediate/
+CMakeFile/out/
+
+# binaryfile
+Binaries/
 
 # C/C++ source files
 !*.c
