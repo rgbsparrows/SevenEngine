@@ -11,7 +11,7 @@ namespace NameOfDetail
 	NO_DISCARD_RETURN constexpr std::wstring_view GetFullTypeName() noexcept
 	{
 		std::wstring_view funcsig = MAKE_WIDE(__FUNCSIG__);
-		funcsig.remove_prefix(86);
+		funcsig.remove_prefix(110);
 		funcsig.remove_suffix(16);
 		size_t lastPos = funcsig.find_last_of(L' ');
 		if (lastPos != std::wstring_view::npos)
