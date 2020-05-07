@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Detail/TemplateUtilDetail.inl"
+
 #include <limits>
 
 template<typename _classType>
@@ -30,7 +32,7 @@ constexpr inline auto ArraySize(_type(&)[_arraySize]) noexcept
 	return _arraySize;
 }
 
-template<bool _isUnsigned, size_t _size> using TIntType = TemplateUtilDetail::IntTypeHelper<_isUnsigned, _size>::Type;
+template<bool _isUnsigned, size_t _size> using TIntType = typename TemplateUtilDetail::IntTypeHelper<_isUnsigned, _size>::Type;
 using TSintPtrType = TIntType<false, sizeof(void*)>;
 using TUintPtrType = TIntType<true, sizeof(void*)>;
 using TIntPtrType = TUintPtrType;
