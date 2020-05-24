@@ -1,9 +1,11 @@
 #pragma once
 
 #include "Macros/UtilMacros.h"
+#include "Macros/ConditionDeprecated.h"
 
 #include <string_view>
 #include <stdint.h>
+#include <type_traits>
 
 namespace NameOfDetail
 {
@@ -19,13 +21,19 @@ namespace NameOfDetail
 		return funcsig;
 	}
 
+	REWRITE_WHEN_CONCEPT_AVAILABLE(
+		"验证_type是否是class，struct，union，enum，enum class，或是基本类型\n"
+	)
 	template<typename _type>
 	NO_DISCARD_RETURN constexpr std::wstring_view GetShortTypeName() noexcept
 	{
 		std::wstring_view typeName = GetFullTypeName<_type>();
-		size_t lastPos = typeName.find_last_of(L':');
-		if (lastPos != std::wstring_view::npos)
-			typeName.remove_prefix(lastPos + 1);
+		if constexpr (!std::is_integral_v<_type> && !std::is_floating_point_v<_type>)
+		{
+			size_t lastPos = typeName.find_last_of(L':');
+			if (lastPos != std::wstring_view::npos)
+				typeName.remove_prefix(lastPos + 1);
+		}
 		return typeName;
 	}
 

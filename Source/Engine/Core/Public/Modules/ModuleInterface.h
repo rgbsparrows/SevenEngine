@@ -20,4 +20,4 @@ namespace ModuleDetail
 	};
 }
 
-#define REGIST_MODULE(_moduleName, _moduleClass) ModuleDetail::SModuleRegister __##_moduleClass##_Register(_moduleName, []() noexcept {return new _moduleClass;});
+#define REGIST_MODULE(_moduleName, _moduleClass) ModuleDetail::SModuleRegister __##_moduleClass##_Register(_moduleName, []()->IModuleInterface* noexcept {return new _moduleClass;});

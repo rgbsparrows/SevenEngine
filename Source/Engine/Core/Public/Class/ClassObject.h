@@ -34,7 +34,7 @@ struct TClassObjectInterface : IClassObjectInterface
 	static constexpr bool StaticIsDrivedFromAncestor(uint64_t _ancestorHash) { return TTypeHash<AncestorClass> == _ancestorHash; }
 
 	bool IsDrivedFromAncestor(uint64_t _ancestorHash)const noexcept override { return StaticIsDrivedFromAncestor(_ancestorHash); }
-	virtual void ConstructObject(AncestorClass* _object)const noexcept = 0;
+	virtual AncestorClass* ConstructObject(void* _objectBuffer)const noexcept = 0;
 };
 
 REWRITE_WHEN_CONCEPT_AVAILABLE(
@@ -63,14 +63,14 @@ public:
 	static constexpr bool StaticIsFinalClass() noexcept { return std::is_final_v<Type>; }
 	static constexpr bool StaticIsImplementedFrom(uint64_t _interfaceHash) noexcept
 	{
-		return (TTypeHash<__interface> == _interfaceHash) || ... BaseClass::ClassObjectType::StaticIsImplementedFrom(_interfaceHash);
+		return (TTypeHash<__interface> == _interfaceHash) || ... || BaseClass::ClassObjectType::StaticIsImplementedFrom(_interfaceHash);
 	}
 	static constexpr bool StaticIsDrivedFrom(uint64_t _classHash)
 	{
-		if constexpr (std::is_void_v<BaseClass>) return false
+		if constexpr (std::is_void_v<BaseClass>) return false;
 		else return TTypeHash<BaseClass> == _classHash || BaseClass::ClassObjectType::StaticIsDrivedFrom(_classHash);
 	}
-	template<typename... _argts> static void StaticConstructObject(AncestorClass* _object, _argts... _argvs) noexcept { return new(static_cast<ClassType*>(_object)) Type(_argvs...); }
+	template<typename... _argts> static Type* StaticConstructObject(void* _objectBuffer, _argts... _argvs) noexcept { return new(_object) Type(_argvs...); }
 
 	TClassObject() { RegistClassObject(StaticGetClassHash(), this); }
 
@@ -83,13 +83,13 @@ public:
 	bool IsFinalClass()const noexcept override { return StaticIsFinalClass(); }
 	bool IsImplementedFrom(uint64_t _interfaceHash)const noexcept override { return StaticIsImplementedFrom(_interfaceHash); }
 	bool IsDrivedFrom(uint64_t _classHash)const noexcept override { return StaticIsDrivedFrom(_classHash); }
-	void ConstructObject(AncestorClass* _object)const noexcept override { return StaticConstructObject(_object); }
+	Type* ConstructObject(void* _objectBuffer)const noexcept override { return StaticConstructObject(_object); }
 };
 
-#define DECLARE_ANCESTOR_CLASSOBJECT_BODY(_class, ...)														\
+#define DECLARE_ANCESTOR_CLASSOBJECT_BODY(_class)															\
 public:																										\
 	using ClassObjectInterfaceType = TClassObjectInterface<_class>;											\
-	using ClassObjectType = TClassObject<_class, void, __VA_ARGS__>;										\
+	using ClassObjectType = TClassObject<_class, void>;														\
 	static ClassObjectType* StaticGetClassObject() noexcept { return &ClassObject; }						\
 	virtual ClassObjectInterfaceType* GetClassObject()const noexcept { return StaticGetClassObject(); }		\
 private:																									\
