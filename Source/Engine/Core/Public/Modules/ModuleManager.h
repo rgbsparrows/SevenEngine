@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Template/TemplateUtil.h"
+#include "Macros/Assert.h"
 #include "Macros/UtilMacros.h"
+#include "Template/TemplateUtil.h"
 
+#include <map>
 #include <string_view>
-#include <filesystem>
 
 __interface IModuleInterface;
 
@@ -15,7 +16,6 @@ class SModuleManager : public TAsSingleton<SModuleManager>
 private:
 	struct SModuleInfo
 	{
-		std::wstring_view mModuleName;
 		SModuleCreateFuncType* mModuleCreateFunc = nullptr;
 		IModuleInterface* mModule = nullptr;
 		uint32_t mRefCount = 0;
@@ -24,21 +24,35 @@ private:
 public:
 	void RegistModule(std::wstring_view _moduleName, SModuleCreateFuncType* _moduleCreateFunc) noexcept
 	{
-		mModuleInfos.push_back(SModuleInfo{_moduleName, _moduleCreateFunc, nullptr, 0 });
+		ASSERT(_moduleName != L"" && _moduleCreateFunc!= nullptr);
+
+		mModuleInfoMap[_moduleName] = SModuleInfo{ _moduleCreateFunc, nullptr, 0 };
 	}
 
-	void Init() noexcept;
-	void Clear() noexcept;
+	void Init() noexcept {}
+	void Clear() noexcept {}
 
 	bool LoadModule(std::wstring_view _moduleName) noexcept;
 	template<typename _moduleClass = IModuleInterface> auto GetModule(std::wstring_view _moduleName) noexcept { return static_cast<_moduleClass>(GetRawModule(_moduleName)); }
 	void UnloadModule(std::wstring_view _moduleName) noexcept;
 
 private:
-	SModuleInfo* GetModuleInfo(std::wstring_view _moduleName) noexcept;
-	IModuleInterface* GetRawModule(std::wstring_view _moduleName) noexcept;
+	SModuleInfo* GetModuleInfo(std::wstring_view _moduleName) noexcept
+	{
+		ASSERT(mModuleInfoMap.count(_moduleName) == 1);
+
+		auto it = mModuleInfoMap.find(_moduleName);
+		if (it == mModuleInfoMap.end()) return nullptr;
+		else return &it->second;
+	}
+
+	IModuleInterface* GetRawModule(std::wstring_view _moduleName) noexcept
+	{
+		SModuleInfo* module = GetModuleInfo(_moduleName);
+		return module ? module->mModule : nullptr;
+	}
 
 private:
-
-	std::vector<SModuleInfo> mModuleInfos;
+	//这里的所有moduleName一定都是来源于储存在常量区的字符串，所以可以直接存储，无需担忧生命周期问题
+	std::map<std::wstring_view, SModuleInfo> mModuleInfoMap;
 };

@@ -1,30 +1,35 @@
 #pragma once
 
+#include "Macros/Assert.h"
 #include "Container/Contanier.h"
 #include "Template/TemplateUtil.h"
+
+#include <map>
 
 __interface IClassObjectInterface;
 
 class SClassManager final : public TAsSingleton<SClassManager>
 {
 public:
-	void RegistClassObject(uint64_t _classHash, IClassObjectInterface* _classObject) noexcept
+	void RegistClassObject(uint64_t _classHash, const IClassObjectInterface* _classObject) noexcept
 	{
-		mClassObjects.push_back(std::make_tuple(_classHash, _classObject));
+		ASSERT(_classHash != 0 && _classObject!= nullptr);
+		ASSERT(mClassObjectMap.count(_classHash) == 0);
+
+		mClassObjectMap[_classHash] = _classObject;
 	}
 
-	void Init() noexcept;
-	void Clear() noexcept;
+	void Init() noexcept {}
+	void Clear() noexcept {}
 
-	IClassObjectInterface* GetClassObject(uint64_t _classHash)const noexcept
+	const IClassObjectInterface* GetClassObject(uint64_t _classHash)const noexcept
 	{
-		for (auto& _ele : mClassObjects)
-			if (std::get<0>(_ele) == _classHash)
-				return std::get<1>(_ele);
+		auto it = mClassObjectMap.find(_classHash);
 
-		return nullptr;
+		if (it == mClassObjectMap.end()) return nullptr;
+		else return it->second;
 	}
 
 private:
-	PackageVector<uint64_t, IClassObjectInterface*> mClassObjects;
+	std::map<uint64_t, const IClassObjectInterface*> mClassObjectMap;
 };
