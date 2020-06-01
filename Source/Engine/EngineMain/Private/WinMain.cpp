@@ -11,7 +11,7 @@ int _stdcall wWinMain(
 	hPrevInstance;
 	lpCmdLine;
 	nCmdShow;
-	SWindowsPlatformApi::MessageBox(nullptr, SWindowsPlatformApi::GetCommandLine(), L"", EMessageBoxFlag::MB_OK);
+
 	SEngineMain::EngineMain();
 
 	return 0;

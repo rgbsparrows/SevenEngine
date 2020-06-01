@@ -7,12 +7,11 @@
 
 #include <fstream>
 
-
 void SModuleManager::Clear() noexcept
 {
 #if WITH_DEBUG_CODE
-	for (const auto& _module : mModuleInfos)
-		CHECK(_module.mRefCount == 0);
+	for (auto& _ele : mModuleInfoMap)
+		ASSERT(_ele.second.mRefCount == 0);
 #endif
 }
 
@@ -50,20 +49,7 @@ void SModuleManager::UnloadModule(std::wstring_view _moduleName) noexcept
 	module->mRefCount--;
 }
 
-SModuleManager::SModuleInfo* SModuleManager::GetModuleInfo(std::wstring_view _moduleName) noexcept
+ModuleDetail::SModuleRegister::SModuleRegister(std::wstring_view _moduleName, IModuleInterface* (*_moduleCreateFunc)() noexcept) noexcept
 {
-	for (auto& _module : mModuleInfos)
-		if (_module.mModuleName == _moduleName)
-			return &_module;
-
-	return nullptr;
-}
-
-IModuleInterface* SModuleManager::GetRawModule(std::wstring_view _moduleName) noexcept
-{
-	SModuleInfo* module = GetModuleInfo(_moduleName);
-
-	CHECK(module != nullptr);
-
-	return module->mModule;
+	SModuleManager::Get().RegistModule(_moduleName, _moduleCreateFunc);
 }

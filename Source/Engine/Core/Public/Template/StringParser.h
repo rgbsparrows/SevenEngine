@@ -1,6 +1,6 @@
 #pragma once
 
-#include "StringParser.inl"
+#include "Detail/StringParserDetail.inl"
 
 #include <string>
 #include <filesystem>
