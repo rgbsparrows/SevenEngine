@@ -7,6 +7,14 @@
 
 #include <fstream>
 
+void SModuleManager::Clear() noexcept
+{
+#if WITH_DEBUG_CODE
+	for (auto& _ele : mModuleInfoMap)
+		ASSERT(_ele.second.mRefCount == 0);
+#endif
+}
+
 bool SModuleManager::LoadModule(std::wstring_view _moduleName) noexcept
 {
 	SModuleInfo* module = GetModuleInfo(_moduleName);

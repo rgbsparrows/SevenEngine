@@ -30,7 +30,7 @@ public:
 	}
 
 	void Init() noexcept {}
-	void Clear() noexcept {}
+	void Clear() noexcept;
 
 	bool LoadModule(std::wstring_view _moduleName) noexcept;
 	template<typename _moduleClass = IModuleInterface> auto GetModule(std::wstring_view _moduleName) noexcept { return static_cast<_moduleClass>(GetRawModule(_moduleName)); }

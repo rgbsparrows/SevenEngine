@@ -32,7 +32,7 @@ struct TClassObjectInterface : IClassObjectInterface
 {
 	using AncestorClass = _ancestorClass;
 
-	static constexpr bool StaticIsDrivedFromAncestor(uint64_t _ancestorHash) { return TTypeHash<AncestorClass> == _ancestorHash; }
+	static constexpr bool StaticIsDrivedFromAncestor(uint64_t _ancestorHash)noexcept { return TTypeHash<AncestorClass> == _ancestorHash; }
 
 	bool IsDrivedFromAncestor(uint64_t _ancestorHash)const noexcept override { return StaticIsDrivedFromAncestor(_ancestorHash); }
 	virtual AncestorClass* ConstructObject(void* _objectBuffer)const noexcept = 0;
