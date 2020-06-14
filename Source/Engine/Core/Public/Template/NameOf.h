@@ -2,7 +2,7 @@
 
 #include "Detail/NameOfDetail.inl"
 
-NO_DISCARD_RETURN constexpr uint64_t CalcStrHash(std::wstring_view _str)
+NO_DISCARD_RETURN constexpr uint64_t CalcStrHash(std::wstring_view _str) noexcept
 {
 	return NameOfDetail::CalcStrHash(_str);
 }

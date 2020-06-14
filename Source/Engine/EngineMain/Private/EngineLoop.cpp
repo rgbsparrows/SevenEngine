@@ -9,4 +9,14 @@ void SEngineLoop::PreInit() noexcept
 
 	SModuleManager::Get().Init();
 	SClassManager::Get().Init();
+
+	SModuleManager::Get().LoadModule(L"UIModule");
+
+}
+
+void SEngineLoop::Run() noexcept
+{
+	while (!mShouldExit)
+	{
+	}
 }
