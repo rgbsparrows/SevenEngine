@@ -40,10 +40,6 @@ Binaries/
 !*.rc2
 !*.def
 !*.exp
-!*.manifest
-
-# Re-ignore vs host manifest
-*.vshost.exe.manifest
 
 # C# source files
 !*.cs
@@ -52,10 +48,7 @@ Binaries/
 !*.resx
 
 # Shader formats
-!*.usf
-!*.ush
 !*.hlsl
-!*.glsl
 
 # Text files
 !*.txt
@@ -63,11 +56,6 @@ Binaries/
 
 # Script files
 !*.bat
-!*.sh
-!*.pl
-!*.py
-!*.js
-!*.command
 
 # Other configuration and markup files
 !*.ini
@@ -75,34 +63,10 @@ Binaries/
 !*.tps
 !*.xml
 !*.xaml
-!*.uproject
-!*.uplugin
-!*.html
-!*.html.template
-!*.css
-!*.udn
 !*.config
 !*.version
 !.git*
 !.editorconfig
-
-# Projects and makefiles
-!*.cmake
-!*.mk
-!*.dsp
-!*.dsw
-!*.csproj
-!*.vcproj
-!*.vcxproj
-!*.vcxproj.filters
-!*.sln
-!*.xcodeproj
-!*.xcconfig
-!*.vsprops
-!*.snippet
-!Makefile
-!Makefile.*
-!Settings.settings
 
 # Specific names
 !README
@@ -112,18 +76,11 @@ Binaries/
 !VERSION
 !ChangeLog
 
-# Exceptions
-/*.sln
-/Makefile
-/CMakeLists.txt
-/cmake-build-debug
-
 # Ignore content folders
 Content/
 
 # Ignore intermediate folders
 Intermediate/
-obj/
 
 # Ignore VS / VS Code settings directory
 .vs

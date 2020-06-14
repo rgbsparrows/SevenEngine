@@ -44,5 +44,5 @@ void LogErr(_argts&&... _args) noexcept
 {
 	std::wstring message = CombinString(L"ERROR: ", _args...);
 	SWindowsPlatformApi::OutputDebugString(message);
-	SWindowsPlatformApi::MessageBox(nullptr, message, L"LOG ERR", EMessageBoxFlag::MB_OK);
+	SWindowsPlatformApi::MessageBox(nullptr, message, L"LOG ERR", EWinMessageBoxFlag::MB_OK);
 }

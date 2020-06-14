@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Template/TemplateUtil.h"
-
 #include <stdint.h>
 #include <type_traits>
 
@@ -19,5 +17,3 @@ using HICON		= TUniqueHandleHelper<4>;
 using HCURSOR	= TUniqueHandleHelper<5>;
 using HBRUSH	= TUniqueHandleHelper<6>;
 using HMENU		= TUniqueHandleHelper<7>;
-
-using SWndProcFuncType = TSintPtrType(_stdcall)(HWND, uint32_t, TIntPtrType, TSintPtrType);

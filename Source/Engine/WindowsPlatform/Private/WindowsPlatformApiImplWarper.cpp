@@ -97,12 +97,14 @@ namespace WindowsPlatformApiWarp_Impl
 		void* _icon,
 		void* _cursor,
 		void* _background,
+		std::wstring_view _menuName,
 		std::wstring_view _className,
 		void* _smallIcon,
 		uint32_t* _errorCode
 	) noexcept
 	{
 		std::wstring className(_className.begin(), _className.end());
+		std::wstring menuName(_menuName.begin(), _menuName.end());
 
 		WNDCLASSEXW wndClass;
 		wndClass.cbSize = sizeof(WNDCLASSEXW);
@@ -114,6 +116,7 @@ namespace WindowsPlatformApiWarp_Impl
 		wndClass.hIcon = reinterpret_cast<HICON>(_icon);
 		wndClass.hCursor = reinterpret_cast<HCURSOR>(_cursor);
 		wndClass.hbrBackground = reinterpret_cast<HBRUSH>(_background);
+		wndClass.lpszMenuName = menuName.c_str();
 		wndClass.lpszClassName = className.c_str();
 		wndClass.hIconSm = reinterpret_cast<HICON>(_smallIcon);
 
@@ -201,6 +204,35 @@ namespace WindowsPlatformApiWarp_Impl
 	{
 		BOOL res = DestroyWindow(reinterpret_cast<HWND>(_wnd));
 		if (_errorCode) *_errorCode = GetLastError();
+		return res == TRUE;
+	}
+
+	intptr_t DefWindowProc_WindowsImpl(void* _wnd, uint32_t _message, uintptr_t _wparam, intptr_t _lparam) noexcept
+	{
+		return DefWindowProcW(reinterpret_cast<HWND>(_wnd), _message, _wparam, _lparam);
+	}
+
+	void ProcessWinMessage_WindowsImpl() noexcept
+	{
+		MSG msg;
+		while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
+	bool IsWinMessageQueueClose_WindowsImpl() noexcept
+	{
+		MSG msg;
+		PeekMessageW(&msg, nullptr, 0, 0, PM_NOREMOVE);
+		return msg.message == WM_QUIT;
+	}
+
+	bool SetWindowTitle_WindowsImpl(void* _wnd, std::wstring_view _title) noexcept
+	{
+		std::wstring title(_title.begin(), _title.end());
+		BOOL res = SetWindowTextW(reinterpret_cast<HWND>(_wnd), title.c_str());
 		return res == TRUE;
 	}
 }

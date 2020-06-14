@@ -22,6 +22,7 @@ __interface IClassObjectInterface
 	size_t GetClassAlign()const noexcept;
 	bool IsAbstractClass()const noexcept;
 	bool IsFinalClass()const noexcept;
+	bool IsInstanceOf(uint64_t _classHash)const noexcept;
 	bool IsImplementedFrom(uint64_t _interfaceHash)const noexcept;
 	bool IsDrivedFrom(uint64_t _classHash)const noexcept;
 	bool IsDrivedFromAncestor(uint64_t _ancestorHash)const noexcept;
@@ -64,6 +65,10 @@ public:
 	static constexpr size_t StaticGetClassAlign() noexcept { return alignof(Type); }
 	static constexpr bool StaticIsAbstractClass() noexcept { return std::is_abstract_v<Type>; }
 	static constexpr bool StaticIsFinalClass() noexcept { return std::is_final_v<Type>; }
+	static constexpr bool StaticIsInstanceOf(uint64_t _classHash) noexcept
+	{
+		return StaticGetClassHash() == _classHash || StaticIsImplementedFrom(_classHash) || StaticIsDrivedFrom(_classHash);
+	}
 	static constexpr bool StaticIsImplementedFrom(uint64_t _interfaceHash) noexcept
 	{
 		if constexpr (IsAncestorClass) return ((TTypeHash<_interface> == _interfaceHash) || ...);
@@ -74,7 +79,11 @@ public:
 		if constexpr (std::is_void_v<BaseClass>) return false;
 		else return TTypeHash<BaseClass> == _classHash || BaseClass::ClassObjectType::StaticIsDrivedFrom(_classHash);
 	}
-	template<typename... _argts> static Type* StaticConstructObject(void* _objectBuffer, _argts... _argvs) noexcept { return new(_objectBuffer) Type(_argvs...); }
+	template<typename... _argts> static Type* StaticConstructObject(void* _objectBuffer, _argts... _argvs) noexcept
+	{
+		if constexpr (std::is_abstract_v<Type>) return nullptr;
+		else return new(_objectBuffer) Type(_argvs...);
+	}
 
 	TClassObject() { ClassObjectDetail::RegistClassObject(StaticGetClassHash(), this); }
 
@@ -85,6 +94,7 @@ public:
 	size_t GetClassAlign()const noexcept override { return StaticGetClassAlign(); }
 	bool IsAbstractClass()const noexcept override { return StaticIsAbstractClass(); }
 	bool IsFinalClass()const noexcept override { return StaticIsFinalClass(); }
+	bool IsInstanceOf(uint64_t _classHash)const noexcept override { return StaticIsInstanceOf(_classHash); }
 	bool IsImplementedFrom(uint64_t _interfaceHash)const noexcept override { return StaticIsImplementedFrom(_interfaceHash); }
 	bool IsDrivedFrom(uint64_t _classHash)const noexcept override { return StaticIsDrivedFrom(_classHash); }
 	Type* ConstructObject(void* _objectBuffer)const noexcept override { return StaticConstructObject(_objectBuffer); }
@@ -106,5 +116,7 @@ public:																											\
 	using ClassObjectType = TClassObject<_class, __VA_ARGS__>;													\
 	static const ClassObjectType* StaticGetClassObject() noexcept { return &ClassObject; }						\
 	const ClassObjectInterfaceType* GetClassObject()const noexcept override { return StaticGetClassObject(); }	\
+	using AncestorClass = typename ClassObjectType::AncestorClass;													\
+	using BaseClass = typename ClassObjectType::BaseClass;															\
 private:																										\
 	inline static ClassObjectType ClassObject;																	
