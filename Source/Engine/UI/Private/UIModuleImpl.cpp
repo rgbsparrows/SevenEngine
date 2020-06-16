@@ -1,8 +1,8 @@
 ﻿#include "UIModuleImpl.h"
-#include "Logging/Logging.h"
-#include "WindowsConstants.h"
-#include "WindowsPlatformApi.h"
-#include "Modules/ModuleInterface.h"
+#include "Core/Logging/Logging.h"
+#include "Core/Modules/ModuleInterface.h"
+#include "WindowsPlatform/WindowsConstants.h"
+#include "WindowsPlatform/WindowsPlatformApi.h"
 
 SUIModuleImpl* GUIModuleImpl = nullptr;
 
