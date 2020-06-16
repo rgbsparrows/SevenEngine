@@ -1,6 +1,6 @@
-#include "WindowsPlatformApi.h"
+#include "Core/Localize.h"
 #include "WindowsPlatformApiImplWarper.h"
-#include "Localize.h"
+#include "WindowsPlatform/WindowsPlatformApi.h"
 
 std::wstring SWindowsPlatformApi::ConvertStringToWstring(uint32_t _codePage, std::string_view _srcString) noexcept
 {

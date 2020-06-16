@@ -1,7 +1,7 @@
-#include "Thread.h"
 #include "EngineLoop.h"
-#include "Class/ClassManager.h"
-#include "Modules/ModuleManager.h"
+#include "Core/Thread.h"
+#include "Core/Class/ClassManager.h"
+#include "Core/Modules/ModuleManager.h"
 
 void SEngineLoop::PreInit() noexcept
 {

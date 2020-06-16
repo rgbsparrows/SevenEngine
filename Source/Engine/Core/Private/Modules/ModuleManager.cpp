@@ -1,9 +1,9 @@
-#include "Modules/ModuleManager.h"
-#include "Macros/Assert.h"
-#include "Path/BasicPath.h"
-#include "Logging/Logging.h"
-#include "Modules/ModuleInterface.h"
-#include "ProgramConfiguation/ProgramConfiguation.h"
+#include "Core/Macros/Assert.h"
+#include "Core/Path/BasicPath.h"
+#include "Core/Logging/Logging.h"
+#include "Core/Modules/ModuleManager.h"
+#include "Core/Modules/ModuleInterface.h"
+#include "Core/ProgramConfiguation/ProgramConfiguation.h"
 
 #include <fstream>
 

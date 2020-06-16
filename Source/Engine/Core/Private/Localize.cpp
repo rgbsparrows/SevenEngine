@@ -1,5 +1,5 @@
-#include "Localize.h"
-#include "WindowsPlatformApi.h"
+#include "Core/Localize.h"
+#include "WindowsPlatform/WindowsPlatformApi.h"
 
 namespace Locale
 {

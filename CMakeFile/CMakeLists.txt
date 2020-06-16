@@ -42,8 +42,10 @@ list(APPEND ENGINE_FILES ${srcFile} ${shaderFile} ${configFile})
 file(GLOB_RECURSE srcDir LIST_DIRECTORIES true ${ENGINE_DIR}/Source/Engine/*/)
 foreach(includeDir ${srcDir})
     get_filename_component(name ${includeDir} NAME)
-    if(${name} STREQUAL "Public")
+#将Private目录添加到include路径主要是避免在模块中的private实现中，出现include "../XXX"之类的情况，所以不要在其他的模块中引用private目录
+    if(EXISTS ${includeDir}/${name} AND EXISTS ${includeDir}/Private)
         list(APPEND ENGINE_INCLUDE ${includeDir})
+        list(APPEND ENGINE_INCLUDE ${includeDir}/Private)
     endif()
 endforeach(includeDir)
 

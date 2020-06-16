@@ -1,6 +1,6 @@
-#include "UIElement.h"
-#include "UIContainer.h"
-#include "Macros/Assert.h"
+#include "UI/UIElement.h"
+#include "UI/UIContainer.h"
+#include "Core/Macros/Assert.h"
 
 void SUIElement::SetSortKey(uint64_t _sortKey) noexcept
 {

@@ -1,4 +1,4 @@
-#include "Thread.h"
+#include "Core/Thread.h"
 
 std::thread::id GGameThreadId;
 std::thread::id GRenderThreadId;

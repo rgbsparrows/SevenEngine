@@ -1,5 +1,5 @@
-﻿#include "CommandLine/CommandLine.h"
-#include "WindowsPlatformApi.h"
+﻿#include "Core/CommandLine/CommandLine.h"
+#include "WindowsPlatform/WindowsPlatformApi.h"
 
 #include <mutex>
 

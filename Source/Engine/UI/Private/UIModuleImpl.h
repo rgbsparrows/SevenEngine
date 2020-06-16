@@ -1,9 +1,9 @@
 #pragma once
 
-#include "UIModule.h"
-#include "WindowsTypes.h"
-#include "Allocator/RawAllocator.h"
-#include "UIInterface/UIWinMessageHandlerInterface.h"
+#include "UI/UIModule.h"
+#include "Core/Allocator/RawAllocator.h"
+#include "WindowsPlatform/WindowsTypes.h"
+#include "UI/UIInterface/UIWinMessageHandlerInterface.h"
 
 class SUIModuleImpl : public IUIModuleInterface
 {
