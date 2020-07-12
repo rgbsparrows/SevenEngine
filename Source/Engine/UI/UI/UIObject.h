@@ -9,7 +9,7 @@ class SUIObject
 	DECLARE_ANCESTOR_CLASSOBJECT_BODY(SUIObject)
 public:
 	Math::SIntRect GetRect() const noexcept { return mRect; }
-	void Release() noexcept { OnRelease(); delete this; }
+	void Release() noexcept;
 
 public:
 	REWRITE_WHEN_SE_UIMODULE_EVENT_AVAILABLE("这些事件应该都是private/protected的，而后通过事件机制来进行回调")

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "UI/UIModule.h"
-#include "Core/Allocator/RawAllocator.h"
+#include "Core/Allocator/Allocator.h"
 #include "WindowsPlatform/WindowsTypes.h"
 #include "UI/UIInterface/UIWinMessageHandlerInterface.h"
 
@@ -18,6 +18,8 @@ public:
 	SUIObject* CreateUIObject(const IClassObjectInterface* _classObject) noexcept override;
 
 	SUIObject* CreateUIObject(const IUIClassObjectInterface* _classObject) noexcept override;
+
+	void ReleaseUIObject(SUIObject* _uiObject) noexcept;
 
 	void RegistWindow(HWND _hwnd, IUIWinMessageHandler* _handler) noexcept;
 
