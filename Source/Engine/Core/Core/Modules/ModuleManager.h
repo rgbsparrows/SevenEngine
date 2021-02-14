@@ -48,8 +48,8 @@ private:
 
 	IModuleInterface* GetRawModule(std::wstring_view _moduleName) noexcept
 	{
-		SModuleInfo* module = GetModuleInfo(_moduleName);
-		return module ? module->mModule : nullptr;
+		SModuleInfo* seModule = GetModuleInfo(_moduleName);
+		return seModule ? seModule->mModule : nullptr;
 	}
 
 private:

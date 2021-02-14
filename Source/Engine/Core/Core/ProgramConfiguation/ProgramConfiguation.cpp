@@ -18,3 +18,9 @@ std::filesystem::path SProgramConfiguation::GetProjectPath() noexcept
 	static std::filesystem::path projectPath = SCommandLine::GetArgumentValue<std::filesystem::path>(L"ProjectPath").second;
 	return projectPath;
 }
+
+bool SProgramConfiguation::UseDebugShader() noexcept
+{
+	static bool useDebugShader = SCommandLine::GetArgumentValue<bool>(L"UseDebugShader", false).second;
+	return useDebugShader;
+}

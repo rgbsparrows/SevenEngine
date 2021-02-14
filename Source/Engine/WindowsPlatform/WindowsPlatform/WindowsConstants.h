@@ -45,7 +45,6 @@ enum class EWinMessageBoxFlag : uint32_t
 };
 REGIST_ENUM_FLAG(EWinMessageBoxFlag)
 
-
 enum class EWinMessboxResult : uint32_t
 {
 	IDOK		= 1,

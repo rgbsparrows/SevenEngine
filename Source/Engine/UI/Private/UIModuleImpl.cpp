@@ -4,7 +4,7 @@
 #include "WindowsPlatform/WindowsConstants.h"
 #include "WindowsPlatform/WindowsPlatformApi.h"
 
-SUIModuleImpl* GUIModuleImpl = nullptr;
+static SUIModuleImpl* GUIModuleImpl = nullptr;
 
 IUIModuleInterface* GetUIModule() noexcept
 {
@@ -15,6 +15,8 @@ SUIModuleImpl* GetUIModuleImpl() noexcept
 {
 	return GUIModuleImpl;
 }
+
+REGIST_MODULE(L"UIModule", SUIModuleImpl)
 
 
 intptr_t _stdcall GWNDPROC(HWND _hwnd, EWinMessage _message, uintptr_t _wparam, intptr_t _lparam)
@@ -70,6 +72,14 @@ SUIObject* SUIModuleImpl::CreateUIObject(const IUIClassObjectInterface* _classOb
 	return _classObject->ConstructObject(objectBuffer);
 }
 
+void SUIModuleImpl::ReleaseUIObject(SUIObject* _uiObject) noexcept
+{
+	size_t align = _uiObject->GetClassObject()->GetClassAlign();
+
+	_uiObject->~SUIObject();
+	mAllocator.Deallocate(_uiObject, align);
+}
+
 void SUIModuleImpl::RegistWindow(HWND _hwnd, IUIWinMessageHandler* _handler) noexcept
 {
 #if WITH_DEBUG_CODE
@@ -111,5 +121,3 @@ IUIWinMessageHandler* SUIModuleImpl::FindHandler(HWND _hwnd) noexcept
 		return it->second;
 	else return nullptr;
 }
-
-REGIST_MODULE(L"UIModule", SUIModuleImpl)

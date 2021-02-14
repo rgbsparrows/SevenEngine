@@ -11,7 +11,7 @@ void SEngineLoop::PreInit() noexcept
 	SClassManager::Get().Init();
 
 	SModuleManager::Get().LoadModule(L"UIModule");
-
+	SModuleManager::Get().LoadModule(L"RDIModule");
 }
 
 void SEngineLoop::Run() noexcept
