@@ -17,36 +17,36 @@ void SModuleManager::Clear() noexcept
 
 bool SModuleManager::LoadModule(std::wstring_view _moduleName) noexcept
 {
-	SModuleInfo* module = GetModuleInfo(_moduleName);
+	SModuleInfo* seModule = GetModuleInfo(_moduleName);
 
-	CHECK(module != nullptr);
+	CHECK(seModule != nullptr);
 
-	if (module->mRefCount == 0)
+	if (seModule->mRefCount == 0)
 	{
-		module->mModule = (module->mModuleCreateFunc)();
-		if (!module->mModule->Init())
+		seModule->mModule = (seModule->mModuleCreateFunc)();
+		if (!seModule->mModule->Init())
 			return false;
 	}
 
-	module->mRefCount++;
+	seModule->mRefCount++;
 
 	return true;
 }
 
 void SModuleManager::UnloadModule(std::wstring_view _moduleName) noexcept
 {
-	SModuleInfo* module = GetModuleInfo(_moduleName);
+	SModuleInfo* seModule = GetModuleInfo(_moduleName);
 
-	CHECK(module != nullptr);
-	CHECK(module->mRefCount >= 1);
+	CHECK(seModule != nullptr);
+	CHECK(seModule->mRefCount >= 1);
 
-	if (module->mRefCount == 1)
+	if (seModule->mRefCount == 1)
 	{
-		module->mModule->Clear();
-		module->mModule = nullptr;
+		seModule->mModule->Clear();
+		seModule->mModule = nullptr;
 	}
 
-	module->mRefCount--;
+	seModule->mRefCount--;
 }
 
 ModuleDetail::SModuleRegister::SModuleRegister(std::wstring_view _moduleName, IModuleInterface* (*_moduleCreateFunc)() noexcept) noexcept

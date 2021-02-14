@@ -62,7 +62,7 @@ namespace Math
 
 		constexpr TTypeArray(UnderlyingType _v0) noexcept
 		{
-			mValue[0] = _v0;
+			TTypeArrayBase::mValue[0] = _v0;
 		}
 	};
 
@@ -82,8 +82,8 @@ namespace Math
 
 		constexpr TTypeArray(UnderlyingType _v0, UnderlyingType _v1) noexcept
 		{
-			mValue[0] = _v0;
-			mValue[1] = _v1;
+			TTypeArrayBase::mValue[0] = _v0;
+			TTypeArrayBase::mValue[1] = _v1;
 		}
 	};
 
@@ -103,9 +103,9 @@ namespace Math
 
 		constexpr TTypeArray(UnderlyingType _v0, UnderlyingType _v1, UnderlyingType _v2) noexcept
 		{
-			mValue[0] = _v0;
-			mValue[1] = _v1;
-			mValue[2] = _v2;
+			TTypeArrayBase::mValue[0] = _v0;
+			TTypeArrayBase::mValue[1] = _v1;
+			TTypeArrayBase::mValue[2] = _v2;
 		}
 	};
 
@@ -125,11 +125,32 @@ namespace Math
 
 		constexpr TTypeArray(UnderlyingType _v0, UnderlyingType _v1, UnderlyingType _v2, UnderlyingType _v3) noexcept
 		{
-			mValue[0] = _v0;
-			mValue[1] = _v1;
-			mValue[2] = _v2;
-			mValue[3] = _v3;
+			TTypeArrayBase::mValue[0] = _v0;
+			TTypeArrayBase::mValue[1] = _v1;
+			TTypeArrayBase::mValue[2] = _v2;
+			TTypeArrayBase::mValue[3] = _v3;
 		}
+	};
+
+#pragma endregion
+
+#pragma region fraction
+
+	template<typename _underlyingType>
+	struct TFraction
+	{
+		using UnderlyingType = _underlyingType;
+
+		constexpr TFraction() noexcept = default;
+		constexpr TFraction(const TFraction&) noexcept = default;
+
+		constexpr TFraction(UnderlyingType _numerator, UnderlyingType _denominator) noexcept
+			: mNumerator(_numerator), mDenominator(_denominator)
+		{
+		}
+
+		UnderlyingType mNumerator = UnderlyingType();
+		UnderlyingType mDenominator = UnderlyingType();
 	};
 
 #pragma endregion
@@ -144,18 +165,70 @@ namespace Math
 		constexpr TRect() noexcept = default;
 		constexpr TRect(const TRect&) noexcept = default;
 
-		constexpr TRect(UnderlyingType _left, UnderlyingType _on, UnderlyingType _right, UnderlyingType _down) noexcept
-			:mLeft(_left), mOn(_on), mRight(_right), mDown(_down)
+
+		constexpr TRect(TTypeArray<UnderlyingType, 2> _leftOn, TTypeArray<UnderlyingType, 2> _rightDown) noexcept
+			:mLeftOn(_leftOn), mRightDwon(_rightDown)
 		{
 		}
 
-		constexpr UnderlyingType GetWidth()const noexcept { return mRight - mLeft; }
-		constexpr UnderlyingType GetHeight()const noexcept { return mDown - mOn; }
+		constexpr TRect(UnderlyingType _left, UnderlyingType _on, UnderlyingType _right, UnderlyingType _down) noexcept
+			:mLeftOn(_left, _on), mRightDwon(_right, _down)
+		{
+		}
 
-		UnderlyingType mLeft	= UnderlyingType();
-		UnderlyingType mOn		= UnderlyingType();
-		UnderlyingType mRight	= UnderlyingType();
-		UnderlyingType mDown	= UnderlyingType();
+		constexpr UnderlyingType GetWidth()const noexcept { return mRightDwon[0] - mLeftOn[0]; }
+		constexpr UnderlyingType GetHeight()const noexcept { return mRightDwon[1] - mLeftOn[1]; }
+
+		TTypeArray<UnderlyingType, 2> mLeftOn;
+		TTypeArray<UnderlyingType, 2> mRightDwon;
+	};
+
+#pragma endregion
+
+#pragma region
+
+	template<typename _underlyingType>
+	struct TBox
+	{
+		using UnderlyingType = _underlyingType;
+
+		constexpr TBox() noexcept = default;
+		constexpr TBox(const TBox&) noexcept = default;
+
+		constexpr TBox(TTypeArray<UnderlyingType, 3> _leftOnFront, TTypeArray<UnderlyingType, 3> _rightDownBack) noexcept
+			:mLeftOnFront(_leftOnFront), mRightDwonBack(_rightDownBack)
+		{
+		}
+
+		constexpr TBox(UnderlyingType _left, UnderlyingType _on, UnderlyingType _front, UnderlyingType _right, UnderlyingType _down, UnderlyingType _back) noexcept
+			:mLeftOnFront(_left, _on, _front), mRightDwonBack(_on, _right, _down)
+		{
+		}
+
+		constexpr UnderlyingType GetWidth()const noexcept { return mRightDwonBack[0] - mLeftOnFront[0]; }
+		constexpr UnderlyingType GetHeight()const noexcept { return mRightDwonBack[1] - mLeftOnFront[1]; }
+		constexpr UnderlyingType GetDepth()const noexcept { return mRightDwonBack[2] - mLeftOnFront[2]; }
+
+		TTypeArray<UnderlyingType, 3> mLeftOnFront;
+		TTypeArray<UnderlyingType, 3> mRightDwonBack;
+	};
+
+#pragma endregion
+
+#pragma region color
+
+	template<typename _underlyingType>
+	struct TColor
+	{
+		using UnderlyingType = _underlyingType;
+		union
+		{
+			UnderlyingType Color[4];
+			UnderlyingType x, y, z, w;
+			UnderlyingType X, Y, Z, W;
+			UnderlyingType r, g, b, a;
+			UnderlyingType R, G, B, A;
+		};
 	};
 
 #pragma endregion
@@ -177,9 +250,18 @@ namespace Math
 	using SFloat3 = TTypeArray<float, 3>;
 	using SFloat4 = TTypeArray<float, 4>;
 
+	using SIntFraction = TFraction<int32_t>;
+	using SUIntFraction = TFraction<uint32_t>;
+
 	using SIntRect = TRect<int32_t>;
 	using SUIntRect = TRect<uint32_t>;
 	using SFloatRect = TRect<float>;
+
+	using SFloatBox = TBox<float>;
+
+	using SIColor = TColor<int32_t>;
+	using SUColor = TColor<uint32_t>;
+	using SFColor = TColor<float>;
 
 #pragma endregion
 }

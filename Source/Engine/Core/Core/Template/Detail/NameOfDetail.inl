@@ -21,9 +21,6 @@ namespace NameOfDetail
 		return funcsig;
 	}
 
-	REWRITE_WHEN_CONCEPT_AVAILABLE(
-		"验证_type是否是class，struct，union，enum，enum class，或是基本类型\n"
-	)
 	template<typename _type>
 	NO_DISCARD_RETURN constexpr std::wstring_view GetShortTypeName() noexcept
 	{

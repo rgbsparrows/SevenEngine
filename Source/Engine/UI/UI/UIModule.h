@@ -30,7 +30,7 @@ public:
 	{
 		using Type = _type;
 		if (_classObject->IsDrivedFromAncestor(SUIObject::ClassObjectType::StaticGetClassHash()))
-			return CreateUIObject<Type>(static_cast<const IUIClassObjectInterface*>(_classObject))
+			return CreateUIObject<Type>(static_cast<const IUIClassObjectInterface*>(_classObject));
 		else return nullptr;
 	}
 

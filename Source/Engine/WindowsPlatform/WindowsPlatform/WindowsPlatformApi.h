@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ErrorCode.h"
-#include "WindowsTypes.h"
-#include "WindowsConstants.h"
+#include "WindowsPlatform/ErrorCode.h"
+#include "WindowsPlatform/WindowsTypes.h"
+#include "WindowsPlatform/WindowsConstants.h"
 
 #include <string>
 #include <filesystem>

@@ -1,8 +1,6 @@
 ﻿#include "Core/CommandLine/CommandLine.h"
 #include "WindowsPlatform/WindowsPlatformApi.h"
 
-#include <mutex>
-
 std::wstring SCommandLine::GetCommandLine() noexcept
 {
 	return SWindowsPlatformApi::GetCommandLine();

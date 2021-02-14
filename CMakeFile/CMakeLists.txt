@@ -23,6 +23,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${ENGINE_DIR}/Binaries/${CMAKE_BUILD_TYPE})
 set(CMAKE_WIN32_EXECUTABLE ON)
 
 add_compile_options("/std:c++latest")
+add_compile_options("/GR-")
+add_compile_options("/WX")
 add_compile_definitions("$<$<CONFIG:Debug>:SE_BUILD_DEBUG>$<$<CONFIG:Shipping>:SE_BUILD_SHIPPING>$<$<CONFIG:Profile>:SE_BUILD_PROFILE>$<$<CONFIG:Test>:SE_BUILD_TEST>=1")
 add_compile_definitions("SE_BUILD_CONFIG=$<CONFIGURATION>")
 

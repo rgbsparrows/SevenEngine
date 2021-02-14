@@ -9,4 +9,6 @@ struct SProgramConfiguation
 	static bool IsWithProject() noexcept;
 
 	static std::filesystem::path GetProjectPath() noexcept;
+
+	static bool UseDebugShader() noexcept;
 };

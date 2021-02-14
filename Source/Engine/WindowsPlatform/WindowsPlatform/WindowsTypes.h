@@ -17,3 +17,4 @@ using HICON		= TUniqueHandleHelper<4>;
 using HCURSOR	= TUniqueHandleHelper<5>;
 using HBRUSH	= TUniqueHandleHelper<6>;
 using HMENU		= TUniqueHandleHelper<7>;
+using HMONITOR	= TUniqueHandleHelper<8>;
