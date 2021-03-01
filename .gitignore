@@ -24,6 +24,9 @@ CMakeFile/out/
 # binaryfile
 Binaries/
 
+# Doc
+!/Doc/**
+
 # C/C++ source files
 !*.c
 !*.cc
