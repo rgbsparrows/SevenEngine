@@ -2,16 +2,15 @@
 #include "D3D12Resource.h"
 #include "Core/Macros/Assert.h"
 #include "D3D/D3D12/D3D12Device.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarper.h"
 
-void SD3D12Buffer::Init(void* _nativePtr, const SRDIBufferResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Buffer::Init(ID3D12Resource* _nativePtr, const SRDIBufferResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
 
 	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
 
-	D3D12APIWarp_Impl::D3D12GetGPUVirtualAddress_D3D12Impl(GetNativePtr(), &mGpuVirtualAddress);
+	mGpuVirtualAddress = GetNativePtr()->GetGPUVirtualAddress();
 	
 	if ((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) == ERDIResourceUsage::IndexBuffer)
 	{
@@ -68,7 +67,7 @@ IRDIUnorderedAccessView* SD3D12Buffer::GetUAV() noexcept
 	return mUAV;
 }
 
-void SD3D12Texture1D::Init(void* _nativePtr, const SRDITexture1DResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture1D::Init(ID3D12Resource* _nativePtr, const SRDITexture1DResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
@@ -138,7 +137,7 @@ IRDIUnorderedAccessView* SD3D12Texture1D::GetUAV(uint32_t _mipSlice) noexcept
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12Texture1DArray::Init(void* _nativePtr, const SRDITexture1DArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture1DArray::Init(ID3D12Resource* _nativePtr, const SRDITexture1DArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
@@ -178,7 +177,7 @@ IRDIUnorderedAccessView* SD3D12Texture1DArray::GetUAV(uint32_t _mipSlice) noexce
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12Texture2D::Init(void* _nativePtr, const SRDITexture2DResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture2D::Init(ID3D12Resource* _nativePtr, const SRDITexture2DResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
@@ -248,7 +247,7 @@ IRDIUnorderedAccessView* SD3D12Texture2D::GetUAV(uint32_t _mipSlice) noexcept
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12Texture2DArray::Init(void* _nativePtr, const SRDITexture2DArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture2DArray::Init(ID3D12Resource* _nativePtr, const SRDITexture2DArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
@@ -288,7 +287,7 @@ IRDIUnorderedAccessView* SD3D12Texture2DArray::GetUAV(uint32_t _mipSlice) noexce
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12Texture3D::Init(void* _nativePtr, const SRDITexture3DResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture3D::Init(ID3D12Resource* _nativePtr, const SRDITexture3DResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
@@ -343,7 +342,7 @@ IRDIUnorderedAccessView* SD3D12Texture3D::GetUAV(uint32_t _mipSlice) noexcept
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12TextureCube::Init(void* _nativePtr, const SRDITextureCubeResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12TextureCube::Init(ID3D12Resource* _nativePtr, const SRDITextureCubeResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
@@ -415,7 +414,7 @@ IRDIUnorderedAccessView* SD3D12TextureCube::GetUAV(uint32_t _mipSlice) noexcept
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12TextureCubeArray::Init(void* _nativePtr, const SRDITextureCubeArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12TextureCubeArray::Init(ID3D12Resource* _nativePtr, const SRDITextureCubeArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;

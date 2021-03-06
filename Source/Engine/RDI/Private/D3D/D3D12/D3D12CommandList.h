@@ -1,18 +1,22 @@
 #pragma once
 
 #include "RDI/Interface/RDICommandList.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarperHelper.h"
+#include "D3D/D3D12/Helper/D3D12Helper.h"
+
+#include "Core/PreWindowsApi.h"
+#include <d3d12.h>
+#include "Core/PostWindowsApi.h"
 
 class SD3D12Device;
 
 class SD3D12CommandList : public IRDICommandList
 {
 public:
-	void Init(void* _commandAllocatorNativePtr, void* _commandListNativePtr, SD3D12Device* _device) noexcept;
+	void Init(ID3D12CommandAllocator* _commandAllocatorNativePtr, ID3D12GraphicsCommandList* _commandListNativePtr, SD3D12Device* _device) noexcept;
 	void Clear() noexcept;
 
-	void* GetCommandListNativePtr() noexcept { return mCommandListNativePtr; }
-	void* GetCommandAllocatorNativePtr() noexcept { return mCommandAllocatorNativePtr; }
+	ID3D12GraphicsCommandList* GetCommandListNativePtr() noexcept { return mCommandListNativePtr; }
+	ID3D12CommandAllocator* GetCommandAllocatorNativePtr() noexcept { return mCommandAllocatorNativePtr; }
 
 public:
 	void ResetCommandAllocator() noexcept override;
@@ -95,18 +99,18 @@ public:
 	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFColor _value) noexcept override;
 
 private:
-	void UnorderAccessResourceBarrier(void* _resourceNativePtr) noexcept;
-	void TranstionResourceState(void* _resourceNativePtr, ERDIResourceState _before, ERDIResourceState _after) noexcept;
-	void ClearUnorderAccessViewUINT(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, void* _resourceNativePtr, Math::SUColor _value) noexcept;
-	void ClearUnorderAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, void* _resourceNativePtr, Math::SFColor _value) noexcept;
+	void UnorderAccessResourceBarrier(ID3D12Resource* _resourceNativePtr) noexcept;
+	void TranstionResourceState(ID3D12Resource* _resourceNativePtr, ERDIResourceState _before, ERDIResourceState _after) noexcept;
+	void ClearUnorderAccessViewUINT(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, ID3D12Resource* _resourceNativePtr, Math::SUColor _value) noexcept;
+	void ClearUnorderAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, ID3D12Resource* _resourceNativePtr, Math::SFColor _value) noexcept;
 
 private:
-	void* mCommandAllocatorNativePtr = nullptr;
-	void* mCommandListNativePtr = nullptr;
+	ID3D12CommandAllocator* mCommandAllocatorNativePtr = nullptr;
+	ID3D12GraphicsCommandList* mCommandListNativePtr = nullptr;
 
 	SD3D12Device* mDevice = nullptr;
 
-	D3D12_VERTEX_BUFFER_VIEW mViewDescCache[16] = {};
+	D3D12_VERTEX_BUFFER_VIEW mViewDescCache[D3D12_VERTEX_BUFFER_SLOT_COUNT] = {};
 	D3D12_VIEWPORT mViewportsCache[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE] = {};
 	D3D12_RECT mScissorRectCache[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE] = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE mRtvDescriptorHandlesCache[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT] = {};

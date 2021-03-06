@@ -1,9 +1,9 @@
 #pragma once
 
 #include "RDI/RDIFunctionHelper.h"
-#include "RDI/Interface/RDISwapChain.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarperHelper.h"
 #include "D3D/D3D12/D3D12Output.h"
+#include "RDI/Interface/RDISwapChain.h"
+#include "D3D/D3D12/Helper/D3D12Helper.h"
 
 class SD3D12Device;
 class SD3D12Output;
@@ -12,8 +12,8 @@ class SD3D12Adapter;
 class SD3D12SwapChain : public IRDISwapChain
 {
 public:
-	void Init(void* _nativePtr, const SRDISwapChainDesc* _desc, SD3D12Device* _device, SD3D12Adapter* _adapter) noexcept;
-	void* GetNativePtr() noexcept { return mSwapChainNativePtr; }
+	void Init(IDXGISwapChain* _nativePtr, const SRDISwapChainDesc* _desc, SD3D12Device* _device, SD3D12Adapter* _adapter) noexcept;
+	IDXGISwapChain* GetNativePtr() noexcept { return mSwapChainNativePtr; }
 
 public:
 	void GetDesc(SRDISwapChainDesc* _desc)const noexcept override { *_desc = mDesc; }
@@ -23,7 +23,7 @@ public:
 	void Present() noexcept override;
 
 private:
-	void* mSwapChainNativePtr = nullptr;
+	IDXGISwapChain* mSwapChainNativePtr = nullptr;
 	SRDISwapChainDesc mDesc;
 
 	SD3D12Device* mDevice = nullptr;

@@ -6,7 +6,7 @@
 
 struct SCommandLine
 {
-	static std::wstring GetCommandLine() noexcept;
+	static const std::wstring& GetCommandLine() noexcept;
 
 	static bool HasArgument(std::wstring_view _key) noexcept
 	{

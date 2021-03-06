@@ -1,9 +1,11 @@
 ﻿#include "Core/CommandLine/CommandLine.h"
-#include "WindowsPlatform/WindowsPlatformApi.h"
+#include "Core/windowsEx.h"
 
-std::wstring SCommandLine::GetCommandLine() noexcept
+
+const std::wstring& SCommandLine::GetCommandLine() noexcept
 {
-	return SWindowsPlatformApi::GetCommandLine();
+	static std::wstring commandLine = ::GetCommandLineW();
+	return commandLine;
 }
 
 std::pair<bool, std::wstring_view> SCommandLine::GetRawArgumentValue(std::wstring_view _key) noexcept

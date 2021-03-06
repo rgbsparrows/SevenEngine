@@ -1,5 +1,8 @@
-#include "D3D12ImplWarperHelper.h"
 #include "RDI/RDIFunctionHelper.h"
+
+#include "Core/PreWindowsApi.h"
+#include <d3d12.h>
+#include "Core/PostWindowsApi.h"
 
 D3D12_FILTER ConvertFilterToD3D12(ERDIFilter _filter) noexcept;
 D3D12_TEXTURE_ADDRESS_MODE ConvertAddressModeToD3D12(ERDIAddressMode _addressMode) noexcept;

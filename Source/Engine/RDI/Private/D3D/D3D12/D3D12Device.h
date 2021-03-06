@@ -2,6 +2,7 @@
 
 #include "RDI/Interface/RDIDevice.h"
 
+#include "D3D/Helper/D3DHelper.h"
 #include "D3D/D3D12/D3D12Shader.h"
 #include "D3D/D3D12/D3D12Adapter.h"
 #include "D3D/D3D12/D3D12SwapChain.h"
@@ -12,6 +13,11 @@
 #include "D3D/D3D12/D3D12PipelineState.h"
 #include "D3D/D3D12/D3D12DescriptorHeap.h"
 
+#include "Core/PreWindowsApi.h"
+#include <d3d12.h>
+#include <d3dcompiler.h>
+#include "Core/PostWindowsApi.h"
+
 #include <vector>
 #include <functional>
 
@@ -20,10 +26,10 @@ class SD3D12Factory;
 class SD3D12Device : public IRDIDevice
 {
 public:
-	void Init(void* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory* _factory) noexcept;
+	void Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory* _factory) noexcept;
 	void Clear() noexcept;
 
-	void* GetNativePtr() noexcept { return mD3D12DeviceNativePtr; }
+	ID3D12Device* GetNativePtr() noexcept { return mD3D12DeviceNativePtr; }
 
 public:
 
@@ -74,15 +80,15 @@ public:
 	SD3D12DescriptorHeap* GetDescriptorHeap() noexcept { return &mDescriptorHeap; }
 	SD3D12ShaderVisibleDescriptorHeap* GetShaderVisibleDescriptorHeap() noexcept { return &mShaderVisibleDescriptorHeap; }
 	uint32_t GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE _descriptorHeapType) noexcept { return mDescriptorHandleIncrement[EnumToInt(_descriptorHeapType)]; }
-	IRDITexture2D* CreateTexture2DWithCreatedResource(const SRDITexture2DResourceDesc* _desc, void* _resource) noexcept;
+	IRDITexture2D* CreateTexture2DWithCreatedResource(const SRDITexture2DResourceDesc* _desc, ID3D12Resource* _resource) noexcept;
 
 public:
-	void* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, D3D12_RESOURCE_STATES _state) noexcept;
+	ID3D12Resource* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, D3D12_RESOURCE_STATES _state) noexcept;
 	bool CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept;
-	void GenerateErrorInfo(const std::vector<uint8_t>& _errorBlob, SRDIErrorInfo* _errorInfo);
+	void GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _errorInfo);
 
 private:
-	void* mD3D12DeviceNativePtr = nullptr;
+	ID3D12Device* mD3D12DeviceNativePtr = nullptr;
 	SD3D12Factory* mFactory = nullptr;
 
 	static constexpr uint64_t ShaderVisibleCbvSrvUavDescriptorCount = 4096;
@@ -125,8 +131,8 @@ private:
 	TElementPool<SD3D12PixelShader> mPixelShaderPool;
 	TElementPool<SD3D12ComputeShader> mComputeShaderPool;
 
-	uint32_t mDescriptorHandleIncrement[EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)] = {};
+	uint32_t mDescriptorHandleIncrement[EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)] = {};
 
-	EShaderCompileFlag mShaderCompileFlag = EShaderCompileFlag::D3DCOMPILE_NONE;
-	std::function<std::filesystem::path(const std::filesystem::path&)> mSearchShaderHeaderFileFunc;
+	uint32_t mShaderCompileFlag = 0;
+	D3DInclude mD3DInclude;
 };

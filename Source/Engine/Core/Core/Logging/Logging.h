@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/Macros/ConditionDeprecated.h"
-#include "WindowsPlatform/WindowsPlatformApi.h"
+#include "Core/windowsEx.h"
 
 DEPRECATED_WHEN_FMT_LIBRARY_AVAILABLE("")
 inline void CombinString() noexcept
@@ -27,7 +27,7 @@ DEPRECATED_WHEN_SE_LOG_AVAILABLE("")
 void LogInfo(_argts&&... _args) noexcept
 {
 	std::wstring message = CombinString(L"INFO: ", _args...);
-	SWindowsPlatformApi::OutputDebugString(message);
+	OutputDebugString(message);
 }
 
 template<typename... _argts>
@@ -35,7 +35,7 @@ DEPRECATED_WHEN_SE_LOG_AVAILABLE("")
 void LogWarn(_argts&&... _args) noexcept
 {
 	std::wstring message = CombinString(L"WARN: ", _args...);
-	SWindowsPlatformApi::OutputDebugString(message);
+	OutputDebugString(message);
 }
 
 template<typename... _argts>
@@ -43,6 +43,6 @@ DEPRECATED_WHEN_SE_LOG_AVAILABLE("")
 void LogErr(_argts&&... _args) noexcept
 {
 	std::wstring message = CombinString(L"ERROR: ", _args...);
-	SWindowsPlatformApi::OutputDebugString(message);
-	SWindowsPlatformApi::MessageBox(nullptr, message, L"LOG ERR", EWinMessageBoxFlag::MB_OK);
+	OutputDebugString(message);
+	MessageBoxW(nullptr, message, L"LOG ERR", 0);
 }

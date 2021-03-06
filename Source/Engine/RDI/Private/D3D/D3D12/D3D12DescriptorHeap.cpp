@@ -1,9 +1,7 @@
 #include "D3D12DescriptorHeap.h"
 #include "D3D/D3D12/D3D12Device.h"
-#include "D3D/Warper/D3DEnumConvertor.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarper.h"
-#include "D3D/D3D12/Warper/D3D12EnumConvertor.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarperHelper.h"
+#include "D3D/Helper/D3DEnumConvertor.h"
+#include "D3D/D3D12/Helper/D3D12EnumConvertor.h"
 
 void SD3D12DescriptorHeapRange::Init(uint64_t _srvUavDescriptorHeapIndex, uint16_t _srvDescriptorCount, uint16_t _uavDescriptorCount, SD3D12ShaderVisibleDescriptorHeap* _shaderVisibleDescriptorHeap) noexcept
 {
@@ -14,12 +12,12 @@ void SD3D12DescriptorHeapRange::Init(uint64_t _srvUavDescriptorHeapIndex, uint16
 	mShaderVisibleDescriptorHeap = _shaderVisibleDescriptorHeap;
 
 	{
-		mCPUDescriptorHandle =
-			mShaderVisibleDescriptorHeap->GetSrvUavDescriptorHeapStartCPUDescriptorHandle() +
+		mCPUDescriptorHandle.ptr =
+			mShaderVisibleDescriptorHeap->GetSrvUavDescriptorHeapStartCPUDescriptorHandle().ptr +
 			_srvUavDescriptorHeapIndex * mShaderVisibleDescriptorHeap->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-		mGPUDescriptorHandle = 
-			mShaderVisibleDescriptorHeap->GetSrvUavDescriptorHeapStartGPUDescriptorHandle() +
+		mGPUDescriptorHandle.ptr = 
+			mShaderVisibleDescriptorHeap->GetSrvUavDescriptorHeapStartGPUDescriptorHandle().ptr +
 			_srvUavDescriptorHeapIndex * mShaderVisibleDescriptorHeap->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 }
@@ -50,12 +48,12 @@ void SD3D12SamplerHeapRange::Init(uint64_t _samplerViewDescriptorHeapIndex, uint
 	mShaderVisibleDescriptorHeap = _shaderVisibleDescriptorHeap;
 
 	{
-		mCPUDescriptorHandle =
-			mShaderVisibleDescriptorHeap->GetSrvUavDescriptorHeapStartCPUDescriptorHandle() +
+		mCPUDescriptorHandle.ptr =
+			mShaderVisibleDescriptorHeap->GetSrvUavDescriptorHeapStartCPUDescriptorHandle().ptr +
 			_samplerViewDescriptorHeapIndex * mShaderVisibleDescriptorHeap->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
-		mGPUDescriptorHandle =
-			mShaderVisibleDescriptorHeap->GetSrvUavDescriptorHeapStartGPUDescriptorHandle() +
+		mGPUDescriptorHandle.ptr =
+			mShaderVisibleDescriptorHeap->GetSrvUavDescriptorHeapStartGPUDescriptorHandle().ptr +
 			_samplerViewDescriptorHeapIndex * mShaderVisibleDescriptorHeap->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 	}
 }
@@ -72,7 +70,7 @@ void SD3D12SamplerHeapRange::Release() noexcept
 }
 
 
-void SD3D12ShaderVisibleDescriptorHeap::Init(void* _srvUavDescriptorHeapNativePtr, uint64_t _srvUavDescriptorCount, void* _samplerViewDescriptorHeapNativePtr, uint64_t _samplerViewDescriptorCount, SD3D12Device* _device) noexcept
+void SD3D12ShaderVisibleDescriptorHeap::Init(ID3D12DescriptorHeap* _srvUavDescriptorHeapNativePtr, uint64_t _srvUavDescriptorCount, ID3D12DescriptorHeap* _samplerViewDescriptorHeapNativePtr, uint64_t _samplerViewDescriptorCount, SD3D12Device* _device) noexcept
 {
 	mSrvUavDescriptorHeapNativePtr = _srvUavDescriptorHeapNativePtr;
 	mSamplerViewDescriptorHeapNativePtr = _samplerViewDescriptorHeapNativePtr;
@@ -80,11 +78,11 @@ void SD3D12ShaderVisibleDescriptorHeap::Init(void* _srvUavDescriptorHeapNativePt
 	mSrvUavDescriptorAlloctorHelper.ResetSlotCount(_srvUavDescriptorCount);
 	mSamplerViewAlloctorHelper.ResetSlotCount(_samplerViewDescriptorCount);
 
-	D3D12APIWarp_Impl::D3D12GetCPUDescriptorHandleForHeapStart_D3D12Impl(mSrvUavDescriptorHeapNativePtr, &mSrvUavDescriptorHeapStartCPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetCPUDescriptorHandleForHeapStart_D3D12Impl(mSamplerViewDescriptorHeapNativePtr, &mSamplerViewDescriptorHeapStartCPUDescriptorHandle);
+	mSrvUavDescriptorHeapStartCPUDescriptorHandle = GetSrvUavDescriptorHeapNativePtr()->GetCPUDescriptorHandleForHeapStart();
+	mSamplerViewDescriptorHeapStartCPUDescriptorHandle = GetSamplerViewDescriptorHeapNativePtr()->GetCPUDescriptorHandleForHeapStart();
 
-	D3D12APIWarp_Impl::D3D12GetGPUDescriptorHandleForHeapStart_D3D12Impl(mSrvUavDescriptorHeapNativePtr, &mSrvUavDescriptorHeapStartGPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetGPUDescriptorHandleForHeapStart_D3D12Impl(mSamplerViewDescriptorHeapNativePtr, &mSamplerViewDescriptorHeapStartGPUDescriptorHandle);
+	mSrvUavDescriptorHeapStartGPUDescriptorHandle = GetSrvUavDescriptorHeapNativePtr()->GetGPUDescriptorHandleForHeapStart();
+	mSamplerViewDescriptorHeapStartGPUDescriptorHandle = GetSamplerViewDescriptorHeapNativePtr()->GetGPUDescriptorHandleForHeapStart();
 
 	mDevice = _device;
 }
@@ -131,23 +129,29 @@ void SD3D12ShaderVisibleDescriptorHeap::ReleaseSamplerHeapRange(IRDISamplerHeapR
 
 void SD3D12ShaderVisibleDescriptorHeap::SetSRV(IRDIShaderResourceView* _srv, uint64_t _index) noexcept
 {
-	size_t destDescriptorHeapStartCPUDescriptorHandle = mSrvUavDescriptorHeapStartCPUDescriptorHandle + GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * _index;
-	size_t srcDescriptorHeapStartCPUDescriptorHandle = static_cast<SD3D12ShaderResourceView*>(_srv)->mCpuDescriptorHandle;
-	D3D12APIWarp_Impl::D3D12CopyDescriptorsSimple_D3D12Impl(mDevice->GetNativePtr(), 1, destDescriptorHeapStartCPUDescriptorHandle, srcDescriptorHeapStartCPUDescriptorHandle, static_cast<int32_t>(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	D3D12_CPU_DESCRIPTOR_HANDLE destDescriptorHeapStartCPUDescriptorHandle;
+	destDescriptorHeapStartCPUDescriptorHandle.ptr = mSrvUavDescriptorHeapStartCPUDescriptorHandle.ptr + GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * _index;
+	D3D12_CPU_DESCRIPTOR_HANDLE srcDescriptorHeapStartCPUDescriptorHandle = static_cast<SD3D12ShaderResourceView*>(_srv)->mCpuDescriptorHandle;
+
+	mDevice->GetNativePtr()->CopyDescriptorsSimple(1, destDescriptorHeapStartCPUDescriptorHandle, srcDescriptorHeapStartCPUDescriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 void SD3D12ShaderVisibleDescriptorHeap::SetUAV(IRDIUnorderedAccessView* _uav, uint64_t _index) noexcept
 {
-	size_t destDescriptorHeapStartCPUDescriptorHandle = mSrvUavDescriptorHeapStartCPUDescriptorHandle + GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * _index;
-	size_t srcDescriptorHeapStartCPUDescriptorHandle = static_cast<SD3D12UnorderedAccessView*>(_uav)->mCpuDescriptorHandle;
-	D3D12APIWarp_Impl::D3D12CopyDescriptorsSimple_D3D12Impl(mDevice->GetNativePtr(), 1, destDescriptorHeapStartCPUDescriptorHandle, srcDescriptorHeapStartCPUDescriptorHandle, static_cast<int32_t>(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+	D3D12_CPU_DESCRIPTOR_HANDLE destDescriptorHeapStartCPUDescriptorHandle;
+	destDescriptorHeapStartCPUDescriptorHandle.ptr = mSrvUavDescriptorHeapStartCPUDescriptorHandle.ptr + GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * _index;
+	D3D12_CPU_DESCRIPTOR_HANDLE srcDescriptorHeapStartCPUDescriptorHandle = static_cast<SD3D12UnorderedAccessView*>(_uav)->mCpuDescriptorHandle;
+	
+	mDevice->GetNativePtr()->CopyDescriptorsSimple(1, destDescriptorHeapStartCPUDescriptorHandle, srcDescriptorHeapStartCPUDescriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 void SD3D12ShaderVisibleDescriptorHeap::SetSampler(IRDISamplerView* _sampler, uint64_t _index) noexcept
 {
-	size_t destDescriptorHeapStartCPUDescriptorHandle = mSrvUavDescriptorHeapStartCPUDescriptorHandle + GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER) * _index;
-	size_t srcDescriptorHeapStartCPUDescriptorHandle = static_cast<SD3D12SamplerView*>(_sampler)->mCpuDescriptorHandle;
-	D3D12APIWarp_Impl::D3D12CopyDescriptorsSimple_D3D12Impl(mDevice->GetNativePtr(), 1, destDescriptorHeapStartCPUDescriptorHandle, srcDescriptorHeapStartCPUDescriptorHandle, static_cast<int32_t>(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
+	D3D12_CPU_DESCRIPTOR_HANDLE destDescriptorHeapStartCPUDescriptorHandle;
+	destDescriptorHeapStartCPUDescriptorHandle.ptr = mSrvUavDescriptorHeapStartCPUDescriptorHandle.ptr + GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER) * _index;
+	D3D12_CPU_DESCRIPTOR_HANDLE srcDescriptorHeapStartCPUDescriptorHandle = static_cast<SD3D12SamplerView*>(_sampler)->mCpuDescriptorHandle;
+	
+	mDevice->GetNativePtr()->CopyDescriptorsSimple(1, destDescriptorHeapStartCPUDescriptorHandle, srcDescriptorHeapStartCPUDescriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
 uint32_t SD3D12ShaderVisibleDescriptorHeap::GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE _descriptorHeapType) noexcept
@@ -155,7 +159,7 @@ uint32_t SD3D12ShaderVisibleDescriptorHeap::GetDescriptorHandleIncrement(D3D12_D
 	return mDevice->GetDescriptorHandleIncrement(_descriptorHeapType);
 }
 
-void SD3D12DescriptorHeap::Init(void* _rtvDescriptorHeapNativePtr, uint64_t _rtvDescriptorCount, void* _dsvDescriptorHeapNativePtr, uint64_t _dsvDescriptorCount, void* _srvDescriptorHeapNativePtr, uint64_t _srvDescriptorCount, void* _uavDescriptorHeapNativePtr, uint64_t _uavDescriptorCount, void* _samplerViewDescriptorHeapNativePtr, uint64_t _samplerViewDescriptorCount, SD3D12Device* _device) noexcept
+void SD3D12DescriptorHeap::Init(ID3D12DescriptorHeap* _rtvDescriptorHeapNativePtr, uint64_t _rtvDescriptorCount, ID3D12DescriptorHeap* _dsvDescriptorHeapNativePtr, uint64_t _dsvDescriptorCount, ID3D12DescriptorHeap* _srvDescriptorHeapNativePtr, uint64_t _srvDescriptorCount, ID3D12DescriptorHeap* _uavDescriptorHeapNativePtr, uint64_t _uavDescriptorCount, ID3D12DescriptorHeap* _samplerViewDescriptorHeapNativePtr, uint64_t _samplerViewDescriptorCount, SD3D12Device* _device) noexcept
 {
 	mRTVDescriptorHeapNativePtr = _rtvDescriptorHeapNativePtr;
 	mDSVDescriptorHeapNativePtr = _dsvDescriptorHeapNativePtr;
@@ -175,17 +179,17 @@ void SD3D12DescriptorHeap::Init(void* _rtvDescriptorHeapNativePtr, uint64_t _rtv
 	mUnorderedAccessViewPool.ResizePool(_uavDescriptorCount);
 	mSamplerViewPool.ResizePool(_samplerViewDescriptorCount);
 
-	D3D12APIWarp_Impl::D3D12GetCPUDescriptorHandleForHeapStart_D3D12Impl(mRTVDescriptorHeapNativePtr, &mRTVDescriptorHeapStartCPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetCPUDescriptorHandleForHeapStart_D3D12Impl(mDSVDescriptorHeapNativePtr, &mDSVDescriptorHeapStartCPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetCPUDescriptorHandleForHeapStart_D3D12Impl(mSRVDescriptorHeapNativePtr, &mSRVDescriptorHeapStartCPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetCPUDescriptorHandleForHeapStart_D3D12Impl(mUAVDescriptorHeapNativePtr, &mUAVDescriptorHeapStartCPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetCPUDescriptorHandleForHeapStart_D3D12Impl(mSamplerViewDescriptorHeapNativePtr, &mSamplerViewDescriptorHeapStartCPUDescriptorHandle);
+	mRTVDescriptorHeapStartCPUDescriptorHandle = mRTVDescriptorHeapNativePtr->GetCPUDescriptorHandleForHeapStart();
+	mDSVDescriptorHeapStartCPUDescriptorHandle = mDSVDescriptorHeapNativePtr->GetCPUDescriptorHandleForHeapStart();
+	mSRVDescriptorHeapStartCPUDescriptorHandle = mSRVDescriptorHeapNativePtr->GetCPUDescriptorHandleForHeapStart();
+	mUAVDescriptorHeapStartCPUDescriptorHandle = mUAVDescriptorHeapNativePtr->GetCPUDescriptorHandleForHeapStart();
+	mSamplerViewDescriptorHeapStartCPUDescriptorHandle = mSamplerViewDescriptorHeapNativePtr->GetCPUDescriptorHandleForHeapStart();
 
-	D3D12APIWarp_Impl::D3D12GetGPUDescriptorHandleForHeapStart_D3D12Impl(mRTVDescriptorHeapNativePtr, &mRTVDescriptorHeapStartGPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetGPUDescriptorHandleForHeapStart_D3D12Impl(mDSVDescriptorHeapNativePtr, &mDSVDescriptorHeapStartGPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetGPUDescriptorHandleForHeapStart_D3D12Impl(mSRVDescriptorHeapNativePtr, &mSRVDescriptorHeapStartGPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetGPUDescriptorHandleForHeapStart_D3D12Impl(mUAVDescriptorHeapNativePtr, &mUAVDescriptorHeapStartGPUDescriptorHandle);
-	D3D12APIWarp_Impl::D3D12GetGPUDescriptorHandleForHeapStart_D3D12Impl(mSamplerViewDescriptorHeapNativePtr, &mSamplerViewDescriptorHeapStartGPUDescriptorHandle);
+	mRTVDescriptorHeapStartGPUDescriptorHandle = mRTVDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
+	mDSVDescriptorHeapStartGPUDescriptorHandle = mDSVDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
+	mSRVDescriptorHeapStartGPUDescriptorHandle = mSRVDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
+	mUAVDescriptorHeapStartGPUDescriptorHandle = mUAVDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
+	mSamplerViewDescriptorHeapStartGPUDescriptorHandle = mSamplerViewDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
 
 	mDevice = _device;
 }
@@ -694,7 +698,7 @@ SD3D12SamplerView* SD3D12DescriptorHeap::CreateSamplerView(IRDISampler* _sampler
 
 void SD3D12DescriptorHeap::ReleaseRTV(SD3D12RenderTargetView* _rtv) noexcept
 {
-	uint64_t index = (_rtv->mCpuDescriptorHandle - mRTVDescriptorHeapStartCPUDescriptorHandle) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	uint64_t index = (_rtv->mCpuDescriptorHandle.ptr - mRTVDescriptorHeapStartCPUDescriptorHandle.ptr) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 	mRTVAllocatorHelper.DeallocateSlot(index);
 	mRenderTargetViewPool.DeallocateElement(_rtv);
@@ -702,7 +706,7 @@ void SD3D12DescriptorHeap::ReleaseRTV(SD3D12RenderTargetView* _rtv) noexcept
 
 void SD3D12DescriptorHeap::ReleaseDSV(SD3D12DepthStencilView* _dsv) noexcept
 {
-	uint64_t index = (_dsv->mCpuDescriptorHandle - mDSVDescriptorHeapStartCPUDescriptorHandle) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	uint64_t index = (_dsv->mCpuDescriptorHandle.ptr - mDSVDescriptorHeapStartCPUDescriptorHandle.ptr) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
 	mDSVAllocatorHelper.DeallocateSlot(index);
 	mDepthStencilViewPool.DeallocateElement(_dsv);
@@ -710,7 +714,7 @@ void SD3D12DescriptorHeap::ReleaseDSV(SD3D12DepthStencilView* _dsv) noexcept
 
 void SD3D12DescriptorHeap::ReleaseSRV(SD3D12ShaderResourceView* _srv) noexcept
 {
-	uint64_t index = (_srv->mCpuDescriptorHandle - mSRVDescriptorHeapStartCPUDescriptorHandle) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	uint64_t index = (_srv->mCpuDescriptorHandle.ptr - mSRVDescriptorHeapStartCPUDescriptorHandle.ptr) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	mSRVAllocatorHelper.DeallocateSlot(index);
 	mShaderResourceViewPool.DeallocateElement(_srv);
@@ -718,7 +722,7 @@ void SD3D12DescriptorHeap::ReleaseSRV(SD3D12ShaderResourceView* _srv) noexcept
 
 void SD3D12DescriptorHeap::ReleaseUAV(SD3D12UnorderedAccessView* _uav) noexcept
 {
-	uint64_t index = (_uav->mCpuDescriptorHandle - mUAVDescriptorHeapStartCPUDescriptorHandle) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	uint64_t index = (_uav->mCpuDescriptorHandle.ptr - mUAVDescriptorHeapStartCPUDescriptorHandle.ptr) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	mUAVAllocatorHelper.DeallocateSlot(index);
 	mUnorderedAccessViewPool.DeallocateElement(_uav);
@@ -726,64 +730,72 @@ void SD3D12DescriptorHeap::ReleaseUAV(SD3D12UnorderedAccessView* _uav) noexcept
 
 void SD3D12DescriptorHeap::ReleaseSamplerView(SD3D12SamplerView* _samplerView) noexcept
 {
-	uint64_t index = (_samplerView->mCpuDescriptorHandle - mSamplerViewDescriptorHeapStartCPUDescriptorHandle) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	uint64_t index = (_samplerView->mCpuDescriptorHandle.ptr - mSamplerViewDescriptorHeapStartCPUDescriptorHandle.ptr) / mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
 	mSamplerViewAllocatorHelper.DeallocateSlot(index);
 	mSamplerViewPool.DeallocateElement(_samplerView);
 }
 
-SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(void* _resourceNativePtr, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept
+SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(ID3D12Resource* _resourceNativePtr, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mRTVAllocatorHelper.AllocateSlot();
 
 	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
 
-	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mRTVDescriptorHeapStartCPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mRTVDescriptorHeapStartGPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	cpuHandle.ptr = mRTVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+	gpuHandle.ptr = mRTVDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-	D3D12APIWarp_Impl::D3D12CreateRenderTargetView_D3D12Impl(_resourceNativePtr, _desc, cpuHandle, mDevice->GetNativePtr());
+	mDevice->GetNativePtr()->CreateRenderTargetView(_resourceNativePtr, _desc, cpuHandle);
 
 	return mRenderTargetViewPool.AllocateElement(cpuHandle, gpuHandle);
 }
 
-SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(void* _resourceNativePtr, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept
+SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(ID3D12Resource* _resourceNativePtr, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mDSVAllocatorHelper.AllocateSlot();
 
 	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
 
-	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mDSVDescriptorHeapStartCPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mDSVDescriptorHeapStartGPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	cpuHandle.ptr = mDSVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+	gpuHandle.ptr = mDSVDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-	D3D12APIWarp_Impl::D3D12CreateDepthStencilView_D3D12Impl(_resourceNativePtr, _desc, cpuHandle, mDevice->GetNativePtr());
+	mDevice->GetNativePtr()->CreateDepthStencilView(_resourceNativePtr, _desc, cpuHandle);
 
 	return mDepthStencilViewPool.AllocateElement(cpuHandle, gpuHandle);
 }
 
-SD3D12ShaderResourceView* SD3D12DescriptorHeap::CreateSRV(void* _resourceNativePtr, const D3D12_SHADER_RESOURCE_VIEW_DESC* _desc) noexcept
+SD3D12ShaderResourceView* SD3D12DescriptorHeap::CreateSRV(ID3D12Resource* _resourceNativePtr, const D3D12_SHADER_RESOURCE_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mSRVAllocatorHelper.AllocateSlot();
 
 	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
 
-	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mSRVDescriptorHeapStartCPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mSRVDescriptorHeapStartGPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	cpuHandle.ptr = mSRVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+	gpuHandle.ptr = mSRVDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	D3D12APIWarp_Impl::D3D12CreateShaderResourceView_D3D12Impl(_resourceNativePtr, _desc, cpuHandle, mDevice->GetNativePtr());
+	mDevice->GetNativePtr()->CreateShaderResourceView(_resourceNativePtr, _desc, cpuHandle);
 
 	return mShaderResourceViewPool.AllocateElement(cpuHandle, gpuHandle);
 }
 
-SD3D12UnorderedAccessView* SD3D12DescriptorHeap::CreateUAV(void* _resourceNativePtr, const D3D12_UNORDERED_ACCESS_VIEW_DESC* _desc) noexcept
+SD3D12UnorderedAccessView* SD3D12DescriptorHeap::CreateUAV(ID3D12Resource* _resourceNativePtr, const D3D12_UNORDERED_ACCESS_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mUAVAllocatorHelper.AllocateSlot();
 
 	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
 
-	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mUAVDescriptorHeapStartCPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mUAVDescriptorHeapStartGPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	cpuHandle.ptr = mUAVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+	gpuHandle.ptr = mUAVDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-	D3D12APIWarp_Impl::D3D12CreateUnorderedAccessView_D3D12Impl(_resourceNativePtr, nullptr, _desc, cpuHandle, mDevice->GetNativePtr());
+	mDevice->GetNativePtr()->CreateUnorderedAccessView(_resourceNativePtr, nullptr, _desc, cpuHandle);
 
 	return mUnorderedAccessViewPool.AllocateElement(cpuHandle, gpuHandle);
 }
@@ -794,10 +806,12 @@ SD3D12SamplerView* SD3D12DescriptorHeap::CreateSamplerView(const D3D12_SAMPLER_D
 
 	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
 
-	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle = mSamplerViewDescriptorHeapStartCPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = mSamplerViewDescriptorHeapStartGPUDescriptorHandle + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
+	cpuHandle.ptr = mSamplerViewDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
+	gpuHandle.ptr = mSamplerViewDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
-	D3D12APIWarp_Impl::D3D12CreateSamplerView_D3D12Impl(_desc, cpuHandle, mDevice->GetNativePtr());
+	mDevice->GetNativePtr()->CreateSampler(_desc, cpuHandle);
 
 	return mSamplerViewPool.AllocateElement(cpuHandle, gpuHandle);
 }

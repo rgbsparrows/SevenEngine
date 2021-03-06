@@ -3,33 +3,35 @@
 #include "D3D/D3DUtil.h"
 #include "Core/Container/Blob.h"
 #include "RDI/Interface/RDIPipelineState.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarper.h"
 
 class SD3D12PipelineStateBase
 {
 public:
-	SD3D12PipelineStateBase(void* _nativePtr) noexcept
+	SD3D12PipelineStateBase(ID3D12PipelineState* _nativePtr) noexcept
 	{
 		mPipelineStateNativePtr = _nativePtr;
 
-		std::vector<uint8_t> cachedBlob;
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12GetPipelineStateCachedBlob(_nativePtr, cachedBlob));
-		mCachedBlob.ResizeBlob(cachedBlob.data(), cachedBlob.size());
+		ID3DBlob* cachedBlob = nullptr;
+		mPipelineStateNativePtr->GetCachedBlob(&cachedBlob);
+
+		mCachedBlob.ResizeBlob(cachedBlob->GetBufferPointer(), cachedBlob->GetBufferSize());
+		if (cachedBlob != nullptr)
+			cachedBlob->Release();
 	}
 
 	SBlob mCachedBlob;
-	void* mPipelineStateNativePtr;
+	ID3D12PipelineState* mPipelineStateNativePtr;
 };
 
 class SD3D12GraphicsPipelineState : public IRDIGraphicsPipelineState, public SD3D12PipelineStateBase
 {
 public:
-	SD3D12GraphicsPipelineState(void* _nativePtr) noexcept
+	SD3D12GraphicsPipelineState(ID3D12PipelineState* _nativePtr) noexcept
 		:SD3D12PipelineStateBase(_nativePtr)
 	{
 	}
 
-	void* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
+	ID3D12PipelineState* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
 
 public:
 	SBufferView GetCachedBlob() noexcept override { return SBufferView(mCachedBlob); }
@@ -39,12 +41,12 @@ public:
 class SD3D12ComputePipelineState : public IRDIComputePipelineState, public SD3D12PipelineStateBase
 {
 public:
-	SD3D12ComputePipelineState(void* _nativePtr) noexcept
+	SD3D12ComputePipelineState(ID3D12PipelineState* _nativePtr) noexcept
 		:SD3D12PipelineStateBase(_nativePtr)
 	{
 	}
 
-	void* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
+	ID3D12PipelineState* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
 
 public:
 	SBufferView GetCachedBlob() noexcept override { return SBufferView(mCachedBlob); }

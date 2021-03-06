@@ -5,7 +5,7 @@
 #include "Core/Macros/UtilMacros.h"
 #include "Core/Container/Blob.h"
 #include "Core/Template/TemplateUtil.h"
-#include "WindowsPlatform/WindowsTypes.h"
+#include "Core/windowsEx.h"
 
 #include <string_view>
 #include <filesystem>

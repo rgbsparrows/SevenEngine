@@ -3,13 +3,10 @@
 #include "Core/Path/BasicPath.h"
 #include "D3D/D3D12/D3D12Device.h"
 #include "D3D/D3D12/D3D12Factory.h"
-#include "D3D/Warper/D3DImplWarper.h"
-#include "D3D/Warper/D3DEnumConvertor.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarper.h"
-#include "D3D/D3D12/Warper/D3D12EnumConvertor.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarperHelper.h"
+#include "D3D/Helper/D3DEnumConvertor.h"
+#include "D3D/D3D12/Helper/D3D12EnumConvertor.h"
 
-void SD3D12Device::Init(void* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory* _factory) noexcept
+void SD3D12Device::Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory* _factory) noexcept
 {
 	{
 		mD3D12DeviceNativePtr = _nativePtr;
@@ -18,30 +15,68 @@ void SD3D12Device::Init(void* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory
 
 	//CommandQuue
 	{
-		void* commandQueueNativePtr = nullptr;
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateCommandQueue_D3D12Impl(GetNativePtr(), &commandQueueNativePtr));
-		void* fenceNativePtr = nullptr;
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateFence_D3D12Impl(GetNativePtr(), 0, &fenceNativePtr));
+		ID3D12CommandQueue* commandQueueNativePtr = nullptr;
+
+		D3D12_COMMAND_QUEUE_DESC queueDesc;
+		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+		queueDesc.Priority = 0;
+		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		queueDesc.NodeMask = 0;
+		VERIFY_D3D_RETURN(GetNativePtr()->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueueNativePtr)));
+
+		ID3D12Fence* fenceNativePtr = nullptr;
+		VERIFY_D3D_RETURN(GetNativePtr()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fenceNativePtr)));
 		mCommandQueue.Init(commandQueueNativePtr, fenceNativePtr);
 	}
 
 	//DescriptorHeaps
 	{
-		void* shaderVisibleCbvSrvUavDescriptorHeap = nullptr;
-		void* shaderVisibleSamplerViewDescriptorHeap = nullptr;
-		void* rtvDescriptorHeap = nullptr;
-		void* dsvDescriptorHeap = nullptr;
-		void* srvDescriptorHeap = nullptr;
-		void* uavDescriptorHeap = nullptr;
-		void* samplerViewDescriptorHeap = nullptr;
+		ID3D12DescriptorHeap* shaderVisibleCbvSrvUavDescriptorHeap = nullptr;
+		ID3D12DescriptorHeap* shaderVisibleSamplerViewDescriptorHeap = nullptr;
+		ID3D12DescriptorHeap* rtvDescriptorHeap = nullptr;
+		ID3D12DescriptorHeap* dsvDescriptorHeap = nullptr;
+		ID3D12DescriptorHeap* srvDescriptorHeap = nullptr;
+		ID3D12DescriptorHeap* uavDescriptorHeap = nullptr;
+		ID3D12DescriptorHeap* samplerViewDescriptorHeap = nullptr;
 
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateDescriptorHeap_D3D12Impl(GetNativePtr(), EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), true, ShaderVisibleCbvSrvUavDescriptorCount, &shaderVisibleCbvSrvUavDescriptorHeap));
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateDescriptorHeap_D3D12Impl(GetNativePtr(), EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER), true, ShaderVisibleSamplerViewDescriptorCount, &shaderVisibleSamplerViewDescriptorHeap));
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateDescriptorHeap_D3D12Impl(GetNativePtr(), EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV), false, RTVDescriptorCount, &rtvDescriptorHeap));
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateDescriptorHeap_D3D12Impl(GetNativePtr(), EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV), false, DSVDescriptorCount, &dsvDescriptorHeap));
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateDescriptorHeap_D3D12Impl(GetNativePtr(), EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), false, SRVDescriptorCount, &srvDescriptorHeap));
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateDescriptorHeap_D3D12Impl(GetNativePtr(), EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), false, UAVDescriptorCount, &uavDescriptorHeap));
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateDescriptorHeap_D3D12Impl(GetNativePtr(), EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER), false, SamplerViewDescriptorCount, &samplerViewDescriptorHeap));
+		D3D12_DESCRIPTOR_HEAP_DESC heapDesc;
+		heapDesc.NodeMask = 0;
+
+		{
+			heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			heapDesc.NumDescriptors = ShaderVisibleCbvSrvUavDescriptorCount;
+			VERIFY_D3D_RETURN(GetNativePtr()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&shaderVisibleCbvSrvUavDescriptorHeap)));
+
+			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+			heapDesc.NumDescriptors = ShaderVisibleSamplerViewDescriptorCount;
+			VERIFY_D3D_RETURN(GetNativePtr()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&shaderVisibleSamplerViewDescriptorHeap)));
+		}
+
+		{
+			heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+			heapDesc.NumDescriptors = RTVDescriptorCount;
+			VERIFY_D3D_RETURN(GetNativePtr()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&rtvDescriptorHeap)));
+
+			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+			heapDesc.NumDescriptors = DSVDescriptorCount;
+			VERIFY_D3D_RETURN(GetNativePtr()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&dsvDescriptorHeap)));
+
+			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			heapDesc.NumDescriptors = SRVDescriptorCount;
+			VERIFY_D3D_RETURN(GetNativePtr()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&srvDescriptorHeap)));
+
+			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			heapDesc.NumDescriptors = UAVDescriptorCount;
+			VERIFY_D3D_RETURN(GetNativePtr()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&uavDescriptorHeap)));
+
+			heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+			heapDesc.NumDescriptors = SamplerViewDescriptorCount;
+			VERIFY_D3D_RETURN(GetNativePtr()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&samplerViewDescriptorHeap)));
+		}
 
 		mShaderVisibleDescriptorHeap.Init(shaderVisibleCbvSrvUavDescriptorHeap, ShaderVisibleCbvSrvUavDescriptorCount, shaderVisibleSamplerViewDescriptorHeap, ShaderVisibleSamplerViewDescriptorCount, this);
 		mDescriptorHeap.Init(rtvDescriptorHeap, RTVDescriptorCount, dsvDescriptorHeap, DSVDescriptorCount, srvDescriptorHeap, SRVDescriptorCount, uavDescriptorHeap, UAVDescriptorCount, samplerViewDescriptorHeap, SamplerViewDescriptorCount, this);
@@ -49,22 +84,23 @@ void SD3D12Device::Init(void* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory
 
 	//DescriptorHandleIncrementSize
 	{
-		for (int32_t i = 0; i != EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES); ++i)
+		for (int32_t i = 0; i != EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES); ++i)
 		{
-			D3D12APIWarp_Impl::D3D12GetDescriptorHandleIncrementSize_D3D12Impl(GetNativePtr(), i, &mDescriptorHandleIncrement[i]);
+			mDescriptorHandleIncrement[i] = GetNativePtr()->GetDescriptorHandleIncrementSize(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i));
 		}
 	}
 
 	//ShaderCompileInfo
 	{
-		mShaderCompileFlag = EShaderCompileFlag::D3DCOMPILE_AVOID_FLOW_CONTROL | EShaderCompileFlag::D3DCOMPILE_ENABLE_STRICTNESS | EShaderCompileFlag::D3DCOMPILE_WARNINGS_ARE_ERRORS;
+		mShaderCompileFlag = D3DCOMPILE_AVOID_FLOW_CONTROL | D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS;
 
 		if (SProgramConfiguation::UseDebugShader())
-			mShaderCompileFlag |= EShaderCompileFlag::D3DCOMPILE_DEBUG | EShaderCompileFlag::D3DCOMPILE_SKIP_OPTIMIZATION | EShaderCompileFlag::D3DCOMPILE_DEBUG_NAME_FOR_SOURCE | EShaderCompileFlag::D3DCOMPILE_DEBUG_NAME_FOR_BINARY;
+			mShaderCompileFlag |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG_NAME_FOR_SOURCE | D3DCOMPILE_DEBUG_NAME_FOR_BINARY;
 		else
-			mShaderCompileFlag |= EShaderCompileFlag::D3DCOMPILE_OPTIMIZATION_LEVEL3;
+			mShaderCompileFlag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
 
-		mSearchShaderHeaderFileFunc = [](const std::filesystem::path& _includeFile)
+		mD3DInclude.Init(
+			[](const std::filesystem::path& _includeFile)
 		{
 			auto filePath = SBasicPath::GetEngineShaderPath() / _includeFile;
 			if (std::filesystem::exists(filePath))
@@ -75,7 +111,8 @@ void SD3D12Device::Init(void* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory
 				return filePath;
 
 			return std::filesystem::path();
-		};
+		}
+		);
 	}
 }
 
@@ -101,15 +138,15 @@ IRDISwapChain* SD3D12Device::CreateSwapChain(const SRDISwapChainDesc* _swapChain
 	desc.BufferDesc.Scaling = ConvertScalingModeToD3D(_swapChainDesc->mScalingMode);
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.BufferUsage = DXGI_USAGE::DXGI_USAGE_BACK_BUFFER;
+	desc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
 	desc.BufferCount = _swapChainDesc->mBufferCount;
 	desc.OutputWindow = _swapChainDesc->mOutputWindow;
 	desc.Windowed = _swapChainDesc->mIsWindowed;
 	desc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	desc.Flags = DXGI_SWAP_CHAIN_FLAG::DXGI_SWAP_CHAIN_FLAG_NONE;
+	desc.Flags = 0;
 
-	void* swapchainNativePtr = nullptr;
-	VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateSwapChain_D3D12Impl(mFactory->GetNativePtr(), GetNativePtr(), &desc, &swapchainNativePtr));
+	IDXGISwapChain* swapchainNativePtr = nullptr;
+	VERIFY_D3D_RETURN(mFactory->GetNativePtr()->CreateSwapChain(GetNativePtr(), &desc, &swapchainNativePtr));
 
 	SD3D12SwapChain* swapChain = mSwapChainPool.AllocateElement();
 	swapChain->Init(swapchainNativePtr, _swapChainDesc, this, mAdapter);
@@ -123,9 +160,11 @@ void SD3D12Device::EnsureCommandListCount(size_t _commandListCount) noexcept
 
 	for (size_t i = mCommandList.size(); i != _commandListCount; ++i)
 	{
-		void* commandListNativePtr = nullptr;
-		void* commandAllcatorNativePtr = nullptr;
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateCommandList_D3D12Impl(GetNativePtr(), &commandAllcatorNativePtr, &commandListNativePtr));
+		ID3D12GraphicsCommandList* commandListNativePtr = nullptr;
+		ID3D12CommandAllocator* commandAllcatorNativePtr = nullptr;
+
+		VERIFY_D3D_RETURN(GetNativePtr()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllcatorNativePtr)));
+		VERIFY_D3D_RETURN(GetNativePtr()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllcatorNativePtr, nullptr, IID_PPV_ARGS(&commandListNativePtr)));
 
 		mCommandList.push_back(SD3D12CommandList());
 		mCommandList.back().Init(commandAllcatorNativePtr, commandListNativePtr, this);
@@ -228,30 +267,36 @@ IRDIRootSignature* SD3D12Device::CreateRootSignature(const SRDIRootSignatureDesc
 		staticSamplerDesc[i].ShaderVisibility = ConvertShaderVisibilityToD3D12(_ele.mShaderVisibility);
 	}
 
-	desc.NumParameters = static_cast<uint32_t>( _desc->mRootParameters.size());
+	desc.NumParameters = static_cast<uint32_t>(_desc->mRootParameters.size());
 	desc.pParameters = rootParameters;
 	desc.NumStaticSamplers = static_cast<uint32_t>(_desc->mStaticSamplerDescs.size());
 	desc.pStaticSamplers = staticSamplerDesc;
 	desc.Flags = D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_NONE;
 
-	std::vector<uint8_t> serlizedBlob;
-	std::vector<uint8_t> errorBlob;
-	uint32_t res = D3D12APIWarp_Impl::D3D12SerializeRootSignature_D3D12Impl(&desc, static_cast<int32_t>(D3D_ROOT_SIGNATURE_VERSION::D3D_ROOT_SIGNATURE_VERSION_1), serlizedBlob, errorBlob);
+	ID3DBlob* serlizedBlob = nullptr;
+	ID3DBlob* errorBlob = nullptr;
+
+	HRESULT res = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &serlizedBlob, &errorBlob);
 
 	IRDIRootSignature* rootSignature = nullptr;
 
 	if (res == 0)
-		rootSignature = CreateRootSignature(SBufferView(serlizedBlob.data(), serlizedBlob.size()));
+		rootSignature = CreateRootSignature(SBufferView(serlizedBlob->GetBufferPointer(), serlizedBlob->GetBufferSize()));
 	else
 		GenerateErrorInfo(errorBlob, _rootSignatureError);
+
+	if (serlizedBlob != nullptr)
+		serlizedBlob->Release();
+	if (errorBlob != nullptr)
+		errorBlob->Release();
 
 	return rootSignature;
 }
 
 IRDIRootSignature* SD3D12Device::CreateRootSignature(const SBufferView _serializedRootSignatureBlob) noexcept
 {
-	void* rootSignatureNativePtr = nullptr;
-	VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateRootSignature_D3D12Impl(_serializedRootSignatureBlob.GetBuffer(), _serializedRootSignatureBlob.GetBufferSize(), GetNativePtr(), &rootSignatureNativePtr));
+	ID3D12RootSignature* rootSignatureNativePtr = nullptr;
+	VERIFY_D3D_RETURN(GetNativePtr()->CreateRootSignature(0, _serializedRootSignatureBlob.GetBuffer(), _serializedRootSignatureBlob.GetBufferSize(), IID_PPV_ARGS(&rootSignatureNativePtr)));
 
 	return mRootSignaturePool.AllocateElement(_serializedRootSignatureBlob.GetBuffer(), _serializedRootSignatureBlob.GetBufferSize(), rootSignatureNativePtr);
 }
@@ -333,8 +378,8 @@ IRDIGraphicsPipelineState* SD3D12Device::CreateGraphicsPipelineState(const SRDIG
 	desc.CachedPSO.CachedBlobSizeInBytes = _desc->mCachedPSO.GetBufferSize();
 	desc.Flags = D3D12_PIPELINE_STATE_FLAGS::D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	void* pipelineState = nullptr;
-	VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateGraphicsPipelineState_D3D12Impl(&desc, GetNativePtr(), &pipelineState));
+	ID3D12PipelineState* pipelineState = nullptr;
+	VERIFY_D3D_RETURN(GetNativePtr()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipelineState)));
 	return mGraphicsPipelineStatePool.AllocateElement(pipelineState);
 }
 
@@ -349,8 +394,8 @@ IRDIComputePipelineState* SD3D12Device::CreateComputePipelineState(const SRDICom
 	desc.CachedPSO.CachedBlobSizeInBytes = _desc->mCachedPSO.GetBufferSize();
 	desc.Flags = D3D12_PIPELINE_STATE_FLAGS::D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	void* pipelineState = nullptr;
-	VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateComputePipelineState_D3D12Impl(&desc, GetNativePtr(), &pipelineState));
+	ID3D12PipelineState* pipelineState = nullptr;
+	VERIFY_D3D_RETURN(GetNativePtr()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pipelineState)));
 	return mComputePipelineStatePool.AllocateElement(pipelineState);
 }
 
@@ -369,7 +414,7 @@ IRDIBuffer* SD3D12Device::CreateBuffer(const SRDIBufferResourceDesc* _desc) noex
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	void* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
 
 	SD3D12Buffer* buffer = mBufferPool.AllocateElement();
 	buffer->Init(nativeResourcePtr, _desc, this);
@@ -378,9 +423,6 @@ IRDIBuffer* SD3D12Device::CreateBuffer(const SRDIBufferResourceDesc* _desc) noex
 
 IRDITexture1D* SD3D12Device::CreateTexture1D(const SRDITexture1DResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mSizeX <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mMipCount <= D3D12_MIPMAPCOUNT);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 	desc.Alignment = 0;
@@ -394,7 +436,7 @@ IRDITexture1D* SD3D12Device::CreateTexture1D(const SRDITexture1DResourceDesc* _d
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	void* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
 
 	SD3D12Texture1D* texture1D = mTexture1DPool.AllocateElement();
 	texture1D->Init(nativeResourcePtr, _desc, this);
@@ -403,9 +445,6 @@ IRDITexture1D* SD3D12Device::CreateTexture1D(const SRDITexture1DResourceDesc* _d
 
 IRDITexture1DArray* SD3D12Device::CreateTexture1DArray(const SRDITexture1DArrayResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mSizeX <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mMipCount <= D3D12_MIPMAPCOUNT);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 	desc.Alignment = 0;
@@ -419,7 +458,7 @@ IRDITexture1DArray* SD3D12Device::CreateTexture1DArray(const SRDITexture1DArrayR
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	void* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
 
 	SD3D12Texture1DArray* texture1DArray = mTexture1DArrayPool.AllocateElement();
 	texture1DArray->Init(nativeResourcePtr, _desc, this);
@@ -428,10 +467,6 @@ IRDITexture1DArray* SD3D12Device::CreateTexture1DArray(const SRDITexture1DArrayR
 
 IRDITexture2D* SD3D12Device::CreateTexture2D(const SRDITexture2DResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mSizeX <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mSizeY <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mMipCount <= D3D12_MIPMAPCOUNT);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -445,7 +480,7 @@ IRDITexture2D* SD3D12Device::CreateTexture2D(const SRDITexture2DResourceDesc* _d
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	void* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
 
 	SD3D12Texture2D* texture2D = mTexture2DPool.AllocateElement();
 	texture2D->Init(nativeResourcePtr, _desc, this);
@@ -454,10 +489,6 @@ IRDITexture2D* SD3D12Device::CreateTexture2D(const SRDITexture2DResourceDesc* _d
 
 IRDITexture2DArray* SD3D12Device::CreateTexture2DArray(const SRDITexture2DArrayResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mSizeX <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mSizeY <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mMipCount <= D3D12_MIPMAPCOUNT);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -471,7 +502,7 @@ IRDITexture2DArray* SD3D12Device::CreateTexture2DArray(const SRDITexture2DArrayR
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	void* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
 
 	SD3D12Texture2DArray* texture2DArray = mTexture2DArrayPool.AllocateElement();
 	texture2DArray->Init(nativeResourcePtr, _desc, this);
@@ -480,11 +511,6 @@ IRDITexture2DArray* SD3D12Device::CreateTexture2DArray(const SRDITexture2DArrayR
 
 IRDITexture3D* SD3D12Device::CreateTexture3D(const SRDITexture3DResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mSizeX <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mSizeY <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mSizeZ <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mMipCount <= D3D12_MIPMAPCOUNT);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 	desc.Alignment = 0;
@@ -498,7 +524,7 @@ IRDITexture3D* SD3D12Device::CreateTexture3D(const SRDITexture3DResourceDesc* _d
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	void* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
 
 	SD3D12Texture3D* texture3D = mTexture3DPool.AllocateElement();
 	texture3D->Init(nativeResourcePtr, _desc, this);
@@ -507,9 +533,6 @@ IRDITexture3D* SD3D12Device::CreateTexture3D(const SRDITexture3DResourceDesc* _d
 
 IRDITextureCube* SD3D12Device::CreateTextureCube(const SRDITextureCubeResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mSizeXY <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mMipCount <= D3D12_MIPMAPCOUNT);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -523,7 +546,7 @@ IRDITextureCube* SD3D12Device::CreateTextureCube(const SRDITextureCubeResourceDe
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	void* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
 
 	SD3D12TextureCube* textureCube = mTextureCubePool.AllocateElement();
 	textureCube->Init(nativeResourcePtr, _desc, this);
@@ -532,9 +555,6 @@ IRDITextureCube* SD3D12Device::CreateTextureCube(const SRDITextureCubeResourceDe
 
 IRDITextureCubeArray* SD3D12Device::CreateTextureCubeArray(const SRDITextureCubeArrayResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mSizeXY <= D3D12_TEXTURE_RESOLUTION);
-	CHECK(_desc->mMipCount <= D3D12_MIPMAPCOUNT);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -548,7 +568,7 @@ IRDITextureCubeArray* SD3D12Device::CreateTextureCubeArray(const SRDITextureCube
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
 
-	void* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
 
 	SD3D12TextureCubeArray* textureCubeArray = mTextureCubeArrayPool.AllocateElement();
 	textureCubeArray->Init(nativeResourcePtr, _desc, this);
@@ -665,15 +685,23 @@ IRDIComputeShader* SD3D12Device::CreateComputeShader(SBufferView _compiledShader
 	return mComputeShaderPool.AllocateElement(_compiledShader.GetBuffer(), _compiledShader.GetBufferSize());
 }
 
-IRDITexture2D* SD3D12Device::CreateTexture2DWithCreatedResource(const SRDITexture2DResourceDesc* _desc, void* _resource) noexcept
+IRDITexture2D* SD3D12Device::CreateTexture2DWithCreatedResource(const SRDITexture2DResourceDesc* _desc, ID3D12Resource* _resource) noexcept
 {
 	SD3D12Texture2D* texture2D = mTexture2DPool.AllocateElement();
 	texture2D->Init(_resource, _desc, this);
 	return texture2D;
 }
 
-void* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, D3D12_RESOURCE_STATES _state) noexcept
+ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, D3D12_RESOURCE_STATES _state) noexcept
 {
+	if (_desc->Dimension != D3D12_RESOURCE_DIMENSION_BUFFER)
+	{
+		CHECK(_desc->Width <= D3D12_TEXTURE_RESOLUTION);
+		CHECK(_desc->Height <= D3D12_TEXTURE_RESOLUTION);
+		CHECK(_desc->DepthOrArraySize <= D3D12_TEXTURE_RESOLUTION);
+		CHECK(_desc->MipLevels <= D3D12_MIPMAPCOUNT);
+	}
+
 	D3D12_HEAP_PROPERTIES heapProperties = {};
 	heapProperties.Type = ConvertHeapTypeToD3D12(_heapType);
 	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -681,8 +709,9 @@ void* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, const D3D12_
 	heapProperties.CreationNodeMask = 1;
 	heapProperties.VisibleNodeMask = 1;
 
-	void* nativeResourcePtr = nullptr;
-	VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateCommittedResource_D3D12Impl(GetNativePtr(), &heapProperties, static_cast<int32_t>(D3D12_HEAP_FLAGS::D3D12_HEAP_FLAG_NONE), _desc, static_cast<int32_t>(_state), nullptr, &nativeResourcePtr));
+	ID3D12Resource* nativeResourcePtr = nullptr;
+	VERIFY_D3D_RETURN(GetNativePtr()->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, _desc, _state, nullptr, IID_PPV_ARGS(&nativeResourcePtr)));
+
 	return nativeResourcePtr;
 }
 
@@ -704,31 +733,36 @@ bool SD3D12Device::CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shade
 	shaderMacro[_shaderMacro->mDefinedMacro.size()].Name = nullptr;
 	shaderMacro[_shaderMacro->mDefinedMacro.size()].Definition = nullptr;
 
-	std::vector<uint8_t> shaderBlob;
-	std::vector<uint8_t> errorBlob;
-	uint32_t res = D3DAPIWarp_Impl::D3DCompile_D3DImpl(_hlslShader.GetBuffer(), _hlslShader.GetBufferSize(), nullptr, &shaderMacro, mSearchShaderHeaderFileFunc, "main", ConvertShaderTargetToStr(_shaderTarget), static_cast<int32_t>(mShaderCompileFlag), shaderBlob, errorBlob);
+	ID3DBlob* shaderBlob;
+	ID3DBlob* errorBlob;
+	HRESULT res = D3DCompile(_hlslShader.GetBuffer(), _hlslShader.GetBufferSize(), nullptr, shaderMacro, &mD3DInclude, "main", ConvertShaderTargetToStr(_shaderTarget), mShaderCompileFlag, 0, &shaderBlob, &errorBlob);
 
 	if (res == 0)
-		_shaderBlob->ResizeBlob(shaderBlob.data(), shaderBlob.size());
+		_shaderBlob->ResizeBlob(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize());
 	else
 		GenerateErrorInfo(errorBlob, _shaderCompileError);
+
+	if (shaderBlob != nullptr)
+		shaderBlob->Release();
+	if (errorBlob != nullptr)
+		errorBlob->Release();
 
 	return res == 0;
 }
 
-void SD3D12Device::GenerateErrorInfo(const std::vector<uint8_t>& _errorBlob, SRDIErrorInfo* _errorInfo)
+void SD3D12Device::GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _errorInfo)
 {
 	if (_errorInfo == nullptr)
 		return;
 
-	if (_errorBlob.empty())
+	if (_errorBlob == nullptr || _errorBlob->GetBufferSize() == 0)
 	{
 		_errorInfo->mParsedErrorString.clear();
 		_errorInfo->mErrorString.clear();
 		return;
 	}
 
-	std::string compiledError = reinterpret_cast<const char*>(_errorBlob.data());
+	std::string compiledError = reinterpret_cast<const char*>(_errorBlob->GetBufferPointer());
 	_errorInfo->mErrorString = Locale::ConvertStringToWstring(Locale::ECodePage::ACP, compiledError);
 	const wchar_t* errorStr = _errorInfo->mErrorString.c_str();
 

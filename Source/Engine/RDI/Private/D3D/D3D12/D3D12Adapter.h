@@ -5,6 +5,10 @@
 
 #include "D3D/D3D12/D3D12Output.h"
 
+#include "Core/PreWindowsApi.h"
+#include <dxgi1_6.h>
+#include "Core/PostWindowsApi.h"
+
 struct SD3D12AdapterDesc
 {
 	std::wstring mDescription;
@@ -16,10 +20,10 @@ struct SD3D12AdapterDesc
 class SD3D12Adapter : public IRDIAdapter
 {
 public:
-	void Init(void* _nativePtr) noexcept;
+	void Init(IDXGIAdapter* _nativePtr) noexcept;
 	void Clear() noexcept;
 
-	void* GetNativePtr() noexcept { return mAdapterNativePtr; }
+	IDXGIAdapter* GetNativePtr() noexcept { return mAdapterNativePtr; }
 
 public:
 	void GetDesc(SRDIAdapterDesc* _desc) const noexcept override { *_desc = mCachedDesc; }
@@ -30,7 +34,7 @@ private:
 	SRDIAdapterDesc mCachedDesc;
 
 private:
-	void* mAdapterNativePtr = nullptr;
+	IDXGIAdapter* mAdapterNativePtr = nullptr;
 	SD3D12AdapterDesc mDesc;
 	std::vector<SD3D12Output> mOutputs;
 };

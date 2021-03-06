@@ -1,8 +1,11 @@
 #pragma once
 
 #include "RDI/Interface/RDIOutput.h"
-
 #include "RDI/RDIFunctionHelper.h"
+
+#include "Core/PreWindowsApi.h"
+#include <dxgi1_6.h>
+#include "Core/PostWindowsApi.h"
 
 struct SD3D12OutputDesc
 {
@@ -14,10 +17,10 @@ struct SD3D12OutputDesc
 class SD3D12Output : public IRDIOutput
 {
 public:
-	void Init(void* _nativePtr) noexcept;
+	void Init(IDXGIOutput* _nativePtr) noexcept;
 	void Clear() noexcept;
 
-	void* GetNativePtr() noexcept { return mOutputNativePtr; }
+	IDXGIOutput* GetNativePtr() noexcept { return mOutputNativePtr; }
 
 public:
 
@@ -26,8 +29,7 @@ public:
 private:
 	SRDIOutputDesc mCachedDesc;
 
-
 private:
-	void* mOutputNativePtr = nullptr;
+	IDXGIOutput* mOutputNativePtr = nullptr;
 	SD3D12OutputDesc mDesc;
 };
