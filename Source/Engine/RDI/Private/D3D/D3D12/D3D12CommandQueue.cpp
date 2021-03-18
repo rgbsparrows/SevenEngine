@@ -43,7 +43,7 @@ void SD3D12CommandQueue::YieldUntilCompletion(uint64_t _fenceValue) noexcept
 
 void SD3D12CommandQueue::WaitForCompletion(uint64_t _fenceValue) noexcept
 {
-	HANDLE event = CreateEvent(nullptr, false, false, nullptr);
+	HANDLE event = CreateEventW(nullptr, false, false, nullptr);
 
 	CHECK(event != nullptr);
 
