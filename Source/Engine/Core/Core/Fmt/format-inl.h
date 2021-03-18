@@ -4,9 +4,11 @@
 // All rights reserved.
 //
 // For the license information refer to format.h.
-
 #ifndef FMT_FORMAT_INL_H_
 #define FMT_FORMAT_INL_H_
+
+#pragma warning(push)
+#pragma warning( disable : 26812 )
 
 #include <cassert>
 #include <cctype>
@@ -2075,7 +2077,7 @@ FMT_ALWAYS_INLINE int remove_trailing_zeros(uint64_t& n) FMT_NOEXCEPT {
 
   // Otherwise, work with the remainder
   auto quotient = static_cast<uint32_t>(n / 100000000);
-  auto remainder = static_cast<uint32_t>(0ull + n - 100000000 * quotient);
+  auto remainder = static_cast<uint32_t>(n - 100000000ull * quotient);
 
   if (t == 0 || remainder * mod_inv1 > max_quotient1) {
     return 0;
@@ -2797,5 +2799,7 @@ FMT_FUNC void vprint(string_view format_str, format_args args) {
 }
 
 FMT_END_NAMESPACE
+
+#pragma warning(pop)
 
 #endif  // FMT_FORMAT_INL_H_
