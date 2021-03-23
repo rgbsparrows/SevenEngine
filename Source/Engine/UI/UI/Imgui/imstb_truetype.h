@@ -269,6 +269,9 @@
 //   Inline sort     :  6.54 s     5.65 s
 //   New rasterizer  :  5.63 s     5.00 s
 
+#pragma warning(push)
+#pragma warning(disable : 26451 26819 6385)
+
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 ////
@@ -4802,6 +4805,7 @@ STBTT_DEF int stbtt_CompareUTF8toUTF16_bigendian(const char *s1, int len1, const
 
 #endif // STB_TRUETYPE_IMPLEMENTATION
 
+#pragma warning(pop)
 
 // FULL VERSION HISTORY
 //

@@ -72,6 +72,9 @@ Index of this file:
 
 */
 
+#pragma warning(push)
+#pragma warning(disable : 6011 26451 26812)
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -7926,3 +7929,5 @@ void ImGui::ShowStyleEditor(ImGuiStyle*) {}
 #endif
 
 #endif // #ifndef IMGUI_DISABLE
+
+#pragma warning(pop)

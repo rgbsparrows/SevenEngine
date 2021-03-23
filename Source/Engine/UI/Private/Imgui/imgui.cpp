@@ -771,6 +771,9 @@ CODE
 // [SECTION] INCLUDES
 //-------------------------------------------------------------------------
 
+#pragma warning(push)
+#pragma warning(disable : 6011 26812 28182 26182 26451)
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -16829,3 +16832,5 @@ void ImGui::DebugNodeViewport(ImGuiViewportP*) {}
 //-----------------------------------------------------------------------------
 
 #endif // #ifndef IMGUI_DISABLE
+
+#pragma warning(pop)

@@ -36,6 +36,10 @@ Index of this file:
 */
 
 #pragma once
+
+#pragma warning(push)
+#pragma warning(disable : 26812 26495)
+
 #ifndef IMGUI_DISABLE
 
 //-----------------------------------------------------------------------------
@@ -2871,3 +2875,5 @@ extern void         ImGuiTestEngineHook_Log(ImGuiContext* ctx, const char* fmt, 
 #endif
 
 #endif // #ifndef IMGUI_DISABLE
+
+#pragma warning(pop)

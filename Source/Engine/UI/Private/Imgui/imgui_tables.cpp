@@ -183,6 +183,9 @@ Index of this file:
 // [SECTION] Header mess
 //-----------------------------------------------------------------------------
 
+#pragma warning(push)
+#pragma warning(disable : 26812 26495 26451 6011)
+
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -3946,3 +3949,5 @@ void ImGui::Columns(int columns_count, const char* id, bool border)
 //-------------------------------------------------------------------------
 
 #endif // #ifndef IMGUI_DISABLE
+
+#pragma warning(pop)

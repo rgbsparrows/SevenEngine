@@ -271,6 +271,9 @@
 ////
 ////
 
+#pragma warning(push)
+#pragma warning(disable : 26451)
+
 #ifndef INCLUDE_STB_TEXTEDIT_H
 #define INCLUDE_STB_TEXTEDIT_H
 
@@ -1403,6 +1406,8 @@ static int stb_textedit_paste(STB_TEXTEDIT_STRING *str, STB_TexteditState *state
 #endif
 
 #endif//STB_TEXTEDIT_IMPLEMENTATION
+
+#pragma warning(pop)
 
 /*
 ------------------------------------------------------------------------------
