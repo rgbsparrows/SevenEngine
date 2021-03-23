@@ -29,3 +29,10 @@
 * 渲染线程的结构
     * 由渲染模块直接持有全部的FrameResource，并且在上述所描述的步骤中，来变更当前的FrameResource
     * 辅助各个线程及GPU同步的对象及Fence不属于FrameResource的一部分，而是直接由渲染模块接管，将其从FrameResource中剥离出来
+* 开发步骤
+    * 完成渲染线程的同步操作的设计与实现
+    * 引入IMGUI库，同时在渲染模块中完成UI的渲染操作，以及对UI库的重新封装（只做简单封装即可）
+    * 完成对RenderGraph的定义与设计
+        * 管线的执行流程
+        * 
+        * 借着这个机会深入学习下UE的RenderGraph结构
