@@ -7,3 +7,4 @@
 #undef CreateWindowEx
 #undef max
 #undef min
+#undef assert

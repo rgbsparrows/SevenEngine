@@ -2,7 +2,10 @@
 
 #include "Core/PreWindowsApi.h"
 #include <windows.h>
+#include <synchapi.h>
 #include "Core/PostWindowsApi.h"
+
+#include "Macros/UtilMacros.h"
 
 #include <string>
 #include <filesystem>
@@ -27,3 +30,30 @@ void ProcessWinMessage() noexcept;
 bool IsWinMessageQueueClose() noexcept;
 
 void YieldForSingleObject(HANDLE _handle) noexcept;
+
+struct SCriticalSection
+{
+	SCriticalSection() noexcept
+	{
+		bool res = InitializeCriticalSectionAndSpinCount(&mCriticalSection, 0x00000400);
+		if (res == false)
+			_wassert(L"Create CriticalSection Failed", MAKE_WIDE(__FILE__), __LINE__);
+	}
+
+	~SCriticalSection() noexcept
+	{
+		DeleteCriticalSection(&mCriticalSection);
+	}
+
+	void lock() noexcept
+	{
+		EnterCriticalSection(&mCriticalSection);
+	}
+
+	void unlock() noexcept
+	{
+		LeaveCriticalSection(&mCriticalSection);
+	}
+
+	CRITICAL_SECTION mCriticalSection;
+};
