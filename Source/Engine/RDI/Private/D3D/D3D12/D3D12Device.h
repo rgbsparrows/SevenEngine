@@ -13,10 +13,10 @@
 #include "D3D/D3D12/D3D12PipelineState.h"
 #include "D3D/D3D12/D3D12DescriptorHeap.h"
 
-#include "Core/PreWindowsApi.h"
+#include "Core/Misc/PreWindowsApi.h"
 #include <d3d12.h>
 #include <d3dcompiler.h>
-#include "Core/PostWindowsApi.h"
+#include "Core/Misc/PostWindowsApi.h"
 
 #include <vector>
 #include <functional>

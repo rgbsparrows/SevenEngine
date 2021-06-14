@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core/Macros/ConditionDeprecated.h"
-#include "Core/windowsEx.h"
+#include "Core/ProgramConfiguation/ConditionDeprecated.h"
+#include "Core/Misc/windowsEx.h"
 
 DEPRECATED_WHEN_FMT_LIBRARY_AVAILABLE("")
 inline void CombinString() noexcept

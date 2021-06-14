@@ -1,116 +1,168 @@
 #pragma once
 
-#include "Core/Macros/UtilMacros.h"
-#include "Core/Template/TemplateUtil.h"
-#include "Core/Allocator/AllocatorHelper.h"
+#include "Core/Util/UtilMacros.h"
+#include "Core/Util/TemplateUtil.h"
+#include "Core/Container/AllocatorHelper.h"
+#include "Core/Misc/Thread.h"
 
 #include <mutex>
-
-namespace detail
-{
-	template<typename _elementType>
-	class TElementPoolInternal
-	{
-	public:
-		using ElementType = _elementType;
-		static constexpr size_t ElementSize = sizeof(ElementType);
-		static constexpr size_t ElementAligned = alignof(ElementType);
-		using UnconstructElement = TUnconstructAlignedElement<ElementSize, ElementAligned>;
-
-		TElementPoolInternal() = default;
-		TElementPoolInternal(uint64_t _elementCount)
-		{
-			CHECK((_elementCount & 0x3f) == 0);
-
-			mUnconstructElements.resize(_elementCount);
-			mAllocatorHelper.ResetSlotCount(_elementCount);
-		}
-
-		template<typename... _argt>
-		ElementType* AllocateElement(_argt&&... _args) noexcept
-		{
-			uint64_t index = mAllocatorHelper.AllocateSlot();
-			if (index == std::numeric_limits<uint64_t>::max())
-				return nullptr;
-
-			return new(&mUnconstructElements[index]) ElementType(std::forward<_argt>(_args)...);
-		}
-
-		void DeallocateElement(ElementType* _element)
-		{
-			CHECK(_element != nullptr);
-
-			uint64_t index = (PointerToInt(_element) - PointerToInt(&mUnconstructElements[0])) / ElementSize;
-
-			_element->~ElementType();
-			mAllocatorHelper.DeallocateSlot(index);
-		}
-
-		void ResizePool(uint64_t _elementCount)
-		{
-			CHECK(_elementCount >= mAllocatorHelper.GetSize());
-
-			mUnconstructElements.resize(_elementCount);
-			mAllocatorHelper.ResetSlotCount(_elementCount);
-		}
-
-	private:
-		std::vector<UnconstructElement> mUnconstructElements;
-		SCircularSlotAllocatorHelper mAllocatorHelper;
-	};
-}
-
 enum class EElementPoolFlag
 {
 	None = 0,
-	ThreadSafe = 1 << 0,
+	StaticCapacity = 1 << 0,
+	ThreadSafe = 1 << 1,
 };
 REGIST_ENUM_FLAG(EElementPoolFlag)
 
 template<typename _elementType, EElementPoolFlag _elementPoolFlag = EElementPoolFlag::None>
-class TElementPool {};
-
-template<typename _elementType>
-class TElementPool<_elementType, EElementPoolFlag::None> : public detail::TElementPoolInternal<_elementType> {};
-
-template<typename _elementType>
-class TElementPool<_elementType, EElementPoolFlag::ThreadSafe>
+class TElementPool
 {
 public:
-	using TElementPoolInternalType = detail::TElementPoolInternal<_elementType>;
-	using ElementType = TElementPoolInternalType::ElementType;
-	static constexpr size_t ElementSize = TElementPoolInternalType::ElementSize;
-	static constexpr size_t ElementAligned = TElementPoolInternalType::ElementAligned;
+	using ElementType = _elementType;
+	static constexpr size_t ElementSize = sizeof(ElementType);
+	static constexpr size_t ElementAligned = alignof(ElementType);
+	static constexpr EElementPoolFlag ElementPoolFlag = _elementPoolFlag;
+	static constexpr bool IsStaticCapacity = (ElementPoolFlag & EElementPoolFlag::StaticCapacity) == EElementPoolFlag::StaticCapacity;
+	static constexpr bool IsThreadSafe = (ElementPoolFlag & EElementPoolFlag::ThreadSafe) == EElementPoolFlag::ThreadSafe;
+	using UnconstructElement = TUnconstructAlignedElement<ElementSize, ElementAligned>;
+	using LockType = TTypeSwitch<IsThreadSafe, Thread::SCriticalSection, Thread::SDummyLock>;
+	using AdditionElementPoolType = TElementPool<ElementType, EElementPoolFlag::None>;
+	using AdditionElementPoolListType = TTypeSwitch<IsStaticCapacity, EmptyType, std::vector<AdditionElementPoolType>>;
 
-	TElementPool() = default;
-	TElementPool(uint64_t _elementCount)
-		:mElementPoolInternal(_elementCount)
+	TElementPool() noexcept = default;
+	TElementPool(uint64_t _newcapacity) noexcept
 	{
+		CHECK(_newcapacity % 64ull == 0);
+
+		RecapacityPool(_newcapacity);
 	}
 
 	template<typename... _argt>
 	ElementType* AllocateElement(_argt&&... _args) noexcept
 	{
-		std::lock_guard lock(mCriticalSection);
+		std::lock_guard lockGuard(mLock);
+		CHECK(IsStaticCapacity && IsFull());
 
-		mElementPoolInternal.AllocateElement(std::forward<_argt>(_args)...);
+		if (IsFull())
+			RecapacityPool(GetCapacity() + 1);
+
+		if (mAllocatorHelper.IsFull() == false)
+		{
+			uint64_t index = mAllocatorHelper.AllocateSlot();
+			return new(&mUnconstructElements[index]) ElementType(std::forward<_argt>(_args)...);
+		}
+		else if constexpr (IsStaticCapacity == false)
+		{
+			for (auto& _pool : mAdditionElementPool)
+			{
+				if (_pool.IsFull() == false)
+					return _pool.AllocateElement(std::forward<_argt>((_args))...);
+			}
+		}
+
+		return nullptr;
 	}
 
-	void DeallocateElement(ElementType* _element)
+	void DeallocateElement(ElementType* _element) noexcept
 	{
-		std::lock_guard lock(mCriticalSection);
+		std::lock_guard lockGuard(mLock);
 
-		mElementPoolInternal.DeallocateElement(_element);
+		CHECK(_element != nullptr);
+		CHECK(IsAllocatedFrom(_element));
+
+		uint64_t index = (PointerToInt(_element) - PointerToInt(&mUnconstructElements[0])) / ElementSize;
+		if (index >= 0 && index <= mAllocatorHelper.GetSize())
+		{
+			_element->~ElementType();
+			mAllocatorHelper.DeallocateSlot(index);
+		}
+		else if constexpr (IsStaticCapacity == false)
+		{
+			for (auto& _pool : mAdditionElementPool)
+				_pool.DeallocateElement(_element);
+		}
 	}
 
-	void ResizePool(uint64_t _elementCount)
+	void RecapacityPool(uint64_t _newcapacity) noexcept
 	{
-		std::lock_guard lock(mCriticalSection);
+		std::lock_guard lock(mLock);
 
-		mElementPoolInternal.ResizePool(_elementCount);
+		CHECK(!IsStaticCapacity || GetCapacity() == 0);
+		CHECK(GetCapacity() < _newcapacity);
+
+		if (GetCapacity() == 0)
+		{
+			mUnconstructElements.resize(_newcapacity);
+			mAllocatorHelper.ResetSlotCount(_newcapacity);
+		}
+		else if constexpr (IsStaticCapacity == false)
+		{
+			uint64_t newCapacity = Math::CalcBlockCount(std::max(GetCapacity() / 2, _newcapacity - GetCapacity()), 64ull);
+			mAdditionElementPool.push_back(TElementPool(newCapacity));
+		}
+	}
+
+	uint64_t GetCapacity() const noexcept
+	{
+		std::lock_guard lock(mLock);
+
+		if constexpr (IsStaticCapacity)
+			return mAllocatorHelper.GetSize();
+		else
+		{
+			uint64_t capactity = mAllocatorHelper.GetSize();
+
+			for (const auto& _pool : mAdditionElementPool)
+				capactity += _pool.GetCapacity();
+
+			return capactity;
+		}
+	}
+
+	bool IsFull() const noexcept
+	{
+		std::lock_guard lock(mLock);
+
+		if constexpr (IsStaticCapacity)
+			return mAllocatorHelper.IsFull();
+		else
+		{
+			bool isFull = mAllocatorHelper.IsFull();
+
+			for (const auto& _pool : mAdditionElementPool)
+				isFull = isFull && _pool.IsFull();
+
+			return isFull;
+		}
+	}
+
+	bool IsAllocatedFrom(const ElementType* _element) const noexcept
+	{
+		std::lock_guard lock(mLock);
+
+		if (mAllocatorHelper.GetSize() != 0)
+		{
+			uint64_t index = (PointerToInt(_element) - PointerToInt(&mUnconstructElements[0])) / ElementSize;
+			if (index >= 0 && index <= mAllocatorHelper.GetSize())
+				return true;
+		}
+
+		if constexpr (IsStaticCapacity == false)
+		{
+			for (const auto& _pool : mAdditionElementPool)
+			{
+				if (_pool.IsAllocatedFrom(_element))
+					return true;
+			}
+		}
+
+		return false;
 	}
 
 private:
-	TElementPoolInternalType mElementPoolInternal;
-	SCriticalSection mCriticalSection;
+	std::vector<UnconstructElement> mUnconstructElements;
+	SCircularSlotAllocatorHelper mAllocatorHelper;
+	AdditionElementPoolListType mAdditionElementPool;
+
+	mutable LockType mLock;
 };

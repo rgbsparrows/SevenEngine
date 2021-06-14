@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Core/Template/TemplateUtil.h"
+#include "Core/Util/TemplateUtil.h"
 
 #include <filesystem>
 #include <functional>
 
-#include "Core/PreWindowsApi.h"
+#include "Core/Misc/PreWindowsApi.h"
 #include <d3dcompiler.h>
-#include "Core/PostWindowsApi.h"
+#include "Core/Misc/PostWindowsApi.h"
 
 #pragma comment(lib, "d3dcompiler.lib")
 

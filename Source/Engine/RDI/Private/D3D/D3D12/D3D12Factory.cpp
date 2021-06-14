@@ -1,6 +1,6 @@
 #include "D3D/D3DUtil.h"
 #include "D3D/D3D12/D3D12Factory.h"
-#include "Core/BuildConfiguation/BuildConfiguation.h"
+#include "Core/ProgramConfiguation/BuildConfiguation.h"
 
 #pragma comment(lib, "dxgi.lib")
 

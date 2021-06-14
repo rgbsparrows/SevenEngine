@@ -1,5 +1,5 @@
 #include "RDIModuleImpl.h"
-#include "Core/Macros/Assert.h"
+#include "Core/Util/Assert.h"
 #include "D3D/D3D12/D3D12Factory.h"
 
 static SRDIModuleImpl* GRDIModuleImpl = nullptr;

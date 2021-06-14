@@ -1,5 +1,5 @@
-﻿#include "Core/CommandLine/CommandLine.h"
-#include "Core/windowsEx.h"
+﻿#include "Core/Misc/CommandLine.h"
+#include "Core/Misc/windowsEx.h"
 
 
 const std::wstring& SCommandLine::GetCommandLine() noexcept

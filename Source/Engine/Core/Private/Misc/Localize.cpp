@@ -1,5 +1,5 @@
-#include "Core/Localize.h"
-#include "Core/windowsEx.h"
+#include "Core/Misc/Localize.h"
+#include "Core/Misc/windowsEx.h"
 
 namespace Locale
 {

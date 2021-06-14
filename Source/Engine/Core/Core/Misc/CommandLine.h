@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core/Macros/UtilMacros.h"
-#include "Core/Template/StringParser.h"
-#include "Core/Template/TemplateUtil.h"
+#include "Core/Util/UtilMacros.h"
+#include "Core/Util/StringParser.h"
+#include "Core/Util/TemplateUtil.h"
 
 struct SCommandLine
 {

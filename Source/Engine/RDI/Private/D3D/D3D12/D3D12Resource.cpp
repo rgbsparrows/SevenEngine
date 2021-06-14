@@ -1,6 +1,6 @@
 #include "D3D/D3DUtil.h"
 #include "D3D12Resource.h"
-#include "Core/Macros/Assert.h"
+#include "Core/Util/Assert.h"
 #include "D3D/D3D12/D3D12Device.h"
 
 void SD3D12Buffer::Init(ID3D12Resource* _nativePtr, const SRDIBufferResourceDesc* _desc, SD3D12Device* _device) noexcept

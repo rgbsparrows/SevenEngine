@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Template/TemplateUtil.h"
+#include "Core/Util/TemplateUtil.h"
 
 enum class ERDIPixelFormat
 {

@@ -173,11 +173,11 @@ void SD3D12DescriptorHeap::Init(ID3D12DescriptorHeap* _rtvDescriptorHeapNativePt
 	mUAVAllocatorHelper.ResetSlotCount(_uavDescriptorCount);
 	mSamplerViewAllocatorHelper.ResetSlotCount(_samplerViewDescriptorCount);
 
-	mRenderTargetViewPool.ResizePool(_rtvDescriptorCount);
-	mDepthStencilViewPool.ResizePool(_dsvDescriptorCount);
-	mShaderResourceViewPool.ResizePool(_srvDescriptorCount);
-	mUnorderedAccessViewPool.ResizePool(_uavDescriptorCount);
-	mSamplerViewPool.ResizePool(_samplerViewDescriptorCount);
+	mRenderTargetViewPool.RecapacityPool(_rtvDescriptorCount);
+	mDepthStencilViewPool.RecapacityPool(_dsvDescriptorCount);
+	mShaderResourceViewPool.RecapacityPool(_srvDescriptorCount);
+	mUnorderedAccessViewPool.RecapacityPool(_uavDescriptorCount);
+	mSamplerViewPool.RecapacityPool(_samplerViewDescriptorCount);
 
 	mRTVDescriptorHeapStartCPUDescriptorHandle = mRTVDescriptorHeapNativePtr->GetCPUDescriptorHandleForHeapStart();
 	mDSVDescriptorHeapStartCPUDescriptorHandle = mDSVDescriptorHeapNativePtr->GetCPUDescriptorHandleForHeapStart();

@@ -2,7 +2,7 @@
 
 #include "D3D/D3D12/D3D12Resource.h"
 #include "Core/Container/ElementPool.h"
-#include "Core/Allocator/AllocatorHelper.h"
+#include "Core/Container/AllocatorHelper.h"
 #include "RDI/Interface/RDIDescriptorHeapRange.h"
 
 #include <stdint.h>
@@ -212,11 +212,11 @@ private:
 	SCircularSlotAllocatorHelper mUAVAllocatorHelper;
 	SCircularSlotAllocatorHelper mSamplerViewAllocatorHelper;
 
-	TElementPool<SD3D12RenderTargetView> mRenderTargetViewPool;
-	TElementPool<SD3D12DepthStencilView> mDepthStencilViewPool;
-	TElementPool<SD3D12ShaderResourceView> mShaderResourceViewPool;
-	TElementPool<SD3D12UnorderedAccessView> mUnorderedAccessViewPool;
-	TElementPool<SD3D12SamplerView> mSamplerViewPool;
+	TElementPool<SD3D12RenderTargetView, EElementPoolFlag::StaticCapacity> mRenderTargetViewPool;
+	TElementPool<SD3D12DepthStencilView, EElementPoolFlag::StaticCapacity> mDepthStencilViewPool;
+	TElementPool<SD3D12ShaderResourceView, EElementPoolFlag::StaticCapacity> mShaderResourceViewPool;
+	TElementPool<SD3D12UnorderedAccessView, EElementPoolFlag::StaticCapacity> mUnorderedAccessViewPool;
+	TElementPool<SD3D12SamplerView, EElementPoolFlag::StaticCapacity> mSamplerViewPool;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE mRTVDescriptorHeapStartCPUDescriptorHandle = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE mDSVDescriptorHeapStartCPUDescriptorHandle = {};

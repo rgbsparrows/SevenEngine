@@ -34,4 +34,47 @@ namespace TemplateUtilDetail
 	private:
 		IntTypeHelper<true, _aligned> Buffer[(_elementSize + _aligned - 1) / _aligned];
 	};
+
+	template<typename... _typeSequence>
+	struct TypeSequence {};
+
+	template<size_t _index, typename _first, typename... _typeSequence>
+	struct TypeSequenceItemInner
+	{
+		using Type = TypeSequenceItemInner<_index - 1, _typeSequence...>::Type;
+	};
+
+	template<typename _first, typename... _typeSequence>
+	struct TypeSequenceItemInner<0, _first, _typeSequence...>
+	{
+		using Type = _first;
+	};
+
+	template<size_t _index, typename... _typeSequence>
+	struct TypeSequenceItem
+	{
+	};
+
+	template<size_t _index, typename... _typeSequence>
+	struct TypeSequenceItem<_index, TypeSequence<_typeSequence...>>
+	{
+		using Type = TypeSequenceItemInner<_index, _typeSequence...>::Type;
+	};
+
+	template<bool _switch, typename _first, typename _second>
+	struct TypeSwitch
+	{
+	};
+
+	template<typename _first, typename _second>
+	struct TypeSwitch<true, _first, _second>
+	{
+		using Type = _first;
+	};
+
+	template<typename _first, typename _second>
+	struct TypeSwitch<false, _first, _second>
+	{
+		using Type = _second;
+	};
 }

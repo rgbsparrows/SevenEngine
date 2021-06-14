@@ -1,9 +1,9 @@
 #include "D3D/D3DUtil.h"
-#include "Core/Localize.h"
-#include "Core/Path/BasicPath.h"
+#include "Core/Misc/Localize.h"
 #include "D3D/D3D12/D3D12Device.h"
 #include "D3D/D3D12/D3D12Factory.h"
 #include "D3D/Helper/D3DEnumConvertor.h"
+#include "Core/ProgramConfiguation/BasicPath.h"
 #include "D3D/D3D12/Helper/D3D12EnumConvertor.h"
 
 void SD3D12Device::Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory* _factory) noexcept

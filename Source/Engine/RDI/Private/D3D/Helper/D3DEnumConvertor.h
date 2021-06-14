@@ -4,9 +4,9 @@
 #include "D3D/Helper/D3DHelper.h"
 #include "RDI/RDIFunctionHelper.h"
 
-#include "Core/PreWindowsApi.h"
+#include "Core/Misc/PreWindowsApi.h"
 #include <dxgi1_6.h>
-#include "Core/PostWindowsApi.h"
+#include "Core/Misc/PostWindowsApi.h"
 
 DXGI_FORMAT ConvertPixelFormatToD3D(ERDIPixelFormat _pixelFormat) noexcept;
 const char* ConvertShaderTargetToStr(ED3DShaderTarget _shaderTarget) noexcept;

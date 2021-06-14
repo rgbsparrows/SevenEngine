@@ -1,5 +1,5 @@
-#include "ProgramConfiguation.h"
-#include "Core/CommandLine/CommandLine.h"
+#include "Core/ProgramConfiguation/ProgramConfiguation.h"
+#include "Core/Misc/CommandLine.h"
 
 std::filesystem::path SProgramConfiguation::GetEnginePath() noexcept
 {

@@ -5,9 +5,9 @@
 
 #include "D3D/D3D12/D3D12Output.h"
 
-#include "Core/PreWindowsApi.h"
+#include "Core/Misc/PreWindowsApi.h"
 #include <dxgi1_6.h>
-#include "Core/PostWindowsApi.h"
+#include "Core/Misc/PostWindowsApi.h"
 
 struct SD3D12AdapterDesc
 {

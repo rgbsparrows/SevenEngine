@@ -1,9 +1,9 @@
 #include "RDI/RDIFunctionHelper.h"
 #include "RDI/Interface/RDIInputLayout.h"
 
-#include "Core/PreWindowsApi.h"
+#include "Core/Misc/PreWindowsApi.h"
 #include <d3d12.h>
-#include "Core/PostWindowsApi.h"
+#include "Core/Misc/PostWindowsApi.h"
 
 class SD3D12InputLayout : public IRDIInputLayout
 {

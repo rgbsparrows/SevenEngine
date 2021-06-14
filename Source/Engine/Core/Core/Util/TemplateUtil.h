@@ -41,3 +41,14 @@ constexpr inline auto ArraySize(_type(&)[_arraySize]) noexcept
 template<bool _isUnsigned, size_t _size> using TIntType = typename TemplateUtilDetail::IntTypeHelper<_isUnsigned, _size>::Type;
 template<typename _type> using TNumericInfo = typename TemplateUtilDetail::NumericInfo<_type>;
 template<size_t _elementSize, size_t _aligned> using TUnconstructAlignedElement = typename TemplateUtilDetail::UnconstructAlignedElement<_elementSize, _aligned>;
+
+template<typename... _types>
+using TTypeSequence = TemplateUtilDetail::TypeSequence<_types...>;
+
+template<size_t _index, typename _typeSequence>
+using TTypeSequenceItem = TemplateUtilDetail::TypeSequenceItem<_index, _typeSequence>::Type;
+
+template<bool _switch, typename _first, typename _second>
+using TTypeSwitch = TemplateUtilDetail::TypeSwitch<_switch, _first, _second>::Type;
+
+using EmptyType = struct {};

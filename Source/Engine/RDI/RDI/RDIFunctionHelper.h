@@ -2,10 +2,10 @@
 
 #include "Core/Math/Type.h"
 #include "RDI/RDIPixelFormat.h"
-#include "Core/Macros/UtilMacros.h"
+#include "Core/Util/UtilMacros.h"
 #include "Core/Container/Blob.h"
-#include "Core/Template/TemplateUtil.h"
-#include "Core/windowsEx.h"
+#include "Core/Util/TemplateUtil.h"
+#include "Core/Misc/windowsEx.h"
 
 #include <string_view>
 #include <filesystem>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core/Macros/UtilMacros.h"
-#include "Core/BuildConfiguation/BuildConfiguation.h"
+#include "Core/Util/UtilMacros.h"
+#include "Core/ProgramConfiguation/BuildConfiguation.h"
 #include "Core/ProgramConfiguation/ProgramConfiguation.h"
 
 #include <filesystem>

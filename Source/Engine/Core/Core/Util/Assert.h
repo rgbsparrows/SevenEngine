@@ -1,8 +1,8 @@
 #pragma once
 
-#include "BuildConfiguationMacro.h"
-#include "Core/Macros/UtilMacros.h"
-#include "Core/windowsEx.h"
+#include "Core/ProgramConfiguation/BuildConfiguationMacro.h"
+#include "Core/Util/UtilMacros.h"
+#include "Core/Misc/windowsEx.h"
 
 #define CHECK(_expr) do { if (!(_expr)) _wassert(MAKE_WIDE(MAKE_STR(#_expr)), MAKE_WIDE(__FILE__), __LINE__); } while (0)
 

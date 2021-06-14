@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core/Macros/UtilMacros.h"
-#include "Core/Macros/ConditionDeprecated.h"
-#include "Core/Macros/BuildConfiguationMacro.h"
+#include "Core/Util/UtilMacros.h"
+#include "Core/ProgramConfiguation/ConditionDeprecated.h"
+#include "Core/ProgramConfiguation/BuildConfiguationMacro.h"
 
 #include <string_view>
 

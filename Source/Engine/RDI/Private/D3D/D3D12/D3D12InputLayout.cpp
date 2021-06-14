@@ -1,4 +1,4 @@
-#include "Core/Localize.h"
+#include "Core/Misc/Localize.h"
 #include "D3D12InputLayout.h"
 #include "D3D/Helper/D3DEnumConvertor.h"
 

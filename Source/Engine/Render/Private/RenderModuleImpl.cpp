@@ -1,5 +1,5 @@
 #include "RDI/RDIModule.h"
-#include "Core/windowsEx.h"
+#include "Core/Misc/windowsEx.h"
 #include "RenderModuleImpl.h"
 #include "RDI/Interface/RDIDevice.h"
 #include "Core/Modules/ModuleManager.h"

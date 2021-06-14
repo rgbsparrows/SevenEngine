@@ -1,5 +1,5 @@
 #include "EngineLoop.h"
-#include "Core/Thread.h"
+#include "Core/Misc/Thread.h"
 #include "Render/RenderModule.h"
 #include "Core/Class/ClassManager.h"
 #include "Core/Modules/ModuleManager.h"

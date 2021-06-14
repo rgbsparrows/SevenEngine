@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/Math/Operation.h"
-#include "Core/Macros/Assert.h"
+#include "Core/Util/Assert.h"
 
 #include <limits>
 #include <vector>
@@ -19,20 +19,20 @@ public:
 	//当需要减少slot时，需要谨慎
 	void ResetSlotCount(uint64_t _slotCount) noexcept
 	{
-		CHECK((_slotCount & 0x3f) == 0);
+		CHECK(_slotCount % 64ull == 0);
 		CHECK(Math::CalcBlockCount(_slotCount, 64ull) >= mBitmap.size());
 
 		mBitmap.resize(Math::CalcBlockCount(_slotCount, 64ull));
 	}
 
-	/// <summary>
-	/// 分配插槽
-	/// </summary>
-	/// <returns>s插槽索引，当返回值为std::numeric_limits<uint64_t>::max()时表示分配失败</returns>
+	// 插槽索引，当返回值为std::numeric_limits<uint64_t>::max()时表示分配失败
 	uint64_t AllocateSlot() noexcept
 	{
-		uint64_t preWordIndex = mCurrentWord;
+		if (IsFull())
+			return std::numeric_limits<uint64_t>::max();
 
+		uint64_t preWordIndex = mCurrentWord;
+		++mAllocatedSlotCount;
 		for (void(); mCurrentWord != mBitmap.size(); ++mCurrentWord)
 		{
 			if (mBitmap[mCurrentWord] == std::numeric_limits<uint64_t>::max()) continue;
@@ -61,27 +61,52 @@ public:
 			}
 		}
 
+		CHECK(false);
 		return std::numeric_limits<uint64_t>::max();
 	}
 
 	void DeallocateSlot(uint64_t _slotIndex)
 	{
 		CHECK(_slotIndex <= mBitmap.size() * 64ull);
+		CHECK(IsSlotAllocated(_slotIndex) == true);
 
 		uint64_t wordIndex = _slotIndex / 64;
 		uint32_t bitIndex = _slotIndex % 64;
 
+		--mAllocatedSlotCount;
 		mBitmap[wordIndex] &= ~(1 << bitIndex);
 	}
 
-	uint64_t GetSize() const
+
+	bool IsSlotAllocated(uint64_t _slotIndex) const noexcept
+	{
+		CHECK(_slotIndex <= mBitmap.size() * 64ull);
+
+		uint64_t wordIndex = _slotIndex / 64;
+		uint32_t bitIndex = _slotIndex % 64;
+
+		return ((mBitmap[wordIndex] >> bitIndex) & 1) == 1;
+	}
+
+	uint64_t GetSize() const noexcept
 	{
 		return mBitmap.size() * 64ull;
+	}
+
+	bool IsFull() const noexcept
+	{
+		return GetAllocatedSlotCount() == GetSize();
+	}
+
+	uint64_t GetAllocatedSlotCount() const noexcept
+	{
+		return mAllocatedSlotCount;
 	}
 
 private:
 	std::vector<uint64_t> mBitmap;
 	uint64_t mCurrentWord = 0;
+	uint64_t mAllocatedSlotCount = 0;
 };
 
 class SCircularSlotArrayAllocatorHelper
@@ -103,10 +128,7 @@ public:
 		mBitmap.resize(Math::CalcBlockCount(_slotCount, 64ull));
 	}
 
-	/// <summary>
-	/// 分配插槽
-	/// </summary>
-	/// <returns>s插槽索引，当返回值为uint64_t::max()时表示分配失败</returns>
+	// 插槽索引，当返回值为std::numeric_limits<uint64_t>::max()时表示分配失败
 	uint64_t AllocateSlotArray(uint64_t _arraySize) noexcept
 	{
 		CHECK(_arraySize <= 64ull);
@@ -180,7 +202,7 @@ public:
 		uint32_t bitIndex = _slotIndex % 64;
 
 		uint64_t slotMask[2];
-		if(_arraySize == 64ull)
+		if (_arraySize == 64ull)
 			slotMask[0] = std::numeric_limits<uint64_t>::max();
 		else
 			slotMask[0] = (1ull << _arraySize) - 1ull;
@@ -189,8 +211,8 @@ public:
 		slotMask[0] = slotMask[0] << bitIndex;
 
 		mBitmap[wordIndex] &= ~slotMask[0];
-		
-		if(wordIndex + 1 != mBitmap.size())
+
+		if (wordIndex + 1 != mBitmap.size())
 			mBitmap[wordIndex + 1] &= ~slotMask[1];
 	}
 
