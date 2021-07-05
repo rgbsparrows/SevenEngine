@@ -28,11 +28,16 @@ bool SRenderModuleImpl::Init() noexcept
 	}
 
 	{
-		for (size_t i = 0; i != FrameBufferCount; ++i)
+		for (size_t i = 0; i != GRenderInfoCount; ++i)
 		{
-			mGameThreadFrameResourceReadyEvent[i] = CreateEventW(nullptr, FALSE, TRUE, nullptr);
-			mRenderThreadFrameResourceReadyEvent[i] = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+			mFrameInfoIndex_GameThread = i;
+			mFrameInfoIndex_RenderThread = i;
+			mFrameResource.Get_GameThread().mGameThreadFrameResourceReadyEvent = CreateEventW(nullptr, FALSE, TRUE, nullptr);
+			mFrameResource.Get_RenderThread().mRenderThreadFrameResourceReadyEvent = CreateEventW(nullptr, FALSE, TRUE, nullptr);
 		}
+
+		mFrameInfoIndex_GameThread = 0;
+		mFrameInfoIndex_RenderThread = 0;
 	}
 
 	{
@@ -52,11 +57,18 @@ bool SRenderModuleImpl::Init() noexcept
 void SRenderModuleImpl::Clear() noexcept
 {
 	{
-		for (size_t i = 0; i != FrameBufferCount; ++i)
+		for (size_t i = 0; i != GRenderInfoCount; ++i)
 		{
-			CloseHandle(mGameThreadFrameResourceReadyEvent[i]);
-			CloseHandle(mRenderThreadFrameResourceReadyEvent[i]);
+			mFrameInfoIndex_GameThread = i;
+			mFrameInfoIndex_RenderThread = i;
+			CloseHandle(mFrameResource.Get_GameThread().mGameThreadFrameResourceReadyEvent);
+			CloseHandle(mFrameResource.Get_RenderThread().mRenderThreadFrameResourceReadyEvent);
+			mFrameResource.Get_GameThread().mGameThreadFrameResourceReadyEvent = nullptr;
+			mFrameResource.Get_RenderThread().mRenderThreadFrameResourceReadyEvent = nullptr;
 		}
+
+		mFrameInfoIndex_GameThread = 0;
+		mFrameInfoIndex_RenderThread = 0;
 	}
 
 	{
@@ -70,33 +82,33 @@ void SRenderModuleImpl::Clear() noexcept
 
 void SRenderModuleImpl::BeginFrame_GameThread() noexcept
 {
-	YieldForSingleObject(mGameThreadFrameResourceReadyEvent[mCurrentGameThreadFrameResourceIndex]);
+	YieldForSingleObject(mFrameResource.Get_GameThread().mGameThreadFrameResourceReadyEvent);
 }
 
 void SRenderModuleImpl::EndFrame_GameThread() noexcept
 {
-	SetEvent(mRenderThreadFrameResourceReadyEvent[mCurrentGameThreadFrameResourceIndex]);
-	++mCurrentGameThreadFrameResourceIndex;
-	mCurrentGameThreadFrameResourceIndex %= FrameBufferCount;
+	SetEvent(mFrameResource.Get_RenderThread().mRenderThreadFrameResourceReadyEvent);
+	++mFrameInfoIndex_GameThread;
+	mFrameInfoIndex_GameThread %= GRenderInfoCount;
 }
 
 void SRenderModuleImpl::BeginFrame_RenderThread() noexcept
 {
-	YieldForSingleObject(mRenderThreadFrameResourceReadyEvent[mCurrentRenderThreadFrameResourceIndex]);
-	mRdiCommandQueue->YieldUntilCompletion(mGpuFence[mCurrentRenderThreadFrameResourceIndex]);
+	YieldForSingleObject(mFrameResource.Get_RenderThread().mRenderThreadFrameResourceReadyEvent);
+	mRdiCommandQueue->YieldUntilCompletion(mFrameResource.Get_RenderThread().mGpuFence);
 }
 
 void SRenderModuleImpl::EndFrame_RenderThread() noexcept
 {
-	SetEvent(mGameThreadFrameResourceReadyEvent[mCurrentRenderThreadFrameResourceIndex]);
-	mGpuFence[mCurrentRenderThreadFrameResourceIndex] = mRdiCommandQueue->Signal();
-	++mCurrentRenderThreadFrameResourceIndex;
-	mCurrentRenderThreadFrameResourceIndex %= FrameBufferCount;
+	SetEvent(mFrameResource.Get_RenderThread().mGameThreadFrameResourceReadyEvent);
+	mFrameResource.Get_RenderThread().mGpuFence = mRdiCommandQueue->Signal();
+	++mFrameInfoIndex_RenderThread;
+	mFrameInfoIndex_RenderThread %= GRenderInfoCount;
 }
 
 void SRenderModuleImpl::RenderThreadMain() noexcept
 {
-	while (GetFrameResource_RenderThread().mRequireExit == false)
+	while (mFrameResource.Get_RenderThread().mRequireExit == false)
 	{
 		BeginFrame_RenderThread();
 		FrameTick_RenderThread();

@@ -7,6 +7,7 @@
 
 #include <thread>
 #include <string>
+#include "Render/RenderProxy/RenderProxy.h"
 
 class SRenderModuleImpl : public IRenderModule
 {
@@ -21,29 +22,23 @@ public:
 	void FrameTick_RenderThread() noexcept {}
 	void EndFrame_RenderThread() noexcept;
 
-	SFrameResource& GetFrameResource_GameThread() noexcept { return mFrameResource[mCurrentGameThreadFrameResourceIndex]; }
-	SFrameResource& GetFrameResource_RenderThread() noexcept { return mFrameResource[mCurrentRenderThreadFrameResourceIndex]; }
+	size_t GetFrameInfoIndex_GameThread() noexcept override { return mFrameInfoIndex_GameThread; }
+	size_t GetFrameInfoIndex_RenderThread() noexcept override { return mFrameInfoIndex_RenderThread; }
 
 private:
 	void RenderThreadMain() noexcept;
 
 private:
-	static constexpr size_t FrameBufferCount = 3;
-
 	std::thread mRenderThread;
-
-	SFrameResource mFrameResource[FrameBufferCount];
 
 	IRDIFactory* mRdiFactory = nullptr;
 	IRDIDevice* mRdiDevice = nullptr;
 	IRDICommandQueue* mRdiCommandQueue = nullptr;
 
-	HANDLE mGameThreadFrameResourceReadyEvent[FrameBufferCount] = {};
-	HANDLE mRenderThreadFrameResourceReadyEvent[FrameBufferCount] = {};
-	uint64_t mGpuFence[FrameBufferCount] = {};
+	size_t mFrameInfoIndex_GameThread = 0;
+	size_t mFrameInfoIndex_RenderThread = 0;
 
-	size_t mCurrentGameThreadFrameResourceIndex = 0;
-	size_t mCurrentRenderThreadFrameResourceIndex = 0;
+	SRenderProxy<SFrameResource, false> mFrameResource;
 };
 
 SRenderModuleImpl* GetRenderModuleImpl() noexcept;

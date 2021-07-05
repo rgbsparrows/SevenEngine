@@ -2,13 +2,19 @@
 
 #include "Core/Modules/ModuleInterface.h"
 
-__interface IRenderModule : public IModuleInterface
-{
-	bool Init() noexcept;
-	void Clear() noexcept;
+constexpr size_t GRenderInfoCount = 3;
 
-	void BeginFrame_GameThread() noexcept;
-	void EndFrame_GameThread() noexcept;
+class IRenderModule : public IModuleInterface
+{
+public:
+	virtual bool Init() noexcept = 0;
+	virtual void Clear() noexcept = 0;
+
+	virtual void BeginFrame_GameThread() noexcept = 0;
+	virtual void EndFrame_GameThread() noexcept = 0;
+
+	virtual size_t GetFrameInfoIndex_GameThread() noexcept = 0;
+	virtual size_t GetFrameInfoIndex_RenderThread() noexcept = 0;
 };
 
 IRenderModule* GetRenderModule() noexcept;
