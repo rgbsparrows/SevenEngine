@@ -4,17 +4,17 @@
 
 constexpr size_t GRenderInfoCount = 3;
 
-class IRenderModule : public IModuleInterface
+__interface IRenderModule : IModuleInterface
 {
 public:
-	virtual bool Init() noexcept = 0;
-	virtual void Clear() noexcept = 0;
+	bool Init() noexcept;
+	void Clear() noexcept;
 
-	virtual void BeginFrame_GameThread() noexcept = 0;
-	virtual void EndFrame_GameThread() noexcept = 0;
+	void BeginFrame_GameThread() noexcept;
+	void EndFrame_GameThread() noexcept;
 
-	virtual size_t GetFrameInfoIndex_GameThread() noexcept = 0;
-	virtual size_t GetFrameInfoIndex_RenderThread() noexcept = 0;
+	size_t GetFrameInfoIndex_GameThread() noexcept;
+	size_t GetFrameInfoIndex_RenderThread() noexcept;
 };
 
 IRenderModule* GetRenderModule() noexcept;

@@ -6,8 +6,8 @@ struct SRenderProxy
 {
 public:
 	using RenderInfoType = _renderInfoType;
-	constexpr bool IsFrameExclusive = _isFrameExclusive;
-	constexpr size_t RenderInfoCount = IsFrameExclusive ? GRenderInfoCount : 1;
+	static constexpr bool IsFrameExclusive = _isFrameExclusive;
+	static constexpr size_t RenderInfoCount = IsFrameExclusive ? GRenderInfoCount : 1;
 
 	RenderInfoType& Get_GameThread() noexcept
 	{
