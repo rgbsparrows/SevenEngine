@@ -32,14 +32,14 @@ public:
 	ID3D12Device* GetNativePtr() noexcept { return mD3D12DeviceNativePtr; }
 
 public:
-
 	IRDIAdapter* GetAdapter() noexcept override { return mAdapter; }
 	IRDICommandQueue* GetCommandQueue() noexcept override { return &mCommandQueue; }
 	IRDICommandList* GetCommandList(uint16_t _commandListIndex) noexcept;
 
 	IRDISwapChain* CreateSwapChain(const SRDISwapChainDesc* _swapChainDesc) noexcept override;
 
-	void EnsureCommandListCount(size_t _commandListCount) noexcept;
+	void EnsureCommandListCount(size_t _commandListCount) noexcept override;
+	void ResetCommandListAlocator() noexcept override;
 
 	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept override;
 
@@ -75,6 +75,31 @@ public:
 	IRDIGeometryShader* CreateGeometryShader(SBufferView _compiledShader) noexcept override;
 	IRDIPixelShader* CreatePixelShader(SBufferView _compiledShader) noexcept override;
 	IRDIComputeShader* CreateComputeShader(SBufferView _compiledShader) noexcept override;
+
+public:
+	void ReleaseSwapChain(SD3D12SwapChain* _swapChain) noexcept;
+	void ReleaseInputLayout(SD3D12InputLayout* _inputLayout) noexcept;
+	void ReleaseRootSignature(SD3D12RootSignature* _rootSignature) noexcept;
+
+	void ReleaseGraphicsPipelineState(SD3D12GraphicsPipelineState* _graphicPipelineState) noexcept;
+	void ReleaseComputePipelineState(SD3D12ComputePipelineState* _computePipelineState) noexcept;
+
+	void ReleaseBuffer(SD3D12Buffer* _buffer) noexcept;
+	void ReleaseTexture1D(SD3D12Texture1D* _texture1D) noexcept;
+	void ReleaseTexture1DArray(SD3D12Texture1DArray* _texture1DArray) noexcept;
+	void ReleaseTexture2D(SD3D12Texture2D* _texture2D) noexcept;
+	void ReleaseTexture2DArray(SD3D12Texture2DArray* _texture2DArray) noexcept;
+	void ReleaseTexture3D(SD3D12Texture3D* _texture3D) noexcept;
+	void ReleaseTextureCube(SD3D12TextureCube* _textureCube) noexcept;
+	void ReleaseTextureCubeArray(SD3D12TextureCubeArray* _textureCubeArray) noexcept;
+	void ReleaseSampler(SD3D12Sampler* _sampler) noexcept;
+
+	void ReleaseVertexShader(SD3D12VertexShader* _shader) noexcept;
+	void ReleaseHullShader(SD3D12HullShader* _shader) noexcept;
+	void ReleaseDomainShader(SD3D12DomainShader* _shader) noexcept;
+	void ReleaseGeometryShader(SD3D12GeometryShader* _shader) noexcept;
+	void ReleasePixelShader(SD3D12PixelShader* _shader) noexcept;
+	void ReleaseComputeShader(SD3D12ComputeShader* _shader) noexcept;
 
 public:
 	SD3D12DescriptorHeap* GetDescriptorHeap() noexcept { return &mDescriptorHeap; }

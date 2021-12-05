@@ -12,12 +12,12 @@ D3D12_TEXTURE_ADDRESS_MODE ConvertAddressModeToD3D12(ERDIAddressMode _addressMod
 
 D3D12_COMPARISON_FUNC ConvertComparisonFuncToD3D12(ERDIComparisonFunc _comparisionFunc) noexcept
 {
-	return static_cast<D3D12_COMPARISON_FUNC>(_comparisionFunc);
+	return static_cast<D3D12_COMPARISON_FUNC>(EnumToInt(_comparisionFunc) + 1);
 }
 
 D3D12_HEAP_TYPE ConvertHeapTypeToD3D12(ERDIHeapType _heapType) noexcept
 {
-	return static_cast<D3D12_HEAP_TYPE>(_heapType);
+	return static_cast<D3D12_HEAP_TYPE>(EnumToInt(_heapType) + 1);
 }
 
 D3D12_RESOURCE_STATES ConvertResourceStateToD3D12(ERDIResourceState _state) noexcept
@@ -60,12 +60,12 @@ D3D12_STATIC_BORDER_COLOR ConvertStaticBorderColorToD3D12(ERDIStaticBorderColor 
 
 D3D12_BLEND ConvertBlendFactoryToD3D12(ERDIBlendFactory _blendFactory) noexcept
 {
-	return static_cast<D3D12_BLEND>(_blendFactory);
+	return static_cast<D3D12_BLEND>(EnumToInt(_blendFactory) + 1);
 }
 
 D3D12_BLEND_OP ConvertBlendOperatorToD3D12(ERDIBlendOperator _blendOperator) noexcept
 {
-	return static_cast<D3D12_BLEND_OP>(_blendOperator);
+	return static_cast<D3D12_BLEND_OP>(EnumToInt(_blendOperator) + 1);
 }
 
 D3D12_LOGIC_OP ConvertLogicOperatorToD3D12(ERDILogicOperator _logicOperator) noexcept
@@ -75,17 +75,17 @@ D3D12_LOGIC_OP ConvertLogicOperatorToD3D12(ERDILogicOperator _logicOperator) noe
 
 D3D12_COLOR_WRITE_ENABLE ConvertColorWriteMaskToD3D12(ERDIColorWriteMask _colorWriteMask) noexcept
 {
-	return static_cast<D3D12_COLOR_WRITE_ENABLE>(_colorWriteMask);
+	return static_cast<D3D12_COLOR_WRITE_ENABLE>(EnumToInt(_colorWriteMask));
 }
 
 D3D12_FILL_MODE ConvertFillModeToD3D12(ERDIFillMode _fillMode) noexcept
 {
-	return static_cast<D3D12_FILL_MODE>(_fillMode);
+	return static_cast<D3D12_FILL_MODE>(EnumToInt(_fillMode) + 2);
 }
 
 D3D12_CULL_MODE ConvertCullModeToD3D12(ERDICullMode _cullMode) noexcept
 {
-	return static_cast<D3D12_CULL_MODE>(_cullMode);
+	return static_cast<D3D12_CULL_MODE>(EnumToInt(_cullMode) + 1);
 }
 
 D3D12_CONSERVATIVE_RASTERIZATION_MODE ConvertConservativeRasterizationModeToD3D12(ERDIConservativeRasterizationMode _conservativeRasterizationMode) noexcept
@@ -95,7 +95,7 @@ D3D12_CONSERVATIVE_RASTERIZATION_MODE ConvertConservativeRasterizationModeToD3D1
 
 D3D12_STENCIL_OP ConvertStencilOpToD3D12(ERDIStencilOperator _stencilOperator) noexcept
 {
-	return static_cast<D3D12_STENCIL_OP>(_stencilOperator);
+	return static_cast<D3D12_STENCIL_OP>(EnumToInt(_stencilOperator) + 1);
 }
 
 D3D12_PRIMITIVE_TOPOLOGY_TYPE ConvertPrimitiveTopologyTypeToD3D12(ERDIPrimitiveTopologyType _primitiveTopologyType) noexcept

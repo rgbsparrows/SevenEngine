@@ -2,4 +2,5 @@
 
 __interface IRDIInputLayout
 {
+	void Release() noexcept;
 };

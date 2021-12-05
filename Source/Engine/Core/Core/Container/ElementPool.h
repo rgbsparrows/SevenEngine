@@ -29,6 +29,9 @@ public:
 	using AdditionElementPoolType = TElementPool<ElementType, EElementPoolFlag::None>;
 	using AdditionElementPoolListType = TTypeSwitch<IsStaticCapacity, EmptyType, std::vector<AdditionElementPoolType>>;
 
+	static constexpr size_t xxx = sizeof(UnconstructElement);
+	static constexpr size_t xxxd = alignof(UnconstructElement);
+
 	TElementPool() noexcept = default;
 	TElementPool(uint64_t _newcapacity) noexcept
 	{
@@ -41,7 +44,7 @@ public:
 	ElementType* AllocateElement(_argt&&... _args) noexcept
 	{
 		std::lock_guard lockGuard(mLock);
-		CHECK(IsStaticCapacity && IsFull());
+		CHECK(!IsStaticCapacity || !IsFull());
 
 		if (IsFull())
 			RecapacityPool(GetCapacity() + 1);
@@ -90,14 +93,14 @@ public:
 		CHECK(!IsStaticCapacity || GetCapacity() == 0);
 		CHECK(GetCapacity() < _newcapacity);
 
+		uint64_t newCapacity = Math::CalcBlockCount(std::max(GetCapacity() / 2, _newcapacity - GetCapacity()), 64ull) * 64ull;
 		if (GetCapacity() == 0)
 		{
-			mUnconstructElements.resize(_newcapacity);
-			mAllocatorHelper.ResetSlotCount(_newcapacity);
+			mUnconstructElements.resize(newCapacity);
+			mAllocatorHelper.ResetSlotCount(newCapacity);
 		}
 		else if constexpr (IsStaticCapacity == false)
 		{
-			uint64_t newCapacity = Math::CalcBlockCount(std::max(GetCapacity() / 2, _newcapacity - GetCapacity()), 64ull);
 			mAdditionElementPool.push_back(TElementPool(newCapacity));
 		}
 	}

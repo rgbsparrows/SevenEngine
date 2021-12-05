@@ -3,7 +3,8 @@
 #include "Render/RenderModule.h"
 #include "Core/Class/ClassManager.h"
 #include "Core/Modules/ModuleManager.h"
-#include "Core/fmt/format.h"
+#include "Core/Clock/Clock.h"
+#include "UI/UIModule.h"
 
 void SEngineLoop::PreInit() noexcept
 {
@@ -13,6 +14,7 @@ void SEngineLoop::PreInit() noexcept
 	SClassManager::Get().Init();
 
 	SModuleManager::Get().LoadModule(L"RenderModule");
+	SModuleManager::Get().LoadModule(L"UIModule");
 
 }
 
@@ -20,7 +22,12 @@ void SEngineLoop::Run() noexcept
 {
 	while (!mShouldExit)
 	{
+		GClock.Tick();
+
 		GetRenderModule()->BeginFrame_GameThread();
+		GetUIModule()->OnGUI();
+
+
 
 		GetRenderModule()->EndFrame_GameThread();
 	}
@@ -28,5 +35,6 @@ void SEngineLoop::Run() noexcept
 
 void SEngineLoop::Clear() noexcept
 {
+	SModuleManager::Get().UnloadModule(L"UIModule");
 	SModuleManager::Get().UnloadModule(L"RenderModule");
 }

@@ -2,6 +2,7 @@
 #include "D3D/D3D12/D3D12Device.h"
 #include "D3D/D3D12/D3D12Resource.h"
 #include "D3D/D3D12/D3D12CommandList.h"
+#include "D3D/Helper/D3DEnumConvertor.h"
 #include "D3D/D3D12/D3D12RootSignature.h"
 #include "D3D/D3D12/D3D12PipelineState.h"
 #include "D3D/D3D12/D3D12DescriptorHeap.h"
@@ -14,6 +15,8 @@ void SD3D12CommandList::Init(ID3D12CommandAllocator* _commandAllocatorNativePtr,
 		mCommandListNativePtr = _commandListNativePtr;
 		mDevice = _device;
 	}
+
+	Close();
 }
 
 void SD3D12CommandList::ResetCommandAllocator() noexcept
@@ -118,6 +121,139 @@ void SD3D12CommandList::CopyTextureCubeArray(IRDITextureCubeArray* _destTexture,
 	SD3D12TextureCubeArray* srcTexture = static_cast<SD3D12TextureCubeArray*>(_srcTexture);
 
 	GetCommandListNativePtr()->CopyResource(destTexture->GetNativePtr(), srcTexture->GetNativePtr());
+}
+
+void SD3D12CommandList::CopyTexture1D(IRDITexture1D* _destTexture, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept
+{
+	SD3D12Texture1D* destTextureResource = static_cast<SD3D12Texture1D*>(_destTexture);
+	SD3D12Buffer* srcBufferResource = static_cast<SD3D12Buffer*>(_srcBuffer);
+
+	SRDITexture1DResourceDesc desc;
+	destTextureResource->GetDesc(&desc);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint;
+	footPrint.Offset = _srcOffset;
+	footPrint.Footprint.Format = ConvertPixelFormatToD3D(desc.mPixelFormat);
+	footPrint.Footprint.Width = std::max(desc.mSizeX >> _mipSlice, 1u);
+	footPrint.Footprint.Height = 1;
+	footPrint.Footprint.Depth = 1;
+	footPrint.Footprint.RowPitch = SPixelFormatMeta::GetPixelRowPitch(desc.mPixelFormat, desc.mSizeX, _mipSlice);
+
+	CopyTextureRegion(destTextureResource->GetNativePtr(), srcBufferResource->GetNativePtr(), _mipSlice, footPrint);
+}
+
+void SD3D12CommandList::CopyTexture1DArray(IRDITexture1DArray* _destTexture, uint32_t _mipSlice, uint32_t _texIndex, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept
+{
+	SD3D12Texture1DArray* destTextureResource = static_cast<SD3D12Texture1DArray*>(_destTexture);
+	SD3D12Buffer* srcBufferResource = static_cast<SD3D12Buffer*>(_srcBuffer);
+
+	SRDITexture1DArrayResourceDesc desc;
+	destTextureResource->GetDesc(&desc);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint;
+	footPrint.Offset = _srcOffset;
+	footPrint.Footprint.Format = ConvertPixelFormatToD3D(desc.mPixelFormat);
+	footPrint.Footprint.Width = std::max(desc.mSizeX >> _mipSlice, 1u);
+	footPrint.Footprint.Height = 1;
+	footPrint.Footprint.Depth = 1;
+	footPrint.Footprint.RowPitch = SPixelFormatMeta::GetPixelRowPitch(desc.mPixelFormat, desc.mSizeX, _mipSlice);
+
+	CopyTextureRegion(destTextureResource->GetNativePtr(), srcBufferResource->GetNativePtr(), _mipSlice + _texIndex * desc.mMipCount, footPrint);
+}
+
+void SD3D12CommandList::CopyTexture2D(IRDITexture2D* _destTexture, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept
+{
+	SD3D12Texture2D* destTextureResource = static_cast<SD3D12Texture2D*>(_destTexture);
+	SD3D12Buffer* srcBufferResource = static_cast<SD3D12Buffer*>(_srcBuffer);
+
+	SRDITexture2DResourceDesc desc;
+	destTextureResource->GetDesc(&desc);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint;
+	footPrint.Offset = _srcOffset;
+	footPrint.Footprint.Format = ConvertPixelFormatToD3D(desc.mPixelFormat);
+	footPrint.Footprint.Width = std::max(desc.mSizeX >> _mipSlice, 1u);
+	footPrint.Footprint.Height = std::max(desc.mSizeY >> _mipSlice, 1u);
+	footPrint.Footprint.Depth = 1;
+	footPrint.Footprint.RowPitch = SPixelFormatMeta::GetPixelRowPitch(desc.mPixelFormat, desc.mSizeX, _mipSlice);
+
+	CopyTextureRegion(destTextureResource->GetNativePtr(), srcBufferResource->GetNativePtr(), _mipSlice, footPrint);
+}
+
+void SD3D12CommandList::CopyTexture2DArray(IRDITexture2DArray* _destTexture, uint32_t _mipSlice, uint32_t _texIndex, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept
+{
+	SD3D12Texture2DArray* destTextureResource = static_cast<SD3D12Texture2DArray*>(_destTexture);
+	SD3D12Buffer* srcBufferResource = static_cast<SD3D12Buffer*>(_srcBuffer);
+
+	SRDITexture2DArrayResourceDesc desc;
+	destTextureResource->GetDesc(&desc);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint;
+	footPrint.Offset = _srcOffset;
+	footPrint.Footprint.Format = ConvertPixelFormatToD3D(desc.mPixelFormat);
+	footPrint.Footprint.Width = std::max(desc.mSizeX >> _mipSlice, 1u);
+	footPrint.Footprint.Height = std::max(desc.mSizeY >> _mipSlice, 1u);
+	footPrint.Footprint.Depth = 1;
+	footPrint.Footprint.RowPitch = SPixelFormatMeta::GetPixelRowPitch(desc.mPixelFormat, desc.mSizeX, _mipSlice);
+
+	CopyTextureRegion(destTextureResource->GetNativePtr(), srcBufferResource->GetNativePtr(), _mipSlice + _texIndex * desc.mMipCount, footPrint);
+}
+
+void SD3D12CommandList::CopyTexture3D(IRDITexture3D* _destTexture, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept
+{
+	SD3D12Texture3D* destTextureResource = static_cast<SD3D12Texture3D*>(_destTexture);
+	SD3D12Buffer* srcBufferResource = static_cast<SD3D12Buffer*>(_srcBuffer);
+
+	SRDITexture3DResourceDesc desc;
+	destTextureResource->GetDesc(&desc);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint;
+	footPrint.Offset = _srcOffset;
+	footPrint.Footprint.Format = ConvertPixelFormatToD3D(desc.mPixelFormat);
+	footPrint.Footprint.Width = std::max(desc.mSizeX >> _mipSlice, 1u);
+	footPrint.Footprint.Height = std::max(desc.mSizeY >> _mipSlice, 1u);
+	footPrint.Footprint.Depth = std::max(desc.mSizeZ >> _mipSlice, 1u);
+	footPrint.Footprint.RowPitch = SPixelFormatMeta::GetPixelRowPitch(desc.mPixelFormat, desc.mSizeX, _mipSlice);
+
+	CopyTextureRegion(destTextureResource->GetNativePtr(), srcBufferResource->GetNativePtr(), _mipSlice, footPrint);
+}
+
+void SD3D12CommandList::CopyTextureCube(IRDITextureCube* _destTexture, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept
+{
+	SD3D12TextureCube* destTextureResource = static_cast<SD3D12TextureCube*>(_destTexture);
+	SD3D12Buffer* srcBufferResource = static_cast<SD3D12Buffer*>(_srcBuffer);
+
+	SRDITextureCubeResourceDesc desc;
+	destTextureResource->GetDesc(&desc);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint;
+	footPrint.Offset = _srcOffset;
+	footPrint.Footprint.Format = ConvertPixelFormatToD3D(desc.mPixelFormat);
+	footPrint.Footprint.Width = std::max(desc.mSizeXY >> _mipSlice, 1u);
+	footPrint.Footprint.Height = std::max(desc.mSizeXY >> _mipSlice, 1u);
+	footPrint.Footprint.Depth = 1;
+	footPrint.Footprint.RowPitch = SPixelFormatMeta::GetPixelRowPitch(desc.mPixelFormat, desc.mSizeXY, _mipSlice);
+
+	CopyTextureRegion(destTextureResource->GetNativePtr(), srcBufferResource->GetNativePtr(), _mipSlice + EnumToInt(_cubeFace) * desc.mMipCount, footPrint);
+}
+
+void SD3D12CommandList::CopyTextureCubeArray(IRDITextureCubeArray* _destTexture, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice, uint32_t _texIndex, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept
+{
+	SD3D12TextureCubeArray* destTextureResource = static_cast<SD3D12TextureCubeArray*>(_destTexture);
+	SD3D12Buffer* srcBufferResource = static_cast<SD3D12Buffer*>(_srcBuffer);
+
+	SRDITextureCubeArrayResourceDesc desc;
+	destTextureResource->GetDesc(&desc);
+
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footPrint;
+	footPrint.Offset = _srcOffset;
+	footPrint.Footprint.Format = ConvertPixelFormatToD3D(desc.mPixelFormat);
+	footPrint.Footprint.Width = std::max(desc.mSizeXY >> _mipSlice, 1u);
+	footPrint.Footprint.Height = std::max(desc.mSizeXY >> _mipSlice, 1u);
+	footPrint.Footprint.Depth = 1;
+	footPrint.Footprint.RowPitch = SPixelFormatMeta::GetPixelRowPitch(desc.mPixelFormat, desc.mSizeXY, _mipSlice);
+
+	CopyTextureRegion(destTextureResource->GetNativePtr(), srcBufferResource->GetNativePtr(), _mipSlice + EnumToInt(_cubeFace) * desc.mMipCount + _texIndex * EnumToInt(ERDITextureCubeFace::FaceCount) * desc.mMipCount, footPrint);
 }
 
 void SD3D12CommandList::UnorderAccessResourceBarrier(IRDIBuffer* _resource) noexcept
@@ -301,11 +437,14 @@ void SD3D12CommandList::OMSetRenderTargets(uint32_t _renderTargetCount, IRDIRend
 
 		mRtvDescriptorHandlesCache[i] = rtv->mCpuDescriptorHandle;
 	}
+	const D3D12_CPU_DESCRIPTOR_HANDLE* dsvDescriptorHandlePtr = nullptr;
+	if (_dsv != nullptr)
+	{
+		SD3D12DepthStencilView* dsv = static_cast<SD3D12DepthStencilView*>(_dsv);
+		dsvDescriptorHandlePtr = &dsv->mCpuDescriptorHandle;
+	}
 
-	SD3D12DepthStencilView* dsv = static_cast<SD3D12DepthStencilView*>(_dsv);
-	D3D12_CPU_DESCRIPTOR_HANDLE dsvDescriptorHandle = dsv->mCpuDescriptorHandle;
-
-	GetCommandListNativePtr()->OMSetRenderTargets(_renderTargetCount, mRtvDescriptorHandlesCache, false, &dsvDescriptorHandle);
+	GetCommandListNativePtr()->OMSetRenderTargets(_renderTargetCount, mRtvDescriptorHandlesCache, false, dsvDescriptorHandlePtr);
 }
 
 void SD3D12CommandList::OMSetBlendFactor(Math::SFColor _blendFactor) noexcept
@@ -402,7 +541,7 @@ void SD3D12CommandList::ClearRenderTargetView(IRDIRenderTargetView* _rtv, Math::
 	GetCommandListNativePtr()->ClearRenderTargetView(rtv->mCpuDescriptorHandle, _color.Color, 0, nullptr);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUInt4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -411,7 +550,7 @@ void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _sha
 	ClearUnorderAccessViewUINT(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SUColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SUInt4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -420,7 +559,7 @@ void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _sha
 	ClearUnorderAccessViewUINT(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SUColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SUInt4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -429,7 +568,7 @@ void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _sha
 	ClearUnorderAccessViewUINT(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SUColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SUInt4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -438,7 +577,7 @@ void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _sha
 	ClearUnorderAccessViewUINT(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SUColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SUInt4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -447,7 +586,7 @@ void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _sha
 	ClearUnorderAccessViewUINT(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SUColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SUInt4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -456,7 +595,7 @@ void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _sha
 	ClearUnorderAccessViewUINT(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SUColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SUInt4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -465,7 +604,7 @@ void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _sha
 	ClearUnorderAccessViewUINT(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SUColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SUInt4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -474,7 +613,7 @@ void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _sha
 	ClearUnorderAccessViewUINT(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SFColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SFloat4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -483,7 +622,7 @@ void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _sh
 	ClearUnorderAccessViewFloat(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SFColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SFloat4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -492,7 +631,7 @@ void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _sh
 	ClearUnorderAccessViewFloat(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SFColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SFloat4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -501,7 +640,7 @@ void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _sh
 	ClearUnorderAccessViewFloat(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SFColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SFloat4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -510,7 +649,7 @@ void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _sh
 	ClearUnorderAccessViewFloat(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SFColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SFloat4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -519,7 +658,7 @@ void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _sh
 	ClearUnorderAccessViewFloat(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SFColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SFloat4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -528,7 +667,7 @@ void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _sh
 	ClearUnorderAccessViewFloat(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SFColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SFloat4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
@@ -537,13 +676,28 @@ void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _sh
 	ClearUnorderAccessViewFloat(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFloat4 _value) noexcept
 {
 	SD3D12DescriptorHeapRange* descriptorHeapRange = static_cast<SD3D12DescriptorHeapRange*>(_shaderVisibleUav);
 	SD3D12UnorderedAccessView* uav = static_cast<SD3D12UnorderedAccessView*>(_uav);
 	SD3D12TextureCubeArray* resource = static_cast<SD3D12TextureCubeArray*>(_resource);
 
 	ClearUnorderAccessViewFloat(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
+}
+
+void SD3D12CommandList::CopyTextureRegion(ID3D12Resource* _destTexture, ID3D12Resource* _srcTexture, uint32_t _subResourceIndex, D3D12_PLACED_SUBRESOURCE_FOOTPRINT _subResourceFootprint) noexcept
+{
+	D3D12_TEXTURE_COPY_LOCATION destCopyLocation;
+	destCopyLocation.pResource = _destTexture;
+	destCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	destCopyLocation.SubresourceIndex = _subResourceIndex;
+
+	D3D12_TEXTURE_COPY_LOCATION srcCopyLocation;
+	srcCopyLocation.pResource = _srcTexture;
+	srcCopyLocation.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+	srcCopyLocation.PlacedFootprint = _subResourceFootprint;
+
+	GetCommandListNativePtr()->CopyTextureRegion(&destCopyLocation, 0, 0, 0, &srcCopyLocation, nullptr);
 }
 
 void SD3D12CommandList::UnorderAccessResourceBarrier(ID3D12Resource* _resourceNativePtr) noexcept
@@ -571,12 +725,12 @@ void SD3D12CommandList::TranstionResourceState(ID3D12Resource* _resourceNativePt
 	GetCommandListNativePtr()->ResourceBarrier(1, &barrier);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewUINT(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, ID3D12Resource* _resourceNativePtr, Math::SUColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewUINT(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, ID3D12Resource* _resourceNativePtr, Math::SUInt4 _value) noexcept
 {
-	GetCommandListNativePtr()->ClearUnorderedAccessViewUint(_shaderVisibleViewGpuHandle, _cpuHandle, _resourceNativePtr, _value.Color, 0, nullptr);
+	GetCommandListNativePtr()->ClearUnorderedAccessViewUint(_shaderVisibleViewGpuHandle, _cpuHandle, _resourceNativePtr, _value.GetData(), 0, nullptr);
 }
 
-void SD3D12CommandList::ClearUnorderAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, ID3D12Resource* _resourceNativePtr, Math::SFColor _value) noexcept
+void SD3D12CommandList::ClearUnorderAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, ID3D12Resource* _resourceNativePtr, Math::SFloat4 _value) noexcept
 {
-	GetCommandListNativePtr()->ClearUnorderedAccessViewFloat(_shaderVisibleViewGpuHandle, _cpuHandle, _resourceNativePtr, _value.Color, 0, nullptr);
+	GetCommandListNativePtr()->ClearUnorderedAccessViewFloat(_shaderVisibleViewGpuHandle, _cpuHandle, _resourceNativePtr, _value.GetData(), 0, nullptr);
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Math/Operation.h"
+#include "Core/Math/Math.h"
 #include "Core/Util/Assert.h"
 
 #include <limits>
@@ -117,7 +117,7 @@ public:
 	{
 		CHECK((_slotCount & 0x7f) == 0);
 
-		mBitmap.resize(Math::CalcBlockCount(_slotCount, 64ull));
+		mBitmap.resize(Math::CalcBlockCount(_slotCount, 64ull), std::numeric_limits<uint64_t>::max());
 	}
 
 	void ResetSlotCount(uint64_t _slotCount) noexcept
@@ -125,7 +125,7 @@ public:
 		CHECK((_slotCount & 0x7f) == 0);
 		CHECK(Math::CalcBlockCount(_slotCount, 64ull) >= mBitmap.size());
 
-		mBitmap.resize(Math::CalcBlockCount(_slotCount, 64ull));
+		mBitmap.resize(Math::CalcBlockCount(_slotCount, 64ull), std::numeric_limits<uint64_t>::max());
 	}
 
 	// 插槽索引，当返回值为std::numeric_limits<uint64_t>::max()时表示分配失败

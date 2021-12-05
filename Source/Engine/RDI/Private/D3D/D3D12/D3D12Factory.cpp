@@ -10,13 +10,15 @@ bool SD3D12Factory::Init() noexcept
 	{
 #if WITH_DEBUG_CODE
 		VERIFY_D3D_RETURN(D3D12GetDebugInterface(IID_PPV_ARGS(&mD3D12DebugNativePtr)));
-		GetDebugNativePtr()->EnableDebugLayer();
+		GetD3D12DebugNativePtr()->EnableDebugLayer();
+		VERIFY_D3D_RETURN(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIDebugNativePtr)));
 #endif
 	}
 
 	//DXGIFactory
 	{
-		VERIFY_D3D_RETURN(CreateDXGIFactory(IID_PPV_ARGS(&mDXGIFactoryNativePtr)));
+		
+		VERIFY_D3D_RETURN(CreateDXGIFactory2(SBuildConfiguation::GIsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0,IID_PPV_ARGS(&mDXGIFactoryNativePtr)));
 	}
 
 	//Adapter

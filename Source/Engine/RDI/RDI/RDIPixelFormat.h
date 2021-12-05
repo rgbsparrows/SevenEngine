@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Core/Util/TemplateUtil.h"
+#include "Core/Util/UtilMacros.h"
+
+#include <string_view>
 
 enum class ERDIPixelFormat
 {
@@ -33,6 +36,7 @@ enum class ERDIPixelFormat
 	R11G11B10_FLOAT,
 	R8G8B8A8_TYPELESS,
 	R8G8B8A8_UNORM,
+	R8G8B8A8_UNORM_SRGB,
 	R8G8B8A8_UINT,
 	R8G8B8A8_SNORM,
 	R8G8B8A8_SINT,
@@ -71,14 +75,15 @@ enum class ERDIPixelFormat
 	A8_UNORM,
 	R1_UNORM,
 	R9G9B9E5_SHAREDEXP,
-	R8G8_B8G8_UNORM,
-	G8R8_G8B8_UNORM,
 	BC1_TYPELESS,
 	BC1_UNORM,
+	BC1_UNORM_SRGB,
 	BC2_TYPELESS,
 	BC2_UNORM,
+	BC2_UNORM_SRGB,
 	BC3_TYPELESS,
 	BC3_UNORM,
+	BC3_UNORM_SRGB,
 	BC4_TYPELESS,
 	BC4_UNORM,
 	BC4_SNORM,
@@ -91,13 +96,69 @@ enum class ERDIPixelFormat
 	B8G8R8X8_UNORM,
 	R10G10B10_XR_BIAS_A2_UNORM,
 	B8G8R8A8_TYPELESS,
+	B8G8R8A8_UNORM_SRGB,
 	B8G8R8X8_TYPELESS,
+	B8G8R8X8_UNORM_SRGB,
 	BC6H_TYPELESS,
 	BC6H_UF16,
 	BC6H_SF16,
 	BC7_TYPELESS,
 	BC7_UNORM,
+	BC7_UNORM_SRGB,
 	
 	Num,
 	Error = TErrorEnumValue<ERDIPixelFormat>
+};
+
+enum class EPixelFormatFlag
+{
+	None = 0,
+
+	R = 1 << 0,
+	G = 1 << 1,
+	B = 1 << 2,
+	A = 1 << 3,
+	D = 1 << 4,
+	S = 1 << 5,
+
+	RG = R | G,
+	RGB = R | G | B,
+	RGBA = RGB | A,
+	DS = D | S,
+
+	TYPELESS = 1 << 6,
+	UNORM = 2 << 6,
+	SNORM = 3 << 6,
+	UINT = 4 << 6,
+	SINT = 5 << 6,
+	FLOAT = 6 << 6,
+	SPECIAL = 7 << 6,
+
+	Compressed = 1 << 9,
+	SRGB = 1 << 10,
+
+	Error = TErrorEnumValue<EPixelFormatFlag>
+};
+REGIST_ENUM_FLAG(EPixelFormatFlag)
+
+struct SPixelFormatMeta
+{
+	std::wstring_view mPixelFormatName;
+	uint16_t mBlockSizeX = 0;
+	uint16_t mBlockSizeY = 0;
+	uint16_t mBlockSizeZ = 0;
+	uint16_t mBlockBytes = 0;
+	uint16_t mNumComponents = 0;
+	EPixelFormatFlag mFlag = EPixelFormatFlag::None;
+
+	static SPixelFormatMeta GetPixelFormatMeta(ERDIPixelFormat _pixelFormat);
+
+	static uint32_t GetPixelRowPitch(ERDIPixelFormat _pixelFormat, uint32_t _width, uint32_t _mipSlice);
+	static uint32_t GetPixelScanlines(ERDIPixelFormat _pixelFormat, uint32_t _height, uint32_t _mipSlice);
+
+	static uint32_t GetPixelSlicePitch(ERDIPixelFormat _pixelFormat, uint32_t _width, uint32_t _height, uint32_t _mipSlice);
+	static uint32_t GetPixelSlicePitch(ERDIPixelFormat _pixelFormat, uint32_t _width, uint32_t _height, uint32_t _depth, uint32_t _mipSlice);
+
+	static uint32_t GetPixelFootprint(ERDIPixelFormat _pixelFormat, uint32_t _width, uint32_t _height, uint32_t _mipCount);
+	static uint32_t GetPixelFootprint(ERDIPixelFormat _pixelFormat, uint32_t _width, uint32_t _height, uint32_t _mipCount, uint32_t _arraySize);
 };

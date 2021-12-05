@@ -4,50 +4,41 @@
 #include "Core/Container/Blob.h"
 #include "RDI/Interface/RDIPipelineState.h"
 
-class SD3D12PipelineStateBase
+#include "Core/Misc/PreWindowsApi.h"
+#include <d3d12.h>
+#include "Core/Misc/PostWindowsApi.h"
+
+class SD3D12Device;
+
+class SD3D12GraphicsPipelineState : public IRDIGraphicsPipelineState
 {
 public:
-	SD3D12PipelineStateBase(ID3D12PipelineState* _nativePtr) noexcept
-	{
-		mPipelineStateNativePtr = _nativePtr;
+	void Init(ID3D12PipelineState* _nativePtr, SD3D12Device* _device) noexcept;
+	ID3D12PipelineState* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
 
-		ID3DBlob* cachedBlob = nullptr;
-		mPipelineStateNativePtr->GetCachedBlob(&cachedBlob);
+public:
+	SBufferView GetCachedBlob() noexcept override { return SBufferView(mCachedBlob); }
+	void Release() noexcept override;
 
-		mCachedBlob.ResizeBlob(cachedBlob->GetBufferPointer(), cachedBlob->GetBufferSize());
-		if (cachedBlob != nullptr)
-			cachedBlob->Release();
-	}
-
+private:
+	SD3D12Device* mDevice = nullptr;
 	SBlob mCachedBlob;
-	ID3D12PipelineState* mPipelineStateNativePtr;
+	ID3D12PipelineState* mPipelineStateNativePtr = nullptr;
 };
 
-class SD3D12GraphicsPipelineState : public IRDIGraphicsPipelineState, public SD3D12PipelineStateBase
+
+class SD3D12ComputePipelineState : public IRDIComputePipelineState
 {
 public:
-	SD3D12GraphicsPipelineState(ID3D12PipelineState* _nativePtr) noexcept
-		:SD3D12PipelineStateBase(_nativePtr)
-	{
-	}
-
+	void Init(ID3D12PipelineState* _nativePtr, SD3D12Device* _device) noexcept;
 	ID3D12PipelineState* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
 
 public:
 	SBufferView GetCachedBlob() noexcept override { return SBufferView(mCachedBlob); }
-};
+	void Release() noexcept override;
 
-
-class SD3D12ComputePipelineState : public IRDIComputePipelineState, public SD3D12PipelineStateBase
-{
-public:
-	SD3D12ComputePipelineState(ID3D12PipelineState* _nativePtr) noexcept
-		:SD3D12PipelineStateBase(_nativePtr)
-	{
-	}
-
-	ID3D12PipelineState* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
-
-public:
-	SBufferView GetCachedBlob() noexcept override { return SBufferView(mCachedBlob); }
+private:
+	SD3D12Device* mDevice = nullptr;
+	SBlob mCachedBlob;
+	ID3D12PipelineState* mPipelineStateNativePtr = nullptr;
 };

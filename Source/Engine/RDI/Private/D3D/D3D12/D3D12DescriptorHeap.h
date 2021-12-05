@@ -44,8 +44,8 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGpuDescriptorHandle() const noexcept { return mGPUDescriptorHandle; }
 
 public:
-	void SetSRV(IRDIShaderResourceView* _srv, uint64_t _offset) noexcept override;
-	void SetUAV(IRDIUnorderedAccessView* _uav, uint64_t _offset) noexcept override;
+	void SetSRV(uint64_t _offset, IRDIShaderResourceView* _srv) noexcept override;
+	void SetUAV(uint64_t _offset, IRDIUnorderedAccessView* _uav) noexcept override;
 	void Release() noexcept override;
 
 private:
@@ -70,7 +70,7 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGpuDescriptorHandle() const noexcept { return mGPUDescriptorHandle; }
 
 public:
-	void SetSampler(IRDISamplerView* _sampler, uint64_t _offset) noexcept override;
+	void SetSampler(uint64_t _offset, IRDISamplerView* _sampler) noexcept override;
 	void Release() noexcept override;
 
 private:
@@ -105,9 +105,9 @@ public:
 	void ReleaseSamplerHeapRange(IRDISamplerHeapRange* _samplerHeapRange) noexcept;
 
 	//下面这些Set方法应该都只通过IRDIDescriptorHeapRange中的Set方法间接调用
-	void SetSRV(IRDIShaderResourceView* _srv, uint64_t _index) noexcept;
-	void SetUAV(IRDIUnorderedAccessView* _uav, uint64_t _index) noexcept;
-	void SetSampler(IRDISamplerView* _sampler, uint64_t _index) noexcept;
+	void SetSRV(uint64_t _index, IRDIShaderResourceView* _srv) noexcept;
+	void SetUAV(uint64_t _index, IRDIUnorderedAccessView* _uav) noexcept;
+	void SetSampler(uint64_t _index, IRDISamplerView* _sampler) noexcept;
 
 	uint32_t GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE _descriptorHeapType) noexcept;
 

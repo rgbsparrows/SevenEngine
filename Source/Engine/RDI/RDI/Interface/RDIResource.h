@@ -44,11 +44,14 @@ __interface IRDISamplerView
 
 __interface IRDIResource
 {
+	void Release() noexcept;
 };
 
 __interface IRDIBuffer : IRDIResource
 {
 	void GetDesc(SRDIBufferResourceDesc* _desc)const noexcept;
+	void Map(void** _dataPtr) noexcept;
+	void Unmap() noexcept;
 
 	IRDIIndexBufferView* GetIBV() noexcept;
 	IRDIVertexBufferView* GetVBV() noexcept;
@@ -81,6 +84,7 @@ __interface IRDITexture1DArray : IRDITexture
 __interface IRDITexture2D : IRDITexture
 {
 	void GetDesc(SRDITexture2DResourceDesc* _desc)const noexcept;
+	void WriteToSubResource(uint32_t _mipSlice, const void* _data) noexcept;
 
 	IRDIRenderTargetView* GetRTV(uint32_t _mipSlice) noexcept;
 	IRDIDepthStencilView* GetDSV(uint32_t _mipSlice) noexcept;

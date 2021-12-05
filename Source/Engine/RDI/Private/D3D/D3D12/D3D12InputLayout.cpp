@@ -1,9 +1,12 @@
-#include "Core/Misc/Localize.h"
+#include "D3D12Device.h"
 #include "D3D12InputLayout.h"
+#include "Core/Misc/Localize.h"
 #include "D3D/Helper/D3DEnumConvertor.h"
 
-void SD3D12InputLayout::Init(const SRDIVertexInputLayoutDesc* _desc) noexcept
+void SD3D12InputLayout::Init(const SRDIVertexInputLayoutDesc* _desc, SD3D12Device* _device) noexcept
 {
+	mDevice = _device;
+
 	for (auto& _ele : _desc->mInputElements)
 	{
 		mSemanticNames.push_back(Locale::ConvertWstringToString(Locale::ECodePage::ACP, _ele.mSemanticName));
@@ -27,4 +30,9 @@ void SD3D12InputLayout::Init(const SRDIVertexInputLayoutDesc* _desc) noexcept
 
 	mDesc.pInputElementDescs = mInputElements.data();
 	mDesc.NumElements = static_cast<uint32_t>(mInputElements.size());
+}
+
+void SD3D12InputLayout::Release() noexcept
+{
+	mDevice->ReleaseInputLayout(this);
 }

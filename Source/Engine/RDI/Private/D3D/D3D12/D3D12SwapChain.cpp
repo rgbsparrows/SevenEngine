@@ -46,7 +46,18 @@ void SD3D12SwapChain::Init(IDXGISwapChain* _nativePtr, const SRDISwapChainDesc* 
 	}
 }
 
-void SD3D12SwapChain::Present() noexcept
+void SD3D12SwapChain::Release() noexcept
 {
-	GetNativePtr()->Present(0, 0);
+	for (uint32_t i = 0; i != mDesc.mBufferCount; ++i)
+	{
+		mDevice->ReleaseTexture2D(static_cast<SD3D12Texture2D*>(mRenderTargets[i]));
+	}
+
+	mDevice->ReleaseSwapChain(this);
+}
+
+void SD3D12SwapChain::Present(bool _sync) noexcept
+{
+	GetNativePtr()->Present(_sync ? 1 : 0, 0);
+	mCurrentBackBufferIndex = (mCurrentBackBufferIndex + 1) % mDesc.mBufferCount;
 }

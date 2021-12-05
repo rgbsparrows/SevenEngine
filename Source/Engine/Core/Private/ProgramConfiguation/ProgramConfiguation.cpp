@@ -1,4 +1,4 @@
-#include "Core/ProgramConfiguation/ProgramConfiguation.h"
+﻿#include "Core/ProgramConfiguation/ProgramConfiguation.h"
 #include "Core/Misc/CommandLine.h"
 
 std::filesystem::path SProgramConfiguation::GetEnginePath() noexcept
@@ -24,3 +24,5 @@ bool SProgramConfiguation::UseDebugShader() noexcept
 	static bool useDebugShader = SCommandLine::GetArgumentValue<bool>(L"UseDebugShader", false).second;
 	return useDebugShader;
 }
+
+TODO("应该保证所有的Release调用后，对象都可以恰当地完成释放，而无需其他操作")

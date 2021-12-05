@@ -6,6 +6,7 @@
 
 enum class ERDIResourceState;
 enum class ERDIPrimitiveTopology;
+enum class ERDITextureCubeFace;
 
 __interface IRDIRootSignature;
 __interface IRDIDescriptorHeapRange;
@@ -35,8 +36,6 @@ enum class ERDIClearFlag;
 
 __interface IRDICommandList
 {
-	void ResetCommandAllocator() noexcept;
-
 	void ResetCommandList() noexcept;
 	void Close() noexcept;
 
@@ -49,6 +48,14 @@ __interface IRDICommandList
 	void CopyTexture3D(IRDITexture3D* _destTexture, IRDITexture3D* _srcTexture) noexcept;
 	void CopyTextureCube(IRDITextureCube* _destTexture, IRDITextureCube* _srcTexture) noexcept;
 	void CopyTextureCubeArray(IRDITextureCubeArray* _destTexture, IRDITextureCubeArray* _srcTexture) noexcept;
+
+	void CopyTexture1D(IRDITexture1D* _destTexture, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept;
+	void CopyTexture1DArray(IRDITexture1DArray* _destTexture, uint32_t _mipSlice, uint32_t _texIndex, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept;
+	void CopyTexture2D(IRDITexture2D* _destTexture, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept;
+	void CopyTexture2DArray(IRDITexture2DArray* _destTexture, uint32_t _mipSlice, uint32_t _texIndex, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept;
+	void CopyTexture3D(IRDITexture3D* _destTexture, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept;
+	void CopyTextureCube(IRDITextureCube* _destTexture, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept;
+	void CopyTextureCubeArray(IRDITextureCubeArray* _destTexture, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice, uint32_t _texIndex, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept;
 
 	void UnorderAccessResourceBarrier(IRDIBuffer* _resource) noexcept;
 	void UnorderAccessResourceBarrier(IRDITexture1D* _resource) noexcept;
@@ -96,21 +103,21 @@ __interface IRDICommandList
 	void ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag, float _depth, uint8_t _stencil) noexcept;
 	void ClearRenderTargetView(IRDIRenderTargetView* _rtv, Math::SFColor _color) noexcept;
 	
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUColor _value) noexcept;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SUColor _value) noexcept;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SUColor _value) noexcept;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SUColor _value) noexcept;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SUColor _value) noexcept;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SUColor _value) noexcept;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SUColor _value) noexcept;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SUColor _value) noexcept;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUInt4 _value) noexcept;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SUInt4 _value) noexcept;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SUInt4 _value) noexcept;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SUInt4 _value) noexcept;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SUInt4 _value) noexcept;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SUInt4 _value) noexcept;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SUInt4 _value) noexcept;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SUInt4 _value) noexcept;
 
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SFColor _value) noexcept;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SFColor _value) noexcept;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SFColor _value) noexcept;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SFColor _value) noexcept;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SFColor _value) noexcept;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SFColor _value) noexcept;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SFColor _value) noexcept;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFColor _value) noexcept;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SFloat4 _value) noexcept;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SFloat4 _value) noexcept;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SFloat4 _value) noexcept;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SFloat4 _value) noexcept;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SFloat4 _value) noexcept;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SFloat4 _value) noexcept;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SFloat4 _value) noexcept;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFloat4 _value) noexcept;
 };

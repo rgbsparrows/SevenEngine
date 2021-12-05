@@ -22,16 +22,16 @@ void SD3D12DescriptorHeapRange::Init(uint64_t _srvUavDescriptorHeapIndex, uint16
 	}
 }
 
-void SD3D12DescriptorHeapRange::SetSRV(IRDIShaderResourceView* _srv, uint64_t _offset) noexcept
+void SD3D12DescriptorHeapRange::SetSRV(uint64_t _offset, IRDIShaderResourceView* _srv) noexcept
 {
 	CHECK(_offset < mSrvDescriptorCount);
-	mShaderVisibleDescriptorHeap->SetSRV(_srv, _offset + GetSrvDescriptorHeapIndex());
+	mShaderVisibleDescriptorHeap->SetSRV(_offset + GetSrvDescriptorHeapIndex(), _srv);
 }
 
-void SD3D12DescriptorHeapRange::SetUAV(IRDIUnorderedAccessView* _uav, uint64_t _offset) noexcept
+void SD3D12DescriptorHeapRange::SetUAV(uint64_t _offset, IRDIUnorderedAccessView* _uav) noexcept
 {
 	CHECK(_offset < mUavDescriptorCount);
-	mShaderVisibleDescriptorHeap->SetUAV(_uav, _offset + GetUavDescriptorHeapIndex());
+	mShaderVisibleDescriptorHeap->SetUAV(_offset + GetUavDescriptorHeapIndex(), _uav);
 }
 
 void SD3D12DescriptorHeapRange::Release() noexcept
@@ -58,10 +58,10 @@ void SD3D12SamplerHeapRange::Init(uint64_t _samplerViewDescriptorHeapIndex, uint
 	}
 }
 
-void SD3D12SamplerHeapRange::SetSampler(IRDISamplerView* _sampler, uint64_t _offset) noexcept
+void SD3D12SamplerHeapRange::SetSampler(uint64_t _offset, IRDISamplerView* _sampler) noexcept
 {
 	CHECK(_offset < mSamplerViewDescriptorCount);
-	mShaderVisibleDescriptorHeap->SetSampler(_sampler, _offset + mSamplerViewDescriptorHeapIndex);
+	mShaderVisibleDescriptorHeap->SetSampler(_offset + mSamplerViewDescriptorHeapIndex, _sampler);
 }
 
 void SD3D12SamplerHeapRange::Release() noexcept
@@ -127,7 +127,7 @@ void SD3D12ShaderVisibleDescriptorHeap::ReleaseSamplerHeapRange(IRDISamplerHeapR
 	mSamplerHeapRangePool.DeallocateElement(samplerHeapRange);
 }
 
-void SD3D12ShaderVisibleDescriptorHeap::SetSRV(IRDIShaderResourceView* _srv, uint64_t _index) noexcept
+void SD3D12ShaderVisibleDescriptorHeap::SetSRV(uint64_t _index, IRDIShaderResourceView* _srv) noexcept
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE destDescriptorHeapStartCPUDescriptorHandle;
 	destDescriptorHeapStartCPUDescriptorHandle.ptr = mSrvUavDescriptorHeapStartCPUDescriptorHandle.ptr + GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * _index;
@@ -136,7 +136,7 @@ void SD3D12ShaderVisibleDescriptorHeap::SetSRV(IRDIShaderResourceView* _srv, uin
 	mDevice->GetNativePtr()->CopyDescriptorsSimple(1, destDescriptorHeapStartCPUDescriptorHandle, srcDescriptorHeapStartCPUDescriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
-void SD3D12ShaderVisibleDescriptorHeap::SetUAV(IRDIUnorderedAccessView* _uav, uint64_t _index) noexcept
+void SD3D12ShaderVisibleDescriptorHeap::SetUAV(uint64_t _index, IRDIUnorderedAccessView* _uav) noexcept
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE destDescriptorHeapStartCPUDescriptorHandle;
 	destDescriptorHeapStartCPUDescriptorHandle.ptr = mSrvUavDescriptorHeapStartCPUDescriptorHandle.ptr + GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV) * _index;
@@ -145,7 +145,7 @@ void SD3D12ShaderVisibleDescriptorHeap::SetUAV(IRDIUnorderedAccessView* _uav, ui
 	mDevice->GetNativePtr()->CopyDescriptorsSimple(1, destDescriptorHeapStartCPUDescriptorHandle, srcDescriptorHeapStartCPUDescriptorHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 }
 
-void SD3D12ShaderVisibleDescriptorHeap::SetSampler(IRDISamplerView* _sampler, uint64_t _index) noexcept
+void SD3D12ShaderVisibleDescriptorHeap::SetSampler(uint64_t _index, IRDISamplerView* _sampler) noexcept
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE destDescriptorHeapStartCPUDescriptorHandle;
 	destDescriptorHeapStartCPUDescriptorHandle.ptr = mSrvUavDescriptorHeapStartCPUDescriptorHandle.ptr + GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER) * _index;

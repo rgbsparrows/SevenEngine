@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "RDI/RDIFunctionHelper.h"
 #include "RDI/Interface/RDIResource.h"
@@ -8,7 +8,10 @@
 #include <d3d12.h>
 #include "Core/Misc/PostWindowsApi.h"
 
+#include <limits>
+
 class SD3D12Device;
+class SD3D12SamplerView;
 
 class SD3D12ViewBase
 {
@@ -92,6 +95,9 @@ public:
 
 public:
 	void GetDesc(SRDIBufferResourceDesc* _desc)const noexcept override { *_desc = mDesc; }
+	void Map(void** _dataPtr) noexcept;
+	void Unmap() noexcept;
+	void Release() noexcept override;
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetGpuVirtualAddress() noexcept { return mGpuVirtualAddress; }
 
@@ -101,6 +107,7 @@ public:
 	IRDIUnorderedAccessView* GetUAV() noexcept override;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	ID3D12Resource* mResourceNativePtr = nullptr;
 	SRDIBufferResourceDesc mDesc;
 
@@ -119,6 +126,7 @@ public:
 
 public:
 	void GetDesc(SRDITexture1DResourceDesc* _desc)const noexcept { *_desc = mDesc; }
+	void Release() noexcept override;
 
 	IRDIRenderTargetView* GetRTV(uint32_t _mipSlice) noexcept;
 	IRDIDepthStencilView* GetDSV(uint32_t _mipSlice) noexcept;
@@ -126,6 +134,7 @@ public:
 	IRDIUnorderedAccessView* GetUAV(uint32_t _mipSlice) noexcept;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	ID3D12Resource* mResourceNativePtr = nullptr;
 	SRDITexture1DResourceDesc mDesc;
 
@@ -143,11 +152,13 @@ public:
 
 public:
 	void GetDesc(SRDITexture1DArrayResourceDesc* _desc)const noexcept override { *_desc = mDesc; }
+	void Release() noexcept override;
 
 	IRDIShaderResourceView* GetSRV() noexcept;
 	IRDIUnorderedAccessView* GetUAV(uint32_t _mipSlice) noexcept;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	ID3D12Resource* mResourceNativePtr = nullptr;
 	SRDITexture1DArrayResourceDesc mDesc;
 
@@ -163,6 +174,8 @@ public:
 
 public:
 	void GetDesc(SRDITexture2DResourceDesc* _desc)const noexcept { *_desc = mDesc; }
+	void WriteToSubResource(uint32_t _mipSlice, const void* _data) noexcept override;
+	void Release() noexcept override;
 
 	IRDIRenderTargetView* GetRTV(uint32_t _mipSlice) noexcept;
 	IRDIDepthStencilView* GetDSV(uint32_t _mipSlice) noexcept;
@@ -170,6 +183,7 @@ public:
 	IRDIUnorderedAccessView* GetUAV(uint32_t _mipSlice) noexcept;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	ID3D12Resource* mResourceNativePtr = nullptr;
 	SRDITexture2DResourceDesc mDesc;
 
@@ -187,11 +201,13 @@ public:
 
 public:
 	void GetDesc(SRDITexture2DArrayResourceDesc* _desc)const noexcept { *_desc = mDesc; }
+	void Release() noexcept override;
 
 	IRDIShaderResourceView* GetSRV() noexcept;
 	IRDIUnorderedAccessView* GetUAV(uint32_t _mipSlice) noexcept;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	ID3D12Resource* mResourceNativePtr = nullptr;
 	SRDITexture2DArrayResourceDesc mDesc;
 
@@ -207,12 +223,14 @@ public:
 
 public:
 	void GetDesc(SRDITexture3DResourceDesc* _desc)const noexcept { *_desc = mDesc; }
+	void Release() noexcept override;
 
 	IRDIRenderTargetView* GetRTV(uint32_t _mipSlice) noexcept;
 	IRDIShaderResourceView* GetSRV() noexcept;
 	IRDIUnorderedAccessView* GetUAV(uint32_t _mipSlice) noexcept;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	ID3D12Resource* mResourceNativePtr = nullptr;
 	SRDITexture3DResourceDesc mDesc;
 
@@ -229,6 +247,7 @@ public:
 
 public:
 	void GetDesc(SRDITextureCubeResourceDesc* _desc) const noexcept { *_desc = mDesc; }
+	void Release() noexcept override;
 
 	IRDIRenderTargetView* GetRTV(ERDITextureCubeFace _face, uint32_t _mipSlice) noexcept;
 	IRDIDepthStencilView* GetDSV(ERDITextureCubeFace _face, uint32_t _mipSlice) noexcept;
@@ -236,6 +255,7 @@ public:
 	IRDIUnorderedAccessView* GetUAV(uint32_t _mipSlice) noexcept;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	ID3D12Resource* mResourceNativePtr = nullptr;
 	SRDITextureCubeResourceDesc mDesc;
 
@@ -253,11 +273,13 @@ public:
 
 public:
 	void GetDesc(SRDITextureCubeArrayResourceDesc* _desc) const noexcept { *_desc = mDesc; }
+	void Release() noexcept override;
 
 	IRDIShaderResourceView* GetSRV() noexcept;
 	IRDIUnorderedAccessView* GetUAV(uint32_t _mipSlice) noexcept;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	ID3D12Resource* mResourceNativePtr = nullptr;
 	SRDITextureCubeArrayResourceDesc mDesc;
 
@@ -272,10 +294,12 @@ public:
 
 public:
 	void GetDesc(SRDISamplerResourceDesc* _desc) const noexcept { *_desc = mDesc; }
+	void Release() noexcept override;
 
 	IRDISamplerView* GetSamplerView() noexcept;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	SRDISamplerResourceDesc mDesc = {};
 
 	SD3D12SamplerView* mSamplerView;

@@ -32,7 +32,7 @@ namespace TemplateUtilDetail
 	struct UnconstructAlignedElement
 	{
 	private:
-		IntTypeHelper<true, _aligned> Buffer[(_elementSize + _aligned - 1) / _aligned];
+		IntTypeHelper<true, _aligned>::Type Buffer[(_elementSize + _aligned - 1) / _aligned];
 	};
 
 	template<typename... _typeSequence>

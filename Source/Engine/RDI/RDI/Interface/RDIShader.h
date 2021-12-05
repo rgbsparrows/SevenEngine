@@ -5,6 +5,7 @@ class SBufferView;
 __interface IRDIShader
 {
 	SBufferView GetCompiledShaderBlob() noexcept;
+	void Release() noexcept;
 };
 
 __interface IRDIVertexShader : IRDIShader

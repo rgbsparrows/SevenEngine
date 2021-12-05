@@ -8,13 +8,13 @@ __interface IRDISamplerView;
 
 __interface IRDIDescriptorHeapRange
 {
-	void SetSRV(IRDIShaderResourceView* _srv, uint64_t _offset) noexcept;
-	void SetUAV(IRDIUnorderedAccessView* _uav, uint64_t _offset) noexcept;
+	void SetSRV(uint64_t _offset, IRDIShaderResourceView* _srv) noexcept;
+	void SetUAV(uint64_t _offset, IRDIUnorderedAccessView* _uav) noexcept;
 	void Release() noexcept;
 };
 
 __interface IRDISamplerHeapRange
 {
-	void SetSampler(IRDISamplerView* _sampler, uint64_t _offset) noexcept;
+	void SetSampler(uint64_t _offset, IRDISamplerView* _sampler) noexcept;
 	void Release() noexcept;
 };

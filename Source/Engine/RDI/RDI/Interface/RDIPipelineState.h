@@ -2,15 +2,14 @@
 
 #include "Core/Container/Blob.h"
 
-__interface IRDIPipelineState
+__interface IRDIGraphicsPipelineState
 {
 	SBufferView GetCachedBlob() noexcept;
+	void Release() noexcept;
 };
 
-__interface IRDIGraphicsPipelineState : IRDIPipelineState
+__interface IRDIComputePipelineState
 {
-};
-
-__interface IRDIComputePipelineState : IRDIPipelineState
-{
+	SBufferView GetCachedBlob() noexcept;
+	void Release() noexcept;
 };

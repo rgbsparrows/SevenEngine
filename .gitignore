@@ -43,6 +43,7 @@ Binaries/
 !*.rc2
 !*.def
 !*.exp
+!*.natvis
 
 # C# source files
 !*.cs
@@ -78,6 +79,7 @@ Binaries/
 !FAQ
 !VERSION
 !ChangeLog
+!RgbSparrows.ico
 
 # Ignore content folders
 Content/

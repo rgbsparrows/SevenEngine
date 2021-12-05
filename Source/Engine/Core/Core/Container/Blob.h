@@ -33,6 +33,8 @@ public:
 			this->~SBlob();
 			new(this) SBlob(std::forward<SBlob>(_blob));
 		}
+
+		return *this;
 	}
 
 	void ResizeBlob(size_t _bufferSize) noexcept

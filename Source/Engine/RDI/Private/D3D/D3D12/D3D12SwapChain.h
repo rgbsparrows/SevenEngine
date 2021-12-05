@@ -17,10 +17,11 @@ public:
 
 public:
 	void GetDesc(SRDISwapChainDesc* _desc)const noexcept override { *_desc = mDesc; }
+	void Release() noexcept override;
 
-	IRDITexture2D* GetRenderTarget(uint32_t _index) noexcept override { return mRenderTargets[_index]; }
+	IRDITexture2D* GetRenderTarget() noexcept override { return mRenderTargets[mCurrentBackBufferIndex]; }
 	IRDIOutput* GetOutput() noexcept override { return mOutput; }
-	void Present() noexcept override;
+	void Present(bool _sync) noexcept override;
 
 private:
 	IDXGISwapChain* mSwapChainNativePtr = nullptr;
@@ -31,4 +32,6 @@ private:
 
 	IRDITexture2D* mRenderTargets[D3D12_BACKBUFFER_COUNT] = {};
 	SD3D12Output* mOutput = nullptr;
+
+	uint32_t mCurrentBackBufferIndex = 0;
 };

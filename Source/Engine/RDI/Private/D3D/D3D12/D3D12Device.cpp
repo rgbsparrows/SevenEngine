@@ -11,6 +11,7 @@ void SD3D12Device::Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D1
 	{
 		mD3D12DeviceNativePtr = _nativePtr;
 		mAdapter = _adapter;
+		mFactory = _factory;
 	}
 
 	//CommandQuue
@@ -138,7 +139,7 @@ IRDISwapChain* SD3D12Device::CreateSwapChain(const SRDISwapChainDesc* _swapChain
 	desc.BufferDesc.Scaling = ConvertScalingModeToD3D(_swapChainDesc->mScalingMode);
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
+	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	desc.BufferCount = _swapChainDesc->mBufferCount;
 	desc.OutputWindow = _swapChainDesc->mOutputWindow;
 	desc.Windowed = _swapChainDesc->mIsWindowed;
@@ -146,7 +147,7 @@ IRDISwapChain* SD3D12Device::CreateSwapChain(const SRDISwapChainDesc* _swapChain
 	desc.Flags = 0;
 
 	IDXGISwapChain* swapchainNativePtr = nullptr;
-	VERIFY_D3D_RETURN(mFactory->GetNativePtr()->CreateSwapChain(GetNativePtr(), &desc, &swapchainNativePtr));
+	VERIFY_D3D_RETURN(mFactory->GetNativePtr()->CreateSwapChain(mCommandQueue.GetCommandQueueNativePtr(), &desc, &swapchainNativePtr));
 
 	SD3D12SwapChain* swapChain = mSwapChainPool.AllocateElement();
 	swapChain->Init(swapchainNativePtr, _swapChainDesc, this, mAdapter);
@@ -171,10 +172,16 @@ void SD3D12Device::EnsureCommandListCount(size_t _commandListCount) noexcept
 	}
 }
 
+void SD3D12Device::ResetCommandListAlocator() noexcept
+{
+	for (SD3D12CommandList& commandList : mCommandList)
+		commandList.ResetCommandAllocator();
+}
+
 IRDIInputLayout* SD3D12Device::CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept
 {
 	SD3D12InputLayout* inputLayout = mInputLayoutPool.AllocateElement();
-	inputLayout->Init(_desc);
+	inputLayout->Init(_desc, this);
 
 	return inputLayout;
 }
@@ -187,7 +194,7 @@ IRDIRootSignature* SD3D12Device::CreateRootSignature(const SRDIRootSignatureDesc
 
 	D3D12_ROOT_SIGNATURE_DESC desc = {};
 
-	for (size_t i = 0, j = 0; i != _desc->mRootParameters.size(); void())
+	for (size_t i = 0, j = 0; i != _desc->mRootParameters.size(); ++i)
 	{
 		auto& _ele = _desc->mRootParameters[i];
 		switch (_ele.mType)
@@ -271,7 +278,7 @@ IRDIRootSignature* SD3D12Device::CreateRootSignature(const SRDIRootSignatureDesc
 	desc.pParameters = rootParameters;
 	desc.NumStaticSamplers = static_cast<uint32_t>(_desc->mStaticSamplerDescs.size());
 	desc.pStaticSamplers = staticSamplerDesc;
-	desc.Flags = D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_NONE;
+	desc.Flags = D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 	ID3DBlob* serlizedBlob = nullptr;
 	ID3DBlob* errorBlob = nullptr;
@@ -298,23 +305,40 @@ IRDIRootSignature* SD3D12Device::CreateRootSignature(const SBufferView _serializ
 	ID3D12RootSignature* rootSignatureNativePtr = nullptr;
 	VERIFY_D3D_RETURN(GetNativePtr()->CreateRootSignature(0, _serializedRootSignatureBlob.GetBuffer(), _serializedRootSignatureBlob.GetBufferSize(), IID_PPV_ARGS(&rootSignatureNativePtr)));
 
-	return mRootSignaturePool.AllocateElement(_serializedRootSignatureBlob.GetBuffer(), _serializedRootSignatureBlob.GetBufferSize(), rootSignatureNativePtr);
+	SD3D12RootSignature* rootSignature = mRootSignaturePool.AllocateElement();
+	rootSignature->Init(_serializedRootSignatureBlob.GetBuffer(), _serializedRootSignatureBlob.GetBufferSize(), rootSignatureNativePtr, this);
+	return rootSignature;
 }
 
 IRDIGraphicsPipelineState* SD3D12Device::CreateGraphicsPipelineState(const SRDIGraphicsPipelineState* _desc) noexcept
 {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc = {};
 	desc.pRootSignature = static_cast<SD3D12RootSignature*>(_desc->mRootSignature)->GetNativePtr();
-	desc.VS.pShaderBytecode = static_cast<SD3D12VertexShader*>(_desc->mVertexShader)->GetCompiledShaderBlob().GetBuffer();
-	desc.VS.BytecodeLength = static_cast<SD3D12VertexShader*>(_desc->mVertexShader)->GetCompiledShaderBlob().GetBufferSize();
-	desc.HS.pShaderBytecode = static_cast<SD3D12HullShader*>(_desc->mHullShader)->GetCompiledShaderBlob().GetBuffer();
-	desc.HS.BytecodeLength = static_cast<SD3D12HullShader*>(_desc->mHullShader)->GetCompiledShaderBlob().GetBufferSize();
-	desc.DS.pShaderBytecode = static_cast<SD3D12DomainShader*>(_desc->mDomainShader)->GetCompiledShaderBlob().GetBuffer();
-	desc.DS.BytecodeLength = static_cast<SD3D12DomainShader*>(_desc->mDomainShader)->GetCompiledShaderBlob().GetBufferSize();
-	desc.GS.pShaderBytecode = static_cast<SD3D12GeometryShader*>(_desc->mGeometryShader)->GetCompiledShaderBlob().GetBuffer();
-	desc.GS.BytecodeLength = static_cast<SD3D12GeometryShader*>(_desc->mGeometryShader)->GetCompiledShaderBlob().GetBufferSize();
-	desc.PS.pShaderBytecode = static_cast<SD3D12PixelShader*>(_desc->mPixelShader)->GetCompiledShaderBlob().GetBuffer();
-	desc.PS.BytecodeLength = static_cast<SD3D12PixelShader*>(_desc->mPixelShader)->GetCompiledShaderBlob().GetBufferSize();
+	if (_desc->mVertexShader)
+	{
+		desc.VS.pShaderBytecode = static_cast<SD3D12VertexShader*>(_desc->mVertexShader)->GetCompiledShaderBlob().GetBuffer();
+		desc.VS.BytecodeLength = static_cast<SD3D12VertexShader*>(_desc->mVertexShader)->GetCompiledShaderBlob().GetBufferSize();
+	}
+	if (_desc->mHullShader)
+	{
+		desc.HS.pShaderBytecode = static_cast<SD3D12HullShader*>(_desc->mHullShader)->GetCompiledShaderBlob().GetBuffer();
+		desc.HS.BytecodeLength = static_cast<SD3D12HullShader*>(_desc->mHullShader)->GetCompiledShaderBlob().GetBufferSize();
+	}
+	if (_desc->mDomainShader)
+	{
+		desc.DS.pShaderBytecode = static_cast<SD3D12DomainShader*>(_desc->mDomainShader)->GetCompiledShaderBlob().GetBuffer();
+		desc.DS.BytecodeLength = static_cast<SD3D12DomainShader*>(_desc->mDomainShader)->GetCompiledShaderBlob().GetBufferSize();
+	}
+	if (_desc->mGeometryShader)
+	{
+		desc.GS.pShaderBytecode = static_cast<SD3D12GeometryShader*>(_desc->mGeometryShader)->GetCompiledShaderBlob().GetBuffer();
+		desc.GS.BytecodeLength = static_cast<SD3D12GeometryShader*>(_desc->mGeometryShader)->GetCompiledShaderBlob().GetBufferSize();
+	}
+	if (_desc->mPixelShader)
+	{
+		desc.PS.pShaderBytecode = static_cast<SD3D12PixelShader*>(_desc->mPixelShader)->GetCompiledShaderBlob().GetBuffer();
+		desc.PS.BytecodeLength = static_cast<SD3D12PixelShader*>(_desc->mPixelShader)->GetCompiledShaderBlob().GetBufferSize();
+	}
 	desc.StreamOutput.pSODeclaration = nullptr;
 	desc.StreamOutput.NumEntries = 0;
 	desc.StreamOutput.pBufferStrides = nullptr;
@@ -378,9 +402,12 @@ IRDIGraphicsPipelineState* SD3D12Device::CreateGraphicsPipelineState(const SRDIG
 	desc.CachedPSO.CachedBlobSizeInBytes = _desc->mCachedPSO.GetBufferSize();
 	desc.Flags = D3D12_PIPELINE_STATE_FLAGS::D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	ID3D12PipelineState* pipelineState = nullptr;
-	VERIFY_D3D_RETURN(GetNativePtr()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipelineState)));
-	return mGraphicsPipelineStatePool.AllocateElement(pipelineState);
+	ID3D12PipelineState* nativePipelineState = nullptr;
+	VERIFY_D3D_RETURN(GetNativePtr()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&nativePipelineState)));
+
+	SD3D12GraphicsPipelineState* pipelineState = mGraphicsPipelineStatePool.AllocateElement();
+	pipelineState->Init(nativePipelineState, this);
+	return pipelineState;
 }
 
 IRDIComputePipelineState* SD3D12Device::CreateComputePipelineState(const SRDIComputePipelineState* _desc) noexcept
@@ -394,13 +421,18 @@ IRDIComputePipelineState* SD3D12Device::CreateComputePipelineState(const SRDICom
 	desc.CachedPSO.CachedBlobSizeInBytes = _desc->mCachedPSO.GetBufferSize();
 	desc.Flags = D3D12_PIPELINE_STATE_FLAGS::D3D12_PIPELINE_STATE_FLAG_NONE;
 
-	ID3D12PipelineState* pipelineState = nullptr;
-	VERIFY_D3D_RETURN(GetNativePtr()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&pipelineState)));
-	return mComputePipelineStatePool.AllocateElement(pipelineState);
+	ID3D12PipelineState* nativePipelineState = nullptr;
+	VERIFY_D3D_RETURN(GetNativePtr()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&nativePipelineState)));
+
+	SD3D12ComputePipelineState* pipelineState = mComputePipelineStatePool.AllocateElement();
+	pipelineState->Init(nativePipelineState, this);
+	return pipelineState;
 }
 
 IRDIBuffer* SD3D12Device::CreateBuffer(const SRDIBufferResourceDesc* _desc) noexcept
 {
+	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
+
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
 	desc.Alignment = 0;
@@ -423,6 +455,8 @@ IRDIBuffer* SD3D12Device::CreateBuffer(const SRDIBufferResourceDesc* _desc) noex
 
 IRDITexture1D* SD3D12Device::CreateTexture1D(const SRDITexture1DResourceDesc* _desc) noexcept
 {
+	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
+	
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 	desc.Alignment = 0;
@@ -445,6 +479,8 @@ IRDITexture1D* SD3D12Device::CreateTexture1D(const SRDITexture1DResourceDesc* _d
 
 IRDITexture1DArray* SD3D12Device::CreateTexture1DArray(const SRDITexture1DArrayResourceDesc* _desc) noexcept
 {
+	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
+
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 	desc.Alignment = 0;
@@ -467,6 +503,8 @@ IRDITexture1DArray* SD3D12Device::CreateTexture1DArray(const SRDITexture1DArrayR
 
 IRDITexture2D* SD3D12Device::CreateTexture2D(const SRDITexture2DResourceDesc* _desc) noexcept
 {
+	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
+
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -489,6 +527,8 @@ IRDITexture2D* SD3D12Device::CreateTexture2D(const SRDITexture2DResourceDesc* _d
 
 IRDITexture2DArray* SD3D12Device::CreateTexture2DArray(const SRDITexture2DArrayResourceDesc* _desc) noexcept
 {
+	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
+
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -511,6 +551,8 @@ IRDITexture2DArray* SD3D12Device::CreateTexture2DArray(const SRDITexture2DArrayR
 
 IRDITexture3D* SD3D12Device::CreateTexture3D(const SRDITexture3DResourceDesc* _desc) noexcept
 {
+	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
+
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 	desc.Alignment = 0;
@@ -533,6 +575,8 @@ IRDITexture3D* SD3D12Device::CreateTexture3D(const SRDITexture3DResourceDesc* _d
 
 IRDITextureCube* SD3D12Device::CreateTextureCube(const SRDITextureCubeResourceDesc* _desc) noexcept
 {
+	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
+
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -555,6 +599,8 @@ IRDITextureCube* SD3D12Device::CreateTextureCube(const SRDITextureCubeResourceDe
 
 IRDITextureCubeArray* SD3D12Device::CreateTextureCubeArray(const SRDITextureCubeArrayResourceDesc* _desc) noexcept
 {
+	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
+
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -599,7 +645,10 @@ IRDIVertexShader* SD3D12Device::CreateVertexShader(SBufferView _hlslShader, cons
 
 	if (!res)
 		return nullptr;
-	return mVertexShaderPool.AllocateElement(std::move(compiledShaderBlob));
+
+	SD3D12VertexShader* vertexShader = mVertexShaderPool.AllocateElement();
+	vertexShader->Init(std::move(compiledShaderBlob), this);
+	return vertexShader;
 }
 
 IRDIHullShader* SD3D12Device::CreateHullShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
@@ -609,7 +658,10 @@ IRDIHullShader* SD3D12Device::CreateHullShader(SBufferView _hlslShader, const SR
 
 	if (!res)
 		return nullptr;
-	return mHullShaderPool.AllocateElement(std::move(compiledShaderBlob));
+
+	SD3D12HullShader* hullShader = mHullShaderPool.AllocateElement();
+	hullShader->Init(std::move(compiledShaderBlob), this);
+	return hullShader;
 }
 
 IRDIDomainShader* SD3D12Device::CreateDomainShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
@@ -619,7 +671,10 @@ IRDIDomainShader* SD3D12Device::CreateDomainShader(SBufferView _hlslShader, cons
 
 	if (!res)
 		return nullptr;
-	return mDomainShaderPool.AllocateElement(std::move(compiledShaderBlob));
+
+	SD3D12DomainShader* domainShader = mDomainShaderPool.AllocateElement();
+	domainShader->Init(std::move(compiledShaderBlob), this);
+	return domainShader;
 }
 
 IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
@@ -629,8 +684,10 @@ IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SBufferView _hlslShader, 
 
 	if (!res)
 		return nullptr;
-	else
-		return mGeometryShaderPool.AllocateElement(std::move(compiledShaderBlob));
+
+	SD3D12GeometryShader* geometryShader = mGeometryShaderPool.AllocateElement();
+	geometryShader->Init(std::move(compiledShaderBlob), this);
+	return geometryShader;
 }
 
 IRDIPixelShader* SD3D12Device::CreatePixelShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
@@ -640,8 +697,10 @@ IRDIPixelShader* SD3D12Device::CreatePixelShader(SBufferView _hlslShader, const 
 
 	if (!res)
 		return nullptr;
-	else
-		return mPixelShaderPool.AllocateElement(std::move(compiledShaderBlob));
+
+	SD3D12PixelShader* pixelShader = mPixelShaderPool.AllocateElement();
+	pixelShader->Init(std::move(compiledShaderBlob), this);
+	return pixelShader;
 }
 
 IRDIComputeShader* SD3D12Device::CreateComputeShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
@@ -651,38 +710,134 @@ IRDIComputeShader* SD3D12Device::CreateComputeShader(SBufferView _hlslShader, co
 
 	if (!res)
 		return nullptr;
-	else
-		return mComputeShaderPool.AllocateElement(std::move(compiledShaderBlob));
+
+	SD3D12ComputeShader* computeShader = mComputeShaderPool.AllocateElement();
+	computeShader->Init(std::move(compiledShaderBlob), this);
+	return computeShader;
 }
 
 IRDIVertexShader* SD3D12Device::CreateVertexShader(SBufferView _compiledShader) noexcept
 {
-	return mVertexShaderPool.AllocateElement(_compiledShader.GetBuffer(), _compiledShader.GetBufferSize());
+	SD3D12VertexShader* vertexShader = mVertexShaderPool.AllocateElement();
+	vertexShader->Init(_compiledShader, this);
+	return vertexShader;
 }
 
 IRDIHullShader* SD3D12Device::CreateHullShader(SBufferView _compiledShader) noexcept
 {
-	return mHullShaderPool.AllocateElement(_compiledShader.GetBuffer(), _compiledShader.GetBufferSize());
+	SD3D12HullShader* hullShader = mHullShaderPool.AllocateElement();
+	hullShader->Init(_compiledShader, this);
+	return hullShader;
 }
 
 IRDIDomainShader* SD3D12Device::CreateDomainShader(SBufferView _compiledShader) noexcept
 {
-	return mDomainShaderPool.AllocateElement(_compiledShader.GetBuffer(), _compiledShader.GetBufferSize());
+	SD3D12DomainShader* domainShader = mDomainShaderPool.AllocateElement();
+	domainShader->Init(_compiledShader, this);
+	return domainShader;
 }
 
 IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SBufferView _compiledShader) noexcept
 {
-	return mGeometryShaderPool.AllocateElement(_compiledShader.GetBuffer(), _compiledShader.GetBufferSize());
+	SD3D12GeometryShader* geometryShader = mGeometryShaderPool.AllocateElement();
+	geometryShader->Init(_compiledShader, this);
+	return geometryShader;
 }
 
 IRDIPixelShader* SD3D12Device::CreatePixelShader(SBufferView _compiledShader) noexcept
 {
-	return mPixelShaderPool.AllocateElement(_compiledShader.GetBuffer(), _compiledShader.GetBufferSize());
+	SD3D12PixelShader* pixelShader = mPixelShaderPool.AllocateElement();
+	pixelShader->Init(_compiledShader, this);
+	return pixelShader;
 }
 
 IRDIComputeShader* SD3D12Device::CreateComputeShader(SBufferView _compiledShader) noexcept
 {
-	return mComputeShaderPool.AllocateElement(_compiledShader.GetBuffer(), _compiledShader.GetBufferSize());
+	SD3D12ComputeShader* computeShader = mComputeShaderPool.AllocateElement();
+	computeShader->Init(_compiledShader, this);
+	return computeShader;
+}
+
+void SD3D12Device::ReleaseSwapChain(SD3D12SwapChain* _swapChain) noexcept
+{
+	_swapChain->GetNativePtr()->Release();
+	mSwapChainPool.DeallocateElement(_swapChain);
+}
+
+void SD3D12Device::ReleaseInputLayout(SD3D12InputLayout* _inputLayout) noexcept
+{
+	mInputLayoutPool.DeallocateElement(_inputLayout);
+}
+
+void SD3D12Device::ReleaseRootSignature(SD3D12RootSignature* _rootSignature) noexcept
+{
+	_rootSignature->GetNativePtr()->Release();
+	mRootSignaturePool.DeallocateElement(_rootSignature);
+}
+
+void SD3D12Device::ReleaseGraphicsPipelineState(SD3D12GraphicsPipelineState* _graphicPipelineState) noexcept
+{
+	_graphicPipelineState->GetNativePtr()->Release();
+	mGraphicsPipelineStatePool.DeallocateElement(_graphicPipelineState);
+}
+
+void SD3D12Device::ReleaseComputePipelineState(SD3D12ComputePipelineState* _computePipelineState) noexcept
+{
+	_computePipelineState->GetNativePtr()->Release();
+	mComputePipelineStatePool.DeallocateElement(_computePipelineState);
+}
+
+void SD3D12Device::ReleaseBuffer(SD3D12Buffer* _buffer) noexcept
+{
+	_buffer->GetNativePtr()->Release();
+	mBufferPool.DeallocateElement(_buffer);
+}
+
+void SD3D12Device::ReleaseTexture1D(SD3D12Texture1D* _texture1D) noexcept
+{
+	_texture1D->GetNativePtr()->Release();
+	mTexture1DPool.DeallocateElement(_texture1D);
+}
+
+void SD3D12Device::ReleaseTexture1DArray(SD3D12Texture1DArray* _texture1DArray) noexcept
+{
+	_texture1DArray->GetNativePtr()->Release();
+	mTexture1DArrayPool.DeallocateElement(_texture1DArray);
+}
+
+void SD3D12Device::ReleaseTexture2D(SD3D12Texture2D* _texture2D) noexcept
+{
+	_texture2D->GetNativePtr()->Release();
+	mTexture2DPool.DeallocateElement(_texture2D);
+}
+
+void SD3D12Device::ReleaseTexture2DArray(SD3D12Texture2DArray* _texture2DArray) noexcept
+{
+	_texture2DArray->GetNativePtr()->Release();
+	mTexture2DArrayPool.DeallocateElement(_texture2DArray);
+}
+
+void SD3D12Device::ReleaseTexture3D(SD3D12Texture3D* _texture3D) noexcept
+{
+	_texture3D->GetNativePtr()->Release();
+	mTexture3DPool.DeallocateElement(_texture3D);
+}
+
+void SD3D12Device::ReleaseTextureCube(SD3D12TextureCube* _textureCube) noexcept
+{
+	_textureCube->GetNativePtr()->Release();
+	mTextureCubePool.DeallocateElement(_textureCube);
+}
+
+void SD3D12Device::ReleaseTextureCubeArray(SD3D12TextureCubeArray* _textureCubeArray) noexcept
+{
+	_textureCubeArray->GetNativePtr()->Release();
+	mTextureCubeArrayPool.DeallocateElement(_textureCubeArray);
+}
+
+void SD3D12Device::ReleaseSampler(SD3D12Sampler* _sampler) noexcept
+{
+	mSamplerPool.DeallocateElement(_sampler);
 }
 
 IRDITexture2D* SD3D12Device::CreateTexture2DWithCreatedResource(const SRDITexture2DResourceDesc* _desc, ID3D12Resource* _resource) noexcept
@@ -706,8 +861,8 @@ ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, co
 	heapProperties.Type = ConvertHeapTypeToD3D12(_heapType);
 	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
 	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL::D3D12_MEMORY_POOL_UNKNOWN;
-	heapProperties.CreationNodeMask = 1;
-	heapProperties.VisibleNodeMask = 1;
+	heapProperties.CreationNodeMask = 0;
+	heapProperties.VisibleNodeMask = 0;
 
 	ID3D12Resource* nativeResourcePtr = nullptr;
 	VERIFY_D3D_RETURN(GetNativePtr()->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, _desc, _state, nullptr, IID_PPV_ARGS(&nativeResourcePtr)));
@@ -719,6 +874,10 @@ bool SD3D12Device::CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shade
 {
 	static D3D_SHADER_MACRO shaderMacro[64] = {};
 	static char macroBuffer[64][128] = {};
+	static SRDIShaderMacro emptyShaderMacros;
+
+	if (_shaderMacro == nullptr)
+		_shaderMacro = &emptyShaderMacros;
 
 	for (size_t i = 0; i != _shaderMacro->mDefinedMacro.size(); ++i)
 	{
@@ -776,4 +935,34 @@ void SD3D12Device::GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _error
 		_errorInfo->mParsedErrorString.push_back(std::wstring_view(errorStr + begin, errorStr + end));
 		begin = end + 1;
 	}
+}
+
+void SD3D12Device::ReleaseVertexShader(SD3D12VertexShader* _shader) noexcept
+{
+	mVertexShaderPool.DeallocateElement(_shader);
+}
+
+void SD3D12Device::ReleaseHullShader(SD3D12HullShader* _shader) noexcept
+{
+	mHullShaderPool.DeallocateElement(_shader);
+}
+
+void SD3D12Device::ReleaseDomainShader(SD3D12DomainShader* _shader) noexcept
+{
+	mDomainShaderPool.DeallocateElement(_shader);
+}
+
+void SD3D12Device::ReleaseGeometryShader(SD3D12GeometryShader* _shader) noexcept
+{
+	mGeometryShaderPool.DeallocateElement(_shader);
+}
+
+void SD3D12Device::ReleasePixelShader(SD3D12PixelShader* _shader) noexcept
+{
+	mPixelShaderPool.DeallocateElement(_shader);
+}
+
+void SD3D12Device::ReleaseComputeShader(SD3D12ComputeShader* _shader) noexcept
+{
+	mComputeShaderPool.DeallocateElement(_shader);
 }
