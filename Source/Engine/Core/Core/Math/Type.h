@@ -246,7 +246,7 @@ namespace Math
 		}
 
 		constexpr TBox(UnderlyingType _left, UnderlyingType _on, UnderlyingType _front, UnderlyingType _right, UnderlyingType _down, UnderlyingType _back) noexcept
-			:mLeftOnFront(_left, _on, _front), mRightDwonBack(_on, _right, _down)
+			:mLeftOnFront(_left, _on, _front), mRightDwonBack(_right, _down, _back)
 		{
 		}
 

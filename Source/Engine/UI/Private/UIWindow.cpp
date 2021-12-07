@@ -275,7 +275,7 @@ void SUIInternalWindow::FlushImguiDrawData() noexcept
 
 			for (int j = 0; j != drawList->IdxBuffer.size(); ++j)
 			{
-				drawData.mIndexBuffer.push_back(drawList->IdxBuffer[j] + indexOffset);
+				drawData.mIndexBuffer.push_back(drawList->IdxBuffer[j]);
 			}
 
 			indexOffset += drawList->IdxBuffer.size();

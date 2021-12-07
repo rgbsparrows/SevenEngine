@@ -239,53 +239,6 @@ void SRenderModuleImpl::RefrashTextureResource() noexcept
 		}
 	}
 
-	if(false)
-	{
-		auto& createStaticTexture2DList = mFrameResource->Get_RenderThread().mRefrashexture2DList;
-
-		mRdiDevice->EnsureCommandListCount(1);
-
-		IRDICommandList* commandList = mRdiDevice->GetCommandList(0);
-		commandList->ResetCommandList();
-
-		std::vector<IRDITexture2D*> uploadTextureList;
-
-		for (auto& createStaticTexture2DInfo : createStaticTexture2DList)
-		{
-			RTexture2D& texture = createStaticTexture2DInfo.mTexture2D->Get_RenderThread();
-			RTexture2DData& texture2DData = createStaticTexture2DInfo.mStaticTexture2DDataProxy == nullptr ? createStaticTexture2DInfo.mStaticTexture2DData : createStaticTexture2DInfo.mStaticTexture2DDataProxy->Get_RenderThread();
-
-			bool needRecreate = false;
-
-			if (texture.mTexture != nullptr)
-			{
-				SRDITexture2DResourceDesc desc;
-				texture.mTexture->GetDesc(&desc);
-
-				needRecreate = desc != texture2DData.mDesc;
-			}
-
-			if (needRecreate)
-			{
-				SyncToGpuFrameEnd();
-				texture.mTexture->Release();
-				texture.mTexture = nullptr;
-			}
-
-			if (texture.mTexture == nullptr)
-				texture.mTexture = mRdiDevice->CreateTexture2D(&texture2DData.mDesc);
-
-			for (uint32_t i = 0; i != texture2DData.mSubresourceData.size(); ++i)
-			{
-				SBufferView subresourceData = texture2DData.mSubresourceData[i];
-				texture.mTexture->WriteToSubResource(i, subresourceData.GetBuffer());
-			}
-		}
-
-		commandList->Close();
-		mRdiCommandQueue->ExecuteCommandLists(1, &commandList);
-	}
-
 	{
 		auto& createImTexture2dList = mFrameResource->Get_RenderThread().mRefrashImTexture2DList;
 
@@ -367,7 +320,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 			cbDesc.mHeapType = ERDIHeapType::Upload;
 			cbDesc.mResourceState = ERDIResourceState::GenericRead;
 			cbDesc.mResourceUsage = ERDIResourceUsage::ConstantBuffer;
-			cbDesc.mBufferSize = 256 * renderWindowList.size() / 2 * 3;
+			cbDesc.mBufferSize = 256 * renderWindowList.size() * 2;
 			frameRenderResource.mConstantBuffer = mRdiDevice->CreateBuffer(&cbDesc);
 		}
 
@@ -423,7 +376,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 			vbDesc.mHeapType = ERDIHeapType::Upload;
 			vbDesc.mResourceState = ERDIResourceState::GenericRead;
 			vbDesc.mResourceUsage = ERDIResourceUsage::VertexBuffer;
-			vbDesc.mBufferSize = sizeof(RImguiVertex) * drawData.mVertexBuffer.size() / 2 * 3;
+			vbDesc.mBufferSize = sizeof(RImguiVertex) * drawData.mVertexBuffer.size() * 2;
 			vbDesc.mElementStride = sizeof(RImguiVertex);
 			drawData.mRDIVertexBuffer = mRdiDevice->CreateBuffer(&vbDesc);
 
@@ -431,7 +384,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 			ibDesc.mHeapType = ERDIHeapType::Upload;
 			ibDesc.mResourceState = ERDIResourceState::GenericRead;
 			ibDesc.mResourceUsage = ERDIResourceUsage::IndexBuffer;
-			ibDesc.mBufferSize = sizeof(uint16_t) * drawData.mIndexBuffer.size() / 2 * 3;
+			ibDesc.mBufferSize = sizeof(uint16_t) * drawData.mIndexBuffer.size() * 2;
 			ibDesc.mElementStride = sizeof(uint16_t);
 			drawData.mRDIIndexBuffer = mRdiDevice->CreateBuffer(&ibDesc);
 		}
@@ -446,6 +399,12 @@ void SRenderModuleImpl::RenderImgui() noexcept
 
 		drawData.mRDIVertexBuffer->Unmap();
 		drawData.mRDIIndexBuffer->Unmap();
+
+		commandList->TranstionResourceState(swapChain.mSwapChain->GetRenderTarget(), ERDIResourceState::Present, ERDIResourceState::RenderTarget);
+
+		IRDIRenderTargetView* renderTargetView[1] = { swapChain.mSwapChain->GetRenderTarget()->GetRTV(0) };
+		commandList->OMSetRenderTargets(1, renderTargetView, nullptr);
+		commandList->ClearRenderTargetView(swapChain.mSwapChain->GetRenderTarget()->GetRTV(0), Math::SFColor(0.f, 0.f, 0.f, 1.f));
 
 		SRDISwapChainDesc swapChainDesc;
 		swapChain.mSwapChain->GetDesc(&swapChainDesc);
@@ -466,16 +425,13 @@ void SRenderModuleImpl::RenderImgui() noexcept
 
 		commandList->SetGraphicsRootSignature(staticRenderResource.mImguiRootSignature);
 
-		commandList->TranstionResourceState(swapChain.mSwapChain->GetRenderTarget(), ERDIResourceState::Present, ERDIResourceState::RenderTarget);
-
-		IRDIRenderTargetView* renderTargetView[1] = { swapChain.mSwapChain->GetRenderTarget()->GetRTV(0) };
-		commandList->OMSetRenderTargets(1, renderTargetView, nullptr);
-		commandList->ClearRenderTargetView(swapChain.mSwapChain->GetRenderTarget()->GetRTV(0), Math::SFColor(0.f, 0.f, 0.f, 1.f));
-
 		IRDIVertexBufferView* vbView = drawData.mRDIVertexBuffer->GetVBV();
 		commandList->IASetVertexBuffer(0, 1, &vbView);
 		commandList->IASetIndexBuffer(drawData.mRDIIndexBuffer->GetIBV());
 		commandList->IASetPrimitiveTopology(ERDIPrimitiveTopology::TRIANGLELIST);
+
+		Math::SFloatBox viewportBox = Math::SFloatBox(0, 0, 0, drawData.mDisplaySize[0], drawData.mDisplaySize[1], 1);
+		commandList->RSSetViewports(1, &viewportBox);
 
 		commandList->SetGraphicsRootConstantBuffer(0, frameRenderResource.mConstantBuffer, i * 256);
 		for (auto& _cmd : drawData.mCmdBuffer)

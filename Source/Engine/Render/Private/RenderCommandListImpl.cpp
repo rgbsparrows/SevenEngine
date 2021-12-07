@@ -29,7 +29,7 @@ void SRenderCommandListImpl::RefrashStaticTexture2D(RRenderProxy<RTexture2D>* _t
 
 void SRenderCommandListImpl::RefrashStaticTexture2D(RRenderProxy<RTexture2D>* _texture2D, RTexture2DData&& _textureData) noexcept
 {
-	GetFrameResource_GameThread().mRefrashexture2DList.push_back(RRefrashStaticTexture2DInfo{ _texture2D, nullptr, _textureData });
+	GetFrameResource_GameThread().mRefrashexture2DList.push_back(RRefrashStaticTexture2DInfo{ _texture2D, nullptr, std::move(_textureData) });
 }
 
 void SRenderCommandListImpl::RefrashImTexture2D(RRenderProxy<RTexture2D>* _texture2D, RRenderProxy<RImguiTexture2D>* _imTexture2D) noexcept

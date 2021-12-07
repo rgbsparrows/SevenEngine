@@ -103,11 +103,11 @@ void RStaticRenderResource::Init(IRDIDevice* _device)
 	SRDIVertexInputElememt inputLayoutElement[3];
 
 	inputLayoutElement[0].mSemanticName = L"POSITION";
-	inputLayoutElement[0].mFormat = ERDIPixelFormat::R16G16_FLOAT;
+	inputLayoutElement[0].mFormat = ERDIPixelFormat::R32G32_FLOAT;
 	inputLayoutElement[0].mAlignedByteOffset = 0;
 
 	inputLayoutElement[1].mSemanticName = L"UV";
-	inputLayoutElement[1].mFormat = ERDIPixelFormat::R16G16_FLOAT;
+	inputLayoutElement[1].mFormat = ERDIPixelFormat::R32G32_FLOAT;
 	inputLayoutElement[1].mAlignedByteOffset = 8;
 
 	inputLayoutElement[2].mSemanticName = L"COLOR";
@@ -129,6 +129,7 @@ void RStaticRenderResource::Init(IRDIDevice* _device)
 	pipelineStateDesc.mRasterizationState.mCullMode = ERDICullMode::None;
 	pipelineStateDesc.mDepthStencilState.mDepthTestEnable = false;
 	pipelineStateDesc.mDepthStencilState.mDepthWriteEnable = false;
+	pipelineStateDesc.mDepthStencilFormat = ERDIPixelFormat::UNKNOWN;
 
 	pipelineStateDesc.mRenderTargetFormat[0] = ERDIPixelFormat::R8G8B8A8_UNORM;
 	mImguiSDRPipelineState = _device->CreateGraphicsPipelineState(&pipelineStateDesc);
