@@ -1,19 +1,20 @@
 #include "UIModuleImpl.h"
+#include "Core/Util/Assert.h"
 #include "UI/Imgui/imgui.h"
+#include "Core/Clock/Clock.h"
 #include "Core/Misc/Localize.h"
+#include "UI/WindowInterface.h"
 #include "Core/Misc/windowsEx.h"
+#include "Render/RenderModule.h"
+#include "EngineMain/EngineMain.h"
+#include "Render/RenderCommandList.h"
+#include "Core/ProgramConfiguation/BasicPath.h"
 #include "Core/ProgramConfiguation/BasicPath.h"
 #include "Core/ProgramConfiguation/ProgramConfiguation.h"
-#include "Core/ProgramConfiguation/BasicPath.h"
-#include "EngineMain/EngineMain.h"
-#include "UI/WindowInterface.h"
-#include "Core/Clock/Clock.h"
 
 #include "Core/Misc/PreWindowsApi.h"
 #include <XInput.h>
 #include "Core/Misc/PostWindowsApi.h"
-#include "Render/RenderModule.h"
-#include "Render/RenderCommandList.h"
 
 static SUIModuleImpl* GUIModuleImpl = nullptr;
 
@@ -162,6 +163,9 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 	ImGui::GetIO().BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor ImGui::GetIO().WantSetMousePos requests (optImGui::GetIO()nal, rarely used)
 	ImGui::GetIO().BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;    // We can create multi-viewports on the Platform side (optImGui::GetIO()nal)
 	ImGui::GetIO().BackendFlags |= ImGuiBackendFlags_HasMouseHoveredViewport; // We can set ImGui::GetIO().MouseHoveredViewport correctly (optImGui::GetIO()nal, not easy)
+	ImGui::GetIO().BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
+	ImGui::GetIO().BackendFlags |= ImGuiBackendFlags_RendererHasViewports; // We can create multi-viewports on the Renderer side (optional) // FIXME-VIEWPORT: Actually unfinished..
+
 	ImGui::GetIO().BackendPlatformName = "Seven Engine";
 
 	// Setup Dear ImGui style
@@ -220,9 +224,14 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 	}
 
 	{
+		ImGui::GetPlatformIO().Monitors.resize(0);
+		::EnumDisplayMonitors(NULL, NULL, SUIModuleImpl::UpdateMonitors_EnumFunc, NULL);
+	}
+
+	{
 		mFontTexture = new RRenderProxy<RTexture2D>;
 		mImFontTexture = new RRenderProxy<RImguiTexture2D>;
-		
+
 		unsigned char* pixels;
 		int width, height;
 		ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -385,7 +394,7 @@ void SUIModuleImpl::ImguiNewFrame() noexcept
 
 	XINPUT_CAPABILITIES caps;
 	bool hasGamePad = false;
-	if(mXInputGetCapabilitiesFunc != nullptr)
+	if (mXInputGetCapabilitiesFunc != nullptr)
 		hasGamePad = mXInputGetCapabilitiesFunc(0, XINPUT_FLAG_GAMEPAD, &caps) == ERROR_SUCCESS;
 
 	ImGui::GetIO().BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
@@ -584,4 +593,33 @@ LRESULT SUIModuleImpl::WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lP
 	}
 
 	return ::DefWindowProcW(_hwnd, _msg, _wParam, _lParam);
+}
+
+BOOL SUIModuleImpl::UpdateMonitors_EnumFunc(HMONITOR _monitor, HDC, LPRECT, LPARAM)
+{
+	static HMODULE shcoreDll = ::LoadLibraryA("shcore.dll");
+	static SGetDpiForMonitorFuncType* mGetDpiForMonitorFunc = reinterpret_cast<SGetDpiForMonitorFuncType*>(::GetProcAddress(shcoreDll, "GetDpiForMonitor"));
+
+	static std::unique_ptr<HMODULE, void(*)(HMODULE* dllHandle)> shcoreDllDeleter = std::unique_ptr<HMODULE, void(*)(HMODULE* dllHandle)>(&shcoreDll, [](HMODULE* dllHandle) { FreeLibrary(*dllHandle); });
+
+	UINT xdpi = 96, ydpi = 96;
+	mGetDpiForMonitorFunc((HMONITOR)_monitor, MDT_EFFECTIVE_DPI, &xdpi, &ydpi);
+	CHECK(xdpi == ydpi);
+
+	MONITORINFO info = {};
+	info.cbSize = sizeof(MONITORINFO);
+	if (!::GetMonitorInfo(_monitor, &info))
+		return TRUE;
+	ImGuiPlatformMonitor imgui_monitor;
+	imgui_monitor.MainPos = ImVec2((float)info.rcMonitor.left, (float)info.rcMonitor.top);
+	imgui_monitor.MainSize = ImVec2((float)(info.rcMonitor.right - info.rcMonitor.left), (float)(info.rcMonitor.bottom - info.rcMonitor.top));
+	imgui_monitor.WorkPos = ImVec2((float)info.rcWork.left, (float)info.rcWork.top);
+	imgui_monitor.WorkSize = ImVec2((float)(info.rcWork.right - info.rcWork.left), (float)(info.rcWork.bottom - info.rcWork.top));
+	imgui_monitor.DpiScale = xdpi / 96.f;
+	ImGuiPlatformIO& io = ImGui::GetPlatformIO();
+	if (info.dwFlags & MONITORINFOF_PRIMARY)
+		io.Monitors.push_front(imgui_monitor);
+	else
+		io.Monitors.push_back(imgui_monitor);
+	return TRUE;
 }

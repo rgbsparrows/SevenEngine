@@ -22,7 +22,7 @@ void SUIInternalWindow::Init(ImGuiViewport* _viewport)
 
 		windowName = L"SevenEngine MainWindow";
 
-		wndStyle = WS_OVERLAPPEDWINDOW;
+		wndStyle = WS_POPUP;
 		wndExStyle = WS_EX_APPWINDOW;
 	}
 	else

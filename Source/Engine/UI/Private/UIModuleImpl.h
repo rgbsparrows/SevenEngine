@@ -5,6 +5,7 @@
 
 #include "Core/Misc/PreWindowsApi.h"
 #include <Xinput.h>
+#include <shellscalingapi.h>
 #include "Core/Misc/PostWindowsApi.h"
 
 #include <string>
@@ -37,10 +38,12 @@ private:
 	void UnregistWindowClass() noexcept;
 
 	static LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam);
+	static BOOL CALLBACK UpdateMonitors_EnumFunc(HMONITOR monitor, HDC, LPRECT, LPARAM);
 
 private:
 	using SXInputGetCapabilitiesFuncType = DWORD(WINAPI)(DWORD, DWORD, XINPUT_CAPABILITIES*);
 	using SXInputGetStateFuncType = DWORD(WINAPI)(DWORD, XINPUT_STATE*);
+	using SGetDpiForMonitorFuncType = HRESULT(WINAPI)(HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*);
 
 private:
 	SUIInternalWindow* mMainWindow = nullptr;
