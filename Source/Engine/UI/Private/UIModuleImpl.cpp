@@ -63,13 +63,12 @@ void SUIModuleImpl::OnGUI() noexcept
 
 	ImguiNewFrame();
 
-	ImGui::Begin("MainWindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking);
-
+	ImGui::Begin("MainWindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow);
 	ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
+	ImGui::End();
+
 
 	ImGui::ShowDemoWindow();
-
-	ImGui::End();
 
 	std::vector<UWindowInterface*> windows;
 

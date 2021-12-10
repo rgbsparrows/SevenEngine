@@ -945,7 +945,6 @@ static void             UpdateViewportsNewFrame();
 static void             UpdateViewportsEndFrame();
 static void             UpdateSelectWindowViewport(ImGuiWindow* window);
 static bool             UpdateTryMergeWindowIntoHostViewport(ImGuiWindow* window, ImGuiViewportP* host_viewport);
-static bool             UpdateTryMergeWindowIntoHostViewports(ImGuiWindow* window);
 static void             SetCurrentViewport(ImGuiWindow* window, ImGuiViewportP* viewport);
 static bool             GetWindowAlwaysWantOwnViewport(ImGuiWindow* window);
 static int              FindPlatformMonitorForPos(const ImVec2& pos);
@@ -5383,8 +5382,9 @@ static ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags)
     // Default/arbitrary window position. Use SetNextWindowPos() with the appropriate condition flag to change the initial position of a window.
     const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     window->Pos = main_viewport->Pos + ImVec2(60, 60);
-    window->Size = main_viewport->Size * 0.618f;
     window->ViewportPos = main_viewport->Pos;
+    if(flags & ImGuiWindowFlags_MainWindow)
+    	window->SizeFull = main_viewport->Size;
 
     // User can disable loading and saving of settings. Tooltip and child windows also don't store settings.
     if (!(flags & ImGuiWindowFlags_NoSavedSettings))
@@ -11275,7 +11275,6 @@ static void WindowSettingsHandler_WriteAll(ImGuiContext* ctx, ImGuiSettingsHandl
 // - SetWindowViewport() [Internal]
 // - GetWindowAlwaysWantOwnViewport() [Internal]
 // - UpdateTryMergeWindowIntoHostViewport() [Internal]
-// - UpdateTryMergeWindowIntoHostViewports() [Internal]
 // - TranslateWindowsInViewport() [Internal]
 // - ScaleWindowsInViewport() [Internal]
 // - FindHoveredViewportFromPlatformWindowStack() [Internal]
@@ -11389,13 +11388,6 @@ static bool ImGui::UpdateTryMergeWindowIntoHostViewport(ImGuiWindow* window, ImG
     BringWindowToDisplayFront(window);
 
     return true;
-}
-
-// FIXME: handle 0 to N host viewports
-static bool ImGui::UpdateTryMergeWindowIntoHostViewports(ImGuiWindow* window)
-{
-    ImGuiContext& g = *GImGui;
-    return UpdateTryMergeWindowIntoHostViewport(window, g.Viewports[0]);
 }
 
 // Translate Dear ImGui windows when a Host Viewport has been moved
@@ -11791,14 +11783,6 @@ static void ImGui::UpdateSelectWindowViewport(ImGuiWindow* window)
         if (window->Viewport != NULL && window->Viewport->Window == window)
             window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_None);
     }
-    else
-    {
-        // Merge into host viewport?
-        // We cannot test window->ViewportOwned as it set lower in the function.
-        bool try_to_merge_into_host_viewport = (window->Viewport && window == window->Viewport->Window && g.ActiveId == 0);
-        if (try_to_merge_into_host_viewport)
-            UpdateTryMergeWindowIntoHostViewports(window);
-    }
 
     // Fallback: merge in default viewport if z-order matches, otherwise create a new viewport
     if (window->Viewport == NULL)
@@ -11831,7 +11815,7 @@ static void ImGui::UpdateSelectWindowViewport(ImGuiWindow* window)
                 window->Viewport->ID = window->ID;
                 window->Viewport->LastNameHash = 0;
             }
-            else if (!UpdateTryMergeWindowIntoHostViewports(window)) // Merge?
+            else
             {
                 // New viewport
                 window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_NoFocusOnAppearing);
