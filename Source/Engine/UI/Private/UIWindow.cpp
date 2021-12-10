@@ -20,7 +20,7 @@ void SUIInternalWindow::Init(ImGuiViewport* _viewport)
 		windowRect.mRightDwon[0] = 1280 + 100;
 		windowRect.mRightDwon[1] = 800 + 100;
 
-		windowName = L"SevenEngine MainWindow";
+		windowName = L"SevenEngine";
 
 		wndStyle = WS_POPUP;
 		wndExStyle = WS_EX_APPWINDOW;
@@ -212,6 +212,7 @@ void SUIInternalWindow::SetWindowAlpha(float _alpha) noexcept
 
 void SUIInternalWindow::FlushImguiDrawData() noexcept
 {
+	TODO("当关闭窗口时也会触发swapChainData变更，导致当创建SwapChain时索引到不存在的窗口，引发崩溃")
 	//虽然当SwapChian发生变更时，我们只会触发一次修改，但我们应当保证每帧的数据都是正确而恰当的
 	if (mDirtyFlag.IsDirty())
 		mSwapChainData->Get_GameThread() = mCurrentSwapChainData;

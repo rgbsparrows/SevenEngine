@@ -63,7 +63,9 @@ void SUIModuleImpl::OnGUI() noexcept
 
 	ImguiNewFrame();
 
-	ImGui::Begin("MainWindow");
+	ImGui::Begin("MainWindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking);
+
+	ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
 
 	ImGui::ShowDemoWindow();
 
@@ -123,6 +125,7 @@ void SUIModuleImpl::AddWindow(const std::wstring& _windowTag, UWindowInterface* 
 {
 	if (_windowTag.empty() == false)
 	{
+		CHECK(mUIWindows.count(_windowTag) == 0);
 		mUIWindows[_windowTag] = _window;
 	}
 	else
@@ -434,6 +437,17 @@ void SUIModuleImpl::ImguiEndFrame() noexcept
 {
 	ImGui::Render();
 
+	ImVec2 imMainWindowPos = ImGui::GetWindowPos("MainWindow");
+	ImVec2 imMainWindowSize = ImGui::GetWindowSize("MainWindow");
+
+	Math::SFloat2 mainWindowPos = mMainWindow->GetWindowPos();
+	Math::SFloat2 mainWindowSize = mMainWindow->GetWindowSize();
+
+	if(mainWindowPos[0] != imMainWindowPos[0] || mainWindowPos[1] != imMainWindowPos[1])
+		mMainWindow->SetWindowPos(Math::SFloat2(imMainWindowPos.x, imMainWindowPos.y));
+	if (mainWindowSize[0] != imMainWindowSize[0] || mainWindowSize[1] != imMainWindowSize[1])
+		mMainWindow->SetWindowSize(Math::SFloat2(imMainWindowSize.x, imMainWindowSize.y));
+
 	mMainWindow->FlushImguiDrawData();
 
 	ImGui::UpdatePlatformWindows();
@@ -541,7 +555,7 @@ LRESULT SUIModuleImpl::WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lP
 			ImGui::GetIO().AddInputCharacterUTF16((unsigned short)_wParam);
 		break;
 	case WM_SETCURSOR:
-		if (LOWORD(_lParam) == HTCLIENT && (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) != 0)
+		if (LOWORD(_lParam) == HTCLIENT && ((ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange) == 0) != 0)
 		{
 			LPSTR win32_cursor = nullptr;
 			switch (ImGui::GetMouseCursor())

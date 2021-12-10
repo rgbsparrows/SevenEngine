@@ -5383,6 +5383,7 @@ static ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags)
     // Default/arbitrary window position. Use SetNextWindowPos() with the appropriate condition flag to change the initial position of a window.
     const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
     window->Pos = main_viewport->Pos + ImVec2(60, 60);
+    window->Size = main_viewport->Size * 0.618f;
     window->ViewportPos = main_viewport->Pos;
 
     // User can disable loading and saving of settings. Tooltip and child windows also don't store settings.
@@ -7258,6 +7259,15 @@ float ImGui::GetWindowHeight()
     return window->Size.y;
 }
 
+ImVec2 ImGui::GetWindowPos(const char* name)
+{
+	ImGuiWindow* window = FindWindowByName(name);
+	if (window != nullptr)
+		return window->Pos;
+
+	return ImVec2();
+}
+
 ImVec2 ImGui::GetWindowPos()
 {
     ImGuiContext& g = *GImGui;
@@ -7295,6 +7305,15 @@ void ImGui::SetWindowPos(const char* name, const ImVec2& pos, ImGuiCond cond)
 {
     if (ImGuiWindow* window = FindWindowByName(name))
         SetWindowPos(window, pos, cond);
+}
+
+ImVec2 ImGui::GetWindowSize(const char* name)
+{
+	ImGuiWindow* window = FindWindowByName(name);
+	if (window != nullptr)
+		return window->Size;
+
+	return ImVec2();
 }
 
 ImVec2 ImGui::GetWindowSize()
@@ -11783,8 +11802,7 @@ static void ImGui::UpdateSelectWindowViewport(ImGuiWindow* window)
 
     // Fallback: merge in default viewport if z-order matches, otherwise create a new viewport
     if (window->Viewport == NULL)
-        if (!UpdateTryMergeWindowIntoHostViewport(window, main_viewport))
-            window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_None);
+        window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_None);
 
     // Mark window as allowed to protrude outside of its viewport and into the current monitor
     if (!lock_viewport)

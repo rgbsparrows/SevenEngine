@@ -4,6 +4,6 @@
 
 void YieldForSingleObject(HANDLE _handle) noexcept
 {
-	while (WaitForSingleObject(_handle, INFINITE) == WAIT_TIMEOUT)
+	while (WaitForSingleObject(_handle, 0) == WAIT_TIMEOUT)
 		std::this_thread::yield();
 }
