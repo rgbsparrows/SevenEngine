@@ -63,10 +63,9 @@ void SUIModuleImpl::OnGUI() noexcept
 
 	ImguiNewFrame();
 
-	ImGui::Begin("MainWindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow);
+	ImGui::Begin("Seven Engine###MainWindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
 	ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
 	ImGui::End();
-
 
 	ImGui::ShowDemoWindow();
 
@@ -436,13 +435,13 @@ void SUIModuleImpl::ImguiEndFrame() noexcept
 {
 	ImGui::Render();
 
-	ImVec2 imMainWindowPos = ImGui::GetWindowPos("MainWindow");
-	ImVec2 imMainWindowSize = ImGui::GetWindowSize("MainWindow");
+	ImVec2 imMainWindowPos = ImGui::GetWindowPos("Seven Engine###MainWindow");
+	ImVec2 imMainWindowSize = ImGui::GetWindowSize("Seven Engine###MainWindow");
 
 	Math::SFloat2 mainWindowPos = mMainWindow->GetWindowPos();
 	Math::SFloat2 mainWindowSize = mMainWindow->GetWindowSize();
 
-	if(mainWindowPos[0] != imMainWindowPos[0] || mainWindowPos[1] != imMainWindowPos[1])
+	if (mainWindowPos[0] != imMainWindowPos[0] || mainWindowPos[1] != imMainWindowPos[1])
 		mMainWindow->SetWindowPos(Math::SFloat2(imMainWindowPos.x, imMainWindowPos.y));
 	if (mainWindowSize[0] != imMainWindowSize[0] || mainWindowSize[1] != imMainWindowSize[1])
 		mMainWindow->SetWindowSize(Math::SFloat2(imMainWindowSize.x, imMainWindowSize.y));

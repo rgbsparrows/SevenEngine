@@ -1005,7 +1005,7 @@ ImGuiStyle::ImGuiStyle()
     WindowPadding           = ImVec2(8,8);      // Padding within a window
     WindowRounding          = 0.0f;             // Radius of window corners rounding. Set to 0.0f to have rectangular windows. Large values tend to lead to variety of artifacts and are not recommended.
     WindowBorderSize        = 1.0f;             // Thickness of border around windows. Generally set to 0.0f or 1.0f. Other values not well tested.
-    WindowMinSize           = ImVec2(32,32);    // Minimum window size
+    WindowMinSize           = ImVec2(500,375);    // Minimum window size
     WindowTitleAlign        = ImVec2(0.0f,0.5f);// Alignment for title bar text
     WindowMenuButtonPosition= ImGuiDir_Left;    // Position of the collapsing/docking button in the title bar (left/right). Defaults to ImGuiDir_Left.
     ChildRounding           = 0.0f;             // Radius of child window corners rounding. Set to 0.0f to have rectangular child windows
@@ -5381,10 +5381,16 @@ static ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags)
 
     // Default/arbitrary window position. Use SetNextWindowPos() with the appropriate condition flag to change the initial position of a window.
     const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-    window->Pos = main_viewport->Pos + ImVec2(60, 60);
+    window->Pos = main_viewport->Pos + ImVec2(g.Viewports.size() * 30.f, g.Viewports.size() * 30.f);
     window->ViewportPos = main_viewport->Pos;
-    if(flags & ImGuiWindowFlags_MainWindow)
-    	window->SizeFull = main_viewport->Size;
+    if (flags & ImGuiWindowFlags_MainWindow)
+    {
+		window->Pos = main_viewport->Pos;
+		window->SizeFull = main_viewport->Size;
+        window->Viewport = static_cast<ImGuiViewportP*>(ImGui::GetMainViewport());
+        window->ViewportId = main_viewport->ID;
+        GImGui->MainWindow = window;
+    }
 
     // User can disable loading and saving of settings. Tooltip and child windows also don't store settings.
     if (!(flags & ImGuiWindowFlags_NoSavedSettings))
@@ -5395,6 +5401,7 @@ static ImGuiWindow* CreateNewWindow(const char* name, ImGuiWindowFlags flags)
             SetWindowConditionAllowFlags(window, ImGuiCond_FirstUseEver, false);
             ApplyWindowSettings(window, settings);
         }
+
     window->DC.CursorStartPos = window->DC.CursorMaxPos = window->Pos; // So first call to CalcContentSize() doesn't return crazy values
 
     if ((flags & ImGuiWindowFlags_AlwaysAutoResize) != 0)
@@ -6365,15 +6372,23 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         if (window->ViewportAllowPlatformMonitorExtend >= 0 && !window->ViewportOwned && !(window->Viewport->Flags & ImGuiViewportFlags_Minimized))
             if (!window->Viewport->GetMainRect().Contains(window->Rect()))
             {
-                // This is based on the assumption that the DPI will be known ahead (same as the DPI of the selection done in UpdateSelectWindowViewport)
-                //ImGuiViewport* old_viewport = window->Viewport;
-                window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_NoFocusOnAppearing);
+				if ((flags & ImGuiWindowFlags_MainWindow))
+				{
+					ImGui::GetMainViewport()->Pos = window->Pos;
+					ImGui::GetMainViewport()->Size = window->Size;
+				}
+                else
+                {
+                    // This is based on the assumption that the DPI will be known ahead (same as the DPI of the selection done in UpdateSelectWindowViewport)
+                    //ImGuiViewport* old_viewport = window->Viewport;
+                    window->Viewport = AddUpdateViewport(window, window->ID, window->Pos, window->Size, ImGuiViewportFlags_NoFocusOnAppearing);
 
-                // FIXME-DPI
-                //IM_ASSERT(old_viewport->DpiScale == window->Viewport->DpiScale); // FIXME-DPI: Something went wrong
-                SetCurrentViewport(window, window->Viewport);
-                window->FontDpiScale = (g.IO.ConfigFlags & ImGuiConfigFlags_DpiEnableScaleFonts) ? window->Viewport->DpiScale : 1.0f;
-                SetCurrentWindow(window);
+                    // FIXME-DPI
+                    //IM_ASSERT(old_viewport->DpiScale == window->Viewport->DpiScale); // FIXME-DPI: Something went wrong
+                    SetCurrentViewport(window, window->Viewport);
+                    window->FontDpiScale = (g.IO.ConfigFlags & ImGuiConfigFlags_DpiEnableScaleFonts) ? window->Viewport->DpiScale : 1.0f;
+                    SetCurrentWindow(window);
+				}
             }
 
         bool viewport_rect_changed = false;

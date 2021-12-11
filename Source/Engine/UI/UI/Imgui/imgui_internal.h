@@ -1495,6 +1495,7 @@ struct ImGuiContext
     ImGuiDockNode*          HoveredDockNode;                    // Hovered dock node.
     ImGuiWindow*            MovingWindow;                       // Track the window we clicked on (in order to preserve focus). The actual window that is moved is generally MovingWindow->RootWindowDockTree.
     ImGuiWindow*            WheelingWindow;                     // Track the window we started mouse-wheeling on. Until a timer elapse or mouse has moved, generally keep scrolling the same window even if during the course of scrolling the mouse ends up hovering a child window.
+    ImGuiWindow*            MainWindow;                         // 绑定到主视口上的主窗口
     ImVec2                  WheelingWindowRefMousePos;
     float                   WheelingWindowTimer;
 
