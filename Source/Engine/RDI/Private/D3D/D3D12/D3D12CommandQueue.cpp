@@ -16,11 +16,11 @@ void SD3D12CommandQueue::Init(ID3D12CommandQueue* _commandQueueNativePtr, ID3D12
 void SD3D12CommandQueue::ExecuteCommandLists(uint32_t _commandListCount, IRDICommandList* const* _commandLists) noexcept
 {
 	CHECK(_commandListCount <= D3D12_EXECUTE_COMMAND_LIST_COUNT);
-	
+
 	ID3D12CommandList* commandList[D3D12_EXECUTE_COMMAND_LIST_COUNT];
 	for (uint32_t i = 0; i != _commandListCount; ++i)
 		commandList[i] = static_cast<SD3D12CommandList*>(_commandLists[i])->GetCommandListNativePtr();
-	
+
 	GetCommandQueueNativePtr()->ExecuteCommandLists(_commandListCount, commandList);
 }
 
@@ -43,11 +43,14 @@ void SD3D12CommandQueue::YieldUntilCompletion(uint64_t _fenceValue) noexcept
 
 void SD3D12CommandQueue::WaitForCompletion(uint64_t _fenceValue) noexcept
 {
-	HANDLE event = CreateEventW(nullptr, false, false, nullptr);
+	if (GetCompletedValue() > _fenceValue)
+	{
+		HANDLE event = CreateEventW(nullptr, false, false, nullptr);
 
-	CHECK(event != nullptr);
+		CHECK(event != nullptr);
 
-	VERIFY_D3D_RETURN(GetFenceNativePtr()->SetEventOnCompletion(_fenceValue, event));
-	WaitForSingleObject(event, INFINITE);
-	CloseHandle(event);
+		VERIFY_D3D_RETURN(GetFenceNativePtr()->SetEventOnCompletion(_fenceValue, event));
+		WaitForSingleObject(event, INFINITE);
+		CloseHandle(event);
+	}
 }

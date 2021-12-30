@@ -52,8 +52,8 @@ private:
 	std::map<std::wstring, UWindowInterface*> mUIWindows;
 	std::vector<UWindowInterface*> mAnonymousUIWindows;
 
-	RRenderProxy<RTexture2D>* mFontTexture;
-	RRenderProxy<RImguiTexture2D>* mImFontTexture;
+	RRenderProxy<RTexture2D>* mFontTexture = nullptr;
+	RRenderProxy<RImguiTexture2D>* mImFontTexture = nullptr;
 	RDirtyFlag mImFontTextureDirtyFlag;
 
 	HICON mIcon = nullptr;

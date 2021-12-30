@@ -24,4 +24,9 @@ namespace Thread
 	{
 		GRenderThreadId = _threadId;
 	}
+
+	void SetCurrentThreadName(std::wstring_view _threadName) noexcept
+	{
+		::SetThreadDescription(GetCurrentThread(), std::wstring(_threadName).c_str());
+	}
 }

@@ -172,10 +172,16 @@ void SD3D12Device::EnsureCommandListCount(size_t _commandListCount) noexcept
 	}
 }
 
-void SD3D12Device::ResetCommandListAlocator() noexcept
+void SD3D12Device::ResetCommandListAlocator(size_t _commandAllocatorIndex) noexcept
 {
 	for (SD3D12CommandList& commandList : mCommandList)
-		commandList.ResetCommandAllocator();
+		commandList.ResetCommandAllocator(_commandAllocatorIndex);
+}
+
+void SD3D12Device::SetCurrentCommandListAllocator(size_t _commandAllocatorIndex) noexcept
+{
+	for (SD3D12CommandList& commandList : mCommandList)
+		commandList.SetCurrentCommandAllocator(_commandAllocatorIndex);
 }
 
 IRDIInputLayout* SD3D12Device::CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept

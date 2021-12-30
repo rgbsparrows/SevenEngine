@@ -2,7 +2,7 @@
 #include "Core/Math/Type.h"
 #include "RDI/RDIFunctionHelper.h"
 #include "Render/RenderProxy/RenderProxy.h"
-#include "Render/RenderProxy/RenderResource.h"
+#include "Render/RenderProxy/Resource/RenderResource.h"
 #include "RDI/Interface/RDIDescriptorHeapRange.h"
 
 #include <vector>
@@ -47,16 +47,16 @@ struct RImguiVertex
 {
 	Math::SFloat2 mPos;
 	Math::SFloat2 mUv;
-	Math::SUColor32 mColor;
+	Math::SUColor32 mColor = 0;
 };
 
 struct RImguiDrawCmd
 {
 	Math::SIntRect mClipRect;
 	RRenderProxy<RImguiTexture2D>* mTextureId = nullptr;
-	uint32_t mVertexOffset;
-	uint32_t mIndexOffset;
-	uint32_t mVertexCount;
+	uint32_t mVertexOffset = 0;
+	uint32_t mIndexOffset = 0;
+	uint32_t mVertexCount = 0;
 };
 
 struct RImguiDrawData

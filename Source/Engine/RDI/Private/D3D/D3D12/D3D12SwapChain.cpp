@@ -50,7 +50,7 @@ void SD3D12SwapChain::Release() noexcept
 {
 	for (uint32_t i = 0; i != mDesc.mBufferCount; ++i)
 	{
-		mDevice->ReleaseTexture2D(static_cast<SD3D12Texture2D*>(mRenderTargets[i]));
+		mRenderTargets[i]->Release();
 	}
 
 	mDevice->ReleaseSwapChain(this);

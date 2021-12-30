@@ -18,3 +18,4 @@ struct RTexture2DData
 	SBlob mResourceData;
 };
 template<> struct RRenderInfoTraits<RTexture2DData> : RExclusiveMode {};
+

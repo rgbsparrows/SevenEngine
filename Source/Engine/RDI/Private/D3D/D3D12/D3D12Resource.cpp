@@ -54,7 +54,8 @@ void SD3D12Buffer::Map(void** _dataPtr) noexcept
 
 void SD3D12Buffer::Unmap() noexcept
 {
-	mResourceNativePtr->Unmap(0, nullptr);
+	D3D12_RANGE range(0, 0);
+	mResourceNativePtr->Unmap(0, &range);
 }
 
 IRDIIndexBufferView* SD3D12Buffer::GetIBV() noexcept

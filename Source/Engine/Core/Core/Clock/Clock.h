@@ -19,7 +19,7 @@ private:
 	float mTotalTime = 0.f;
 	float mDeltaTime = 0.f;
 
-	float mGameClockRatio = false;
+	float mGameClockRatio = 1.f;
 };
 
 extern SClock GClock;

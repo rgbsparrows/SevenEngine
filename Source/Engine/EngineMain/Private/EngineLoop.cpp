@@ -1,4 +1,4 @@
-#include "EngineLoop.h"
+﻿#include "EngineLoop.h"
 #include "Core/Misc/Thread.h"
 #include "Render/RenderModule.h"
 #include "Core/Class/ClassManager.h"
@@ -9,6 +9,7 @@
 void SEngineLoop::PreInit() noexcept
 {
 	Thread::SetGameThreadId(std::this_thread::get_id());
+	Thread::SetCurrentThreadName(L"主线程");
 
 	SModuleManager::Get().Init();
 	SClassManager::Get().Init();

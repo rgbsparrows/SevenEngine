@@ -54,6 +54,9 @@ private:
 	size_t mFrameInfoIndex_GameThread = 0;
 	size_t mFrameInfoIndex_RenderThread = 0;
 
+	size_t mFrameCount_GameThread = 0;
+	size_t mFrameCount_RenderThread = 0;
+
 	RRenderProxy<RFrameResource>* mFrameResource;
 	RRenderProxy<RStaticRenderResource>* mStaticRenderResource;
 	RRenderProxy<RFrameRenderResource>* mFrameRenderResource;

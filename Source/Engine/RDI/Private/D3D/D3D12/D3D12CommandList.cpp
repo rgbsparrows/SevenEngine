@@ -11,7 +11,7 @@
 void SD3D12CommandList::Init(ID3D12CommandAllocator* _commandAllocatorNativePtr, ID3D12GraphicsCommandList* _commandListNativePtr, SD3D12Device* _device) noexcept
 {
 	{
-		mCommandAllocatorNativePtr = _commandAllocatorNativePtr;
+		mCommandAllocatorNativePtr[0] = _commandAllocatorNativePtr;
 		mCommandListNativePtr = _commandListNativePtr;
 		mDevice = _device;
 	}
@@ -19,14 +19,20 @@ void SD3D12CommandList::Init(ID3D12CommandAllocator* _commandAllocatorNativePtr,
 	Close();
 }
 
-void SD3D12CommandList::ResetCommandAllocator() noexcept
+void SD3D12CommandList::ResetCommandAllocator(size_t _commandAllocatorIndex) noexcept
 {
-	VERIFY_D3D_RETURN(GetCommandAllocatorNativePtr()->Reset());
+	VERIFY_D3D_RETURN(GetCommandAllocatorNativePtr(_commandAllocatorIndex)->Reset());
+}
+
+void SD3D12CommandList::SetCurrentCommandAllocator(size_t _commandAllocatorIndex) noexcept
+{
+	EnsureCommandAllocator(_commandAllocatorIndex);
+	mCurrentAllocatorIndex = _commandAllocatorIndex;
 }
 
 void SD3D12CommandList::ResetCommandList() noexcept
 {
-	VERIFY_D3D_RETURN(GetCommandListNativePtr()->Reset(GetCommandAllocatorNativePtr(), nullptr));
+	VERIFY_D3D_RETURN(GetCommandListNativePtr()->Reset(GetCurrentCommandAllocatorNativePtr(), nullptr));
 
 	ID3D12DescriptorHeap* descriptorHeaps[] =
 	{
@@ -683,6 +689,16 @@ void SD3D12CommandList::ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _sh
 	SD3D12TextureCubeArray* resource = static_cast<SD3D12TextureCubeArray*>(_resource);
 
 	ClearUnorderAccessViewFloat(descriptorHeapRange->GetGpuDescriptorHandle(), uav->mCpuDescriptorHandle, resource->GetNativePtr(), _value);
+}
+
+void SD3D12CommandList::EnsureCommandAllocator(size_t _index) noexcept
+{
+	CHECK(_index < 8);
+
+	if (mCommandAllocatorNativePtr[_index] == nullptr)
+	{
+		VERIFY_D3D_RETURN(mDevice->GetNativePtr()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocatorNativePtr[_index])));
+	}
 }
 
 void SD3D12CommandList::CopyTextureRegion(ID3D12Resource* _destTexture, ID3D12Resource* _srcTexture, uint32_t _subResourceIndex, D3D12_PLACED_SUBRESOURCE_FOOTPRINT _subResourceFootprint) noexcept

@@ -15,6 +15,8 @@ namespace Thread
 
 	void SetRenderThread(std::thread::id _threadId) noexcept;
 
+	void SetCurrentThreadName(std::wstring_view _threadName) noexcept;
+
 	struct SDummyLock
 	{
 		void lock() noexcept {}

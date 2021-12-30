@@ -39,7 +39,8 @@ public:
 	IRDISwapChain* CreateSwapChain(const SRDISwapChainDesc* _swapChainDesc) noexcept override;
 
 	void EnsureCommandListCount(size_t _commandListCount) noexcept override;
-	void ResetCommandListAlocator() noexcept override;
+	void ResetCommandListAlocator(size_t _commandAllocatorIndex) noexcept override;
+	void SetCurrentCommandListAllocator(size_t _commandAllocatorIndex) noexcept override;
 
 	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept override;
 

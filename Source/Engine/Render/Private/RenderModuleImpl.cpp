@@ -1,6 +1,7 @@
-#include "RDI/RDIModule.h"
-#include "RenderResource.h"
+ï»¿#include "RDI/RDIModule.h"
+#include "Render/RenderProxy/Resource/RenderResource.h"
 #include "RenderModuleImpl.h"
+#include "Core/Misc/Thread.h"
 #include "Core/Misc/windowsEx.h"
 #include "RDI/Interface/RDIDevice.h"
 #include "Core/Modules/ModuleManager.h"
@@ -95,17 +96,16 @@ void SRenderModuleImpl::BeginFrame_GameThread() noexcept
 void SRenderModuleImpl::EndFrame_GameThread() noexcept
 {
 	SetEvent(mFrameResource->Get_GameThread().mRenderThreadFrameResourceReadyEvent);
-	++mFrameInfoIndex_GameThread;
-	mFrameInfoIndex_GameThread %= GRenderInfoCount;
+	++mFrameCount_GameThread;
+	mFrameInfoIndex_GameThread = mFrameCount_GameThread % GRenderInfoCount;
 }
 
 void SRenderModuleImpl::BeginFrame_RenderThread() noexcept
 {
 	YieldForSingleObject(mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyEvent);
-	TODO("ÕýÈ·´¦ÀíCommandAllocator")
-	SyncToGpuFrameEnd(true);
 	mRdiCommandQueue->YieldUntilCompletion(mFrameResource->Get_RenderThread().mGpuFence);
-	mRdiDevice->ResetCommandListAlocator();
+	mRdiDevice->SetCurrentCommandListAllocator(GetFrameInfoIndex_RenderThread());
+	mRdiDevice->ResetCommandListAlocator(GetFrameInfoIndex_RenderThread());
 }
 
 void SRenderModuleImpl::FrameTick_RenderThread() noexcept
@@ -117,7 +117,7 @@ void SRenderModuleImpl::FrameTick_RenderThread() noexcept
 	RefrashSwapChain();
 	RefrashResources();
 
-	TODO("ÊÀ½ç»æÖÆ");
+	TODO("ä¸–ç•Œç»˜åˆ¶");
 
 	RenderImgui();
 	PresentWindows();
@@ -130,15 +130,16 @@ void SRenderModuleImpl::FrameTick_RenderThread() noexcept
 
 void SRenderModuleImpl::EndFrame_RenderThread() noexcept
 {
-	mIsSyncToGpuFrameEnd = false;
 	SetEvent(mFrameResource->Get_RenderThread().mGameThreadFrameResourceReadyEvent);
 	mFrameResource->Get_RenderThread().mGpuFence = mRdiCommandQueue->Signal();
-	++mFrameInfoIndex_RenderThread;
-	mFrameInfoIndex_RenderThread %= GRenderInfoCount;
+	mIsSyncToGpuFrameEnd = false;
+	++mFrameCount_RenderThread;
+	mFrameInfoIndex_RenderThread = mFrameCount_RenderThread % GRenderInfoCount;
 }
 
 void SRenderModuleImpl::RenderThreadMain() noexcept
 {
+	Thread::SetCurrentThreadName(L"æ¸²æŸ“çº¿ç¨‹");
 	while (mFrameResource->Get_RenderThread().mRequireExit == false)
 	{
 		BeginFrame_RenderThread();
@@ -154,7 +155,6 @@ void SRenderModuleImpl::RefrashResources() noexcept
 
 void SRenderModuleImpl::RefrashTextureResource() noexcept
 {
-	if (true)
 	{
 		auto& createStaticTexture2DList = mFrameResource->Get_RenderThread().mRefrashexture2DList;
 
@@ -301,8 +301,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 	commandList->ResetCommandList();
 
 	{
-		bool needRecreateBuffer = false;
-		needRecreateBuffer = frameRenderResource.mConstantBuffer == nullptr;
+		bool needRecreateBuffer = frameRenderResource.mConstantBuffer == nullptr;
 
 		if (frameRenderResource.mConstantBuffer)
 		{
@@ -310,7 +309,6 @@ void SRenderModuleImpl::RenderImgui() noexcept
 			frameRenderResource.mConstantBuffer->GetDesc(&desc);
 			needRecreateBuffer = needRecreateBuffer || desc.mBufferSize < renderWindowList.size() * 256;
 		}
-
 		if (needRecreateBuffer)
 		{
 			if (frameRenderResource.mConstantBuffer)
@@ -354,23 +352,27 @@ void SRenderModuleImpl::RenderImgui() noexcept
 		auto& drawData = renderWindowList[i].mImguiDrawData->Get_RenderThread();
 		auto& swapChain = renderWindowList[i].mSwapChain->Get_RenderThread();
 
-		bool needRecreateBuffer = false;
-		needRecreateBuffer = drawData.mRDIVertexBuffer == nullptr;
+		bool needRecreateVertexBuffer = drawData.mRDIVertexBuffer == nullptr;
+		bool needRecreateIndexBuffer = drawData.mRDIIndexBuffer == nullptr;
 
 		if (drawData.mRDIVertexBuffer)
 		{
 			SRDIBufferResourceDesc desc;
 			drawData.mRDIVertexBuffer->GetDesc(&desc);
-			needRecreateBuffer = needRecreateBuffer || desc.mBufferSize < drawData.mVertexBuffer.size() * sizeof(RImguiVertex);
+			needRecreateVertexBuffer = needRecreateVertexBuffer || desc.mBufferSize < drawData.mVertexBuffer.size() * sizeof(RImguiVertex);
 		}
 
-		if (needRecreateBuffer)
+		if (drawData.mRDIIndexBuffer)
+		{
+			SRDIBufferResourceDesc desc;
+			drawData.mRDIIndexBuffer->GetDesc(&desc);
+			needRecreateIndexBuffer = needRecreateIndexBuffer || desc.mBufferSize < drawData.mIndexBuffer.size() * sizeof(uint16_t);
+		}
+
+		if (needRecreateVertexBuffer)
 		{
 			if (drawData.mRDIVertexBuffer != nullptr)
 				drawData.mRDIVertexBuffer->Release();
-
-			if (drawData.mRDIIndexBuffer != nullptr)
-				drawData.mRDIIndexBuffer->Release();
 
 			SRDIBufferResourceDesc vbDesc;
 			vbDesc.mHeapType = ERDIHeapType::Upload;
@@ -379,6 +381,12 @@ void SRenderModuleImpl::RenderImgui() noexcept
 			vbDesc.mBufferSize = sizeof(RImguiVertex) * drawData.mVertexBuffer.size() * 2;
 			vbDesc.mElementStride = sizeof(RImguiVertex);
 			drawData.mRDIVertexBuffer = mRdiDevice->CreateBuffer(&vbDesc);
+		}
+
+		if (needRecreateIndexBuffer)
+		{
+			if (drawData.mRDIIndexBuffer != nullptr)
+				drawData.mRDIIndexBuffer->Release();
 
 			SRDIBufferResourceDesc ibDesc;
 			ibDesc.mHeapType = ERDIHeapType::Upload;
@@ -420,7 +428,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 			commandList->SetGraphicsPipelineState(staticRenderResource.mImguiHDR1000PipelineState);
 			break;
 		default:
-			CHECK(false && "²»Ç¡µ±µÄPipelineState");
+			CHECK(false && "ä¸æ°å½“çš„PipelineState");
 		}
 
 		commandList->SetGraphicsRootSignature(staticRenderResource.mImguiRootSignature);
