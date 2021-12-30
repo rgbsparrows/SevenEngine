@@ -174,7 +174,6 @@ public:
 
 public:
 	void GetDesc(SRDITexture2DResourceDesc* _desc)const noexcept { *_desc = mDesc; }
-	void WriteToSubResource(uint32_t _mipSlice, const void* _data) noexcept override;
 	void Release() noexcept override;
 
 	IRDIRenderTargetView* GetRTV(uint32_t _mipSlice) noexcept;

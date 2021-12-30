@@ -330,16 +330,6 @@ IRDIUnorderedAccessView* SD3D12Texture2D::GetUAV(uint32_t _mipSlice) noexcept
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12Texture2D::WriteToSubResource(uint32_t _mipSlice, const void* _data) noexcept
-{
-	TODO("ÒÆ³ý×¢ÊÍ");
-	//CHECK(mDesc.mHeapType == ERDIHeapType::Upload);
-
-	uint32_t rowPitch = SPixelFormatMeta::GetPixelRowPitch(mDesc.mPixelFormat, mDesc.mSizeX, _mipSlice);
-	
-	mResourceNativePtr->WriteToSubresource(_mipSlice, nullptr, _data, rowPitch, rowPitch);
-}
-
 void SD3D12Texture2D::Release() noexcept
 {
 	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();

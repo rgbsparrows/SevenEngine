@@ -84,7 +84,6 @@ __interface IRDITexture1DArray : IRDITexture
 __interface IRDITexture2D : IRDITexture
 {
 	void GetDesc(SRDITexture2DResourceDesc* _desc)const noexcept;
-	void WriteToSubResource(uint32_t _mipSlice, const void* _data) noexcept;
 
 	IRDIRenderTargetView* GetRTV(uint32_t _mipSlice) noexcept;
 	IRDIDepthStencilView* GetDSV(uint32_t _mipSlice) noexcept;
