@@ -221,6 +221,7 @@ void SRenderModuleImpl::RefrashTextureResource() noexcept
 			for(uint32_t i = 0; i != texture2DData.mDesc.mMipCount; ++i)
 			{
 				commandList->CopyTexture2D(texture.mTexture, i, uploadBuffer, offset);
+				commandList->TranstionResourceState(texture.mTexture, ERDIResourceState::CopyDest, ERDIResourceState::Common);
 				offset += SPixelFormatMeta::GetPixelSlicePitch(texture2DData.mDesc.mPixelFormat, texture2DData.mDesc.mSizeX, texture2DData.mDesc.mSizeY, i);
 			}
 		}
@@ -301,29 +302,29 @@ void SRenderModuleImpl::RenderImgui() noexcept
 	commandList->ResetCommandList();
 
 	{
-		bool needRecreateBuffer = frameRenderResource.mConstantBuffer == nullptr;
+		bool needRecreateUploadBuffer = frameRenderResource.mConstantUploadBuffer == nullptr;
 
-		if (frameRenderResource.mConstantBuffer)
+		if (frameRenderResource.mConstantUploadBuffer)
 		{
 			SRDIBufferResourceDesc desc;
-			frameRenderResource.mConstantBuffer->GetDesc(&desc);
-			needRecreateBuffer = needRecreateBuffer || desc.mBufferSize < renderWindowList.size() * 256;
+			frameRenderResource.mConstantUploadBuffer->GetDesc(&desc);
+			needRecreateUploadBuffer = needRecreateUploadBuffer || desc.mBufferSize < renderWindowList.size() * 256;
 		}
-		if (needRecreateBuffer)
+		if (needRecreateUploadBuffer)
 		{
-			if (frameRenderResource.mConstantBuffer)
-				frameRenderResource.mConstantBuffer->Release();
+			if (frameRenderResource.mConstantUploadBuffer)
+				frameRenderResource.mConstantUploadBuffer->Release();
 
 			SRDIBufferResourceDesc cbDesc;
 			cbDesc.mHeapType = ERDIHeapType::Upload;
 			cbDesc.mResourceState = ERDIResourceState::GenericRead;
 			cbDesc.mResourceUsage = ERDIResourceUsage::ConstantBuffer;
 			cbDesc.mBufferSize = 256 * renderWindowList.size() * 2;
-			frameRenderResource.mConstantBuffer = mRdiDevice->CreateBuffer(&cbDesc);
+			frameRenderResource.mConstantUploadBuffer = mRdiDevice->CreateBuffer(&cbDesc);
 		}
-
+	
 		void* cbData = nullptr;
-		frameRenderResource.mConstantBuffer->Map(&cbData);
+		frameRenderResource.mConstantUploadBuffer->Map(&cbData);
 		for (size_t i = 0; i != renderWindowList.size(); ++i)
 		{
 			auto& drawData = renderWindowList[i].mImguiDrawData->Get_RenderThread();
@@ -344,7 +345,36 @@ void SRenderModuleImpl::RenderImgui() noexcept
 
 			memcpy_s(destMemory, 256, matrix.GetData(), 256);
 		}
-		frameRenderResource.mConstantBuffer->Unmap();
+		frameRenderResource.mConstantUploadBuffer->Unmap();
+	}
+
+	{
+		bool needRecreateConstantBuffer = staticRenderResource.mConstantBuffer == nullptr;
+
+		if (staticRenderResource.mConstantBuffer)
+		{
+			SRDIBufferResourceDesc desc;
+			staticRenderResource.mConstantBuffer->GetDesc(&desc);
+			needRecreateConstantBuffer = needRecreateConstantBuffer || desc.mBufferSize < renderWindowList.size() * 256;
+		}
+		if (needRecreateConstantBuffer)
+		{
+			SyncToGpuFrameEnd();
+
+			if (staticRenderResource.mConstantBuffer)
+				staticRenderResource.mConstantBuffer->Release();
+
+			SRDIBufferResourceDesc cbDesc;
+			cbDesc.mHeapType = ERDIHeapType::Default;
+			cbDesc.mResourceState = ERDIResourceState::VertexAndConstantBuffer;
+			cbDesc.mResourceUsage = ERDIResourceUsage::ConstantBuffer;
+			cbDesc.mBufferSize = 256 * renderWindowList.size() * 2;
+			staticRenderResource.mConstantBuffer = mRdiDevice->CreateBuffer(&cbDesc);
+		}
+
+		commandList->TranstionResourceState(staticRenderResource.mConstantBuffer, ERDIResourceState::VertexAndConstantBuffer, ERDIResourceState::CopyDest);
+		commandList->CopyBuffer(staticRenderResource.mConstantBuffer, frameRenderResource.mConstantUploadBuffer);
+		commandList->TranstionResourceState(staticRenderResource.mConstantBuffer, ERDIResourceState::CopyDest, ERDIResourceState::VertexAndConstantBuffer);
 	}
 
 	for (size_t i = 0; i != renderWindowList.size(); ++i)
@@ -441,7 +471,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 		Math::SFloatBox viewportBox = Math::SFloatBox(0, 0, 0, drawData.mDisplaySize[0], drawData.mDisplaySize[1], 1);
 		commandList->RSSetViewports(1, &viewportBox);
 
-		commandList->SetGraphicsRootConstantBuffer(0, frameRenderResource.mConstantBuffer, i * 256);
+		commandList->SetGraphicsRootConstantBuffer(0, staticRenderResource.mConstantBuffer, i * 256);
 		for (auto& _cmd : drawData.mCmdBuffer)
 		{
 			RImguiTexture2D& imguiTexture = _cmd.mTextureId->Get_RenderThread();

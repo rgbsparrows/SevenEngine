@@ -151,10 +151,13 @@ void RStaticRenderResource::Clear()
 	mImguiHDR10PipelineState->Release();
 	mImguiHDR1000PipelineState->Release();
 	mImguiRootSignature->Release();
+
+	if (mConstantBuffer)
+		mConstantBuffer->Release();
 }
 
 void RFrameRenderResource::Clear()
 {
-	if (mConstantBuffer)
-		mConstantBuffer->Release();
+	if (mConstantUploadBuffer)
+		mConstantUploadBuffer->Release();
 }

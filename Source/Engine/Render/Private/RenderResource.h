@@ -19,6 +19,7 @@ public:
 	IRDIGraphicsPipelineState* mImguiHDR10PipelineState = nullptr;
 	IRDIGraphicsPipelineState* mImguiHDR1000PipelineState = nullptr;
 	IRDIRootSignature* mImguiRootSignature = nullptr;
+	IRDIBuffer* mConstantBuffer = nullptr;
 };
 template<> struct RRenderInfoTraits<RStaticRenderResource> : RShareMode {};
 
@@ -29,6 +30,6 @@ public:
 
 public:
 	bool mEnableVSync = false;
-	IRDIBuffer* mConstantBuffer = nullptr;
+	IRDIBuffer* mConstantUploadBuffer = nullptr;
 };
 template<> struct RRenderInfoTraits<RFrameRenderResource> : RExclusiveMode {};

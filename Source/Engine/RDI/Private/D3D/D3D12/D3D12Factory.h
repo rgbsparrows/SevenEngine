@@ -17,7 +17,7 @@ public:
 	void Clear() noexcept;
 
 	IDXGIFactory4* GetNativePtr() noexcept { return mDXGIFactoryNativePtr; }
-	ID3D12Debug* GetD3D12DebugNativePtr() noexcept { return mD3D12DebugNativePtr; }
+	ID3D12Debug3* GetD3D12DebugNativePtr() noexcept { return mD3D12DebugNativePtr; }
 	IDXGIDebug1* GetDXGIDebugNativePtr() noexcept { return mDXGIDebugNativePtr; }
 
 public:
@@ -36,7 +36,7 @@ private:
 
 private:
 	IDXGIFactory4* mDXGIFactoryNativePtr = nullptr;
-	ID3D12Debug* mD3D12DebugNativePtr = nullptr;
+	ID3D12Debug3* mD3D12DebugNativePtr = nullptr;
 	IDXGIDebug1* mDXGIDebugNativePtr = nullptr;
 
 	SD3D12Device mD3D12Device;
