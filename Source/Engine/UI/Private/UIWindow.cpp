@@ -212,8 +212,9 @@ void SUIInternalWindow::SetWindowAlpha(float _alpha) noexcept
 
 void SUIInternalWindow::FlushImguiDrawData() noexcept
 {
-	TODO("当关闭窗口时也会触发swapChainData变更，导致当创建SwapChain时索引到不存在的窗口，引发崩溃")
-	//虽然当SwapChian发生变更时，我们只会触发一次修改，但我们应当保证每帧的数据都是正确而恰当的
+	if (IsWindow(mHwnd) == false)
+		return;
+
 	if (mDirtyFlag.IsDirty())
 		mSwapChainData->Get_GameThread() = mCurrentSwapChainData;
 
@@ -285,7 +286,7 @@ void SUIInternalWindow::FlushImguiDrawData() noexcept
 
 		drawData.mDisplayPos = Math::SFloat2(imDrawDataRaw->DisplayPos.x, imDrawDataRaw->DisplayPos.y);
 		drawData.mDisplaySize = Math::SFloat2(imDrawDataRaw->DisplaySize.x, imDrawDataRaw->DisplaySize.y);
-	
+
 		GetRenderModule()->GetRenderCommandList()->RenderWindow(mSwapChain, mDrawData);
 	}
 
