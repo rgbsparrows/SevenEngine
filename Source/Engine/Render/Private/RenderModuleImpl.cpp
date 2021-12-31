@@ -66,10 +66,19 @@ bool SRenderModuleImpl::Init() noexcept
 void SRenderModuleImpl::Clear() noexcept
 {
 	{
+		//两次循环清空渲染线程全部任务，保证GPU不再使用任何资源
+		BeginFrame_GameThread();
+		EndFrame_GameThread();
+
+		BeginFrame_GameThread();
+		EndFrame_GameThread();
+
+		//清理全局对象
 		BeginFrame_GameThread();
 		GetRenderCommandList()->AddExpiringRenderProxy({ mStaticRenderResource, mFrameRenderResource });
 		EndFrame_GameThread();
 
+		//推出渲染线程
 		BeginFrame_GameThread();
 		mFrameResource->Get_GameThread().mRequireExit = true;
 		EndFrame_GameThread();

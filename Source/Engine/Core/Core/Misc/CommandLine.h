@@ -19,7 +19,7 @@ struct SCommandLine
 		auto rawValue = GetRawArgumentValue(_key);
 
 		std::pair<bool, Type> res;
-		if (rawValue.first) res.first = TStringParser<Type>()(_key, res.second);
+		if (rawValue.first) res.first = TStringParser<Type>()(rawValue.second, res.second);
 		else res.first = false;
 
 		return res.first ? res : std::make_pair(false, _defaultValue);
