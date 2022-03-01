@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core/Macros/Assert.h"
-#include "Core/Macros/UtilMacros.h"
-#include "Core/Template/TemplateUtil.h"
+#include "Core/Util/Assert.h"
+#include "Core/Util/UtilMacros.h"
+#include "Core/Util/TemplateUtil.h"
 
 #include <map>
 #include <string_view>

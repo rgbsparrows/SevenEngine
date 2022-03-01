@@ -1,11 +1,11 @@
 #include "EngineMain/EngineMain.h"
-#include "WindowsPlatform/WindowsPlatformApi.h"
+#include "Core/Misc/windowsEx.h"
 
-int _stdcall wWinMain(
-	HINSTANCE hInstance,
-	HINSTANCE hPrevInstance,
-	wchar_t* lpCmdLine,
-	int nCmdShow)
+int WINAPI wWinMain(
+	_In_ HINSTANCE hInstance,
+	_In_opt_ HINSTANCE hPrevInstance,
+	_In_ wchar_t* lpCmdLine,
+	_In_ int nCmdShow)
 {
 	hInstance;
 	hPrevInstance;

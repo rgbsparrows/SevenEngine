@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "Core/Template/NameOf.h"
-#include "Core/Macros/ConditionDeprecated.h"
+#include "Core/Util/NameOf.h"
+#include "Core/ProgramConfiguation/ConditionDeprecated.h"
 
 #include <string>
 #include <stdint.h>

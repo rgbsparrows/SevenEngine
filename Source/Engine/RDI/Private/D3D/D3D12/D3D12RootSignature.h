@@ -3,21 +3,24 @@
 #include "Core/Container/Blob.h"
 #include "RDI/Interface/RDIRootSignature.h"
 
+#include "Core/Misc/PreWindowsApi.h"
+#include <d3d12.h>
+#include "Core/Misc/PostWindowsApi.h"
+
+class SD3D12Device;
+
 class SD3D12RootSignature : public IRDIRootSignature
 {
 public:
-	SD3D12RootSignature(const void* _rootSignatureBuffer, size_t _bufferSize, void* _nativePtr) noexcept
-	{
-		mRootSignatureNativePtr = _nativePtr;
-		mBlob.ResizeBlob(_rootSignatureBuffer, _bufferSize);
-	}
-
-	void* GetNativePtr() noexcept { return mRootSignatureNativePtr; }
+	void Init(const void* _rootSignatureBuffer, size_t _bufferSize, ID3D12RootSignature* _nativePtr, SD3D12Device* _device) noexcept;
+	ID3D12RootSignature* GetNativePtr() noexcept { return mRootSignatureNativePtr; }
 
 public:
 	SBufferView GetSerializedRootSignature() noexcept override { return SBufferView(mBlob); }
+	void Release() noexcept override;
 
 private:
+	SD3D12Device* mDevice = nullptr;
 	SBlob mBlob;
-	void* mRootSignatureNativePtr;
+	ID3D12RootSignature* mRootSignatureNativePtr = nullptr;
 };

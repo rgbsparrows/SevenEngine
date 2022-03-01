@@ -24,6 +24,9 @@ CMakeFile/out/
 # binaryfile
 Binaries/
 
+# Doc
+!/Doc/**
+
 # C/C++ source files
 !*.c
 !*.cc
@@ -40,6 +43,7 @@ Binaries/
 !*.rc2
 !*.def
 !*.exp
+!*.natvis
 
 # C# source files
 !*.cs
@@ -75,6 +79,7 @@ Binaries/
 !FAQ
 !VERSION
 !ChangeLog
+!RgbSparrows.ico
 
 # Ignore content folders
 Content/

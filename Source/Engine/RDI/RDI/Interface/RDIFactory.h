@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core/Macros/UtilMacros.h"
-#include "Core/Template/TemplateUtil.h"
+#include "Core/Util/UtilMacros.h"
+#include "Core/Util/TemplateUtil.h"
 
 #include <vector>
 #include <stdint.h>

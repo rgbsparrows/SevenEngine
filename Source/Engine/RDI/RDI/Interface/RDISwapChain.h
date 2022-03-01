@@ -10,8 +10,9 @@ __interface IRDITexture2D;
 __interface IRDISwapChain
 {
 	void GetDesc(SRDISwapChainDesc* _desc)const noexcept;
+	void Release() noexcept;
 
-	IRDITexture2D* GetRenderTarget(uint32_t _index) noexcept;
+	IRDITexture2D* GetRenderTarget() noexcept;
 	IRDIOutput* GetOutput() noexcept;
-	void Present() noexcept;
+	void Present(bool _sync) noexcept;
 };

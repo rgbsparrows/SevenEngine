@@ -61,6 +61,8 @@ __interface IRDIDevice
 	IRDISwapChain* CreateSwapChain(const SRDISwapChainDesc* _swapChainDesc) noexcept;
 
 	void EnsureCommandListCount(size_t _commandListCount) noexcept;
+	void ResetCommandListAlocator(size_t _commandAllocatorIndex) noexcept;
+	void SetCurrentCommandListAllocator(size_t _commandAllocatorIndex) noexcept;
 
 	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept;
 

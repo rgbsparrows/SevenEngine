@@ -1,0 +1,24 @@
+#include "RDI/RDIFunctionHelper.h"
+
+#include "Core/Misc/PreWindowsApi.h"
+#include <d3d12.h>
+#include "Core/Misc/PostWindowsApi.h"
+
+D3D12_FILTER ConvertFilterToD3D12(ERDIFilter _filter) noexcept;
+D3D12_TEXTURE_ADDRESS_MODE ConvertAddressModeToD3D12(ERDIAddressMode _addressMode) noexcept;
+D3D12_COMPARISON_FUNC ConvertComparisonFuncToD3D12(ERDIComparisonFunc _comparisionFunc) noexcept;
+D3D12_HEAP_TYPE ConvertHeapTypeToD3D12(ERDIHeapType _heapType) noexcept;
+D3D12_RESOURCE_STATES ConvertResourceStateToD3D12(ERDIResourceState _state) noexcept;
+D3D12_SHADER_VISIBILITY ConvertShaderVisibilityToD3D12(ERDIShaderVisibility _visibility) noexcept;
+D3D12_STATIC_BORDER_COLOR ConvertStaticBorderColorToD3D12(ERDIStaticBorderColor _staticBorderColor) noexcept;
+D3D12_BLEND ConvertBlendFactoryToD3D12(ERDIBlendFactory _blendFactory) noexcept;
+D3D12_BLEND_OP ConvertBlendOperatorToD3D12(ERDIBlendOperator _blendOperator) noexcept;
+D3D12_LOGIC_OP ConvertLogicOperatorToD3D12(ERDILogicOperator _logicOperator) noexcept;
+D3D12_COLOR_WRITE_ENABLE ConvertColorWriteMaskToD3D12(ERDIColorWriteMask _colorWriteMask) noexcept;
+D3D12_FILL_MODE ConvertFillModeToD3D12(ERDIFillMode _fillMode) noexcept;
+D3D12_CULL_MODE ConvertCullModeToD3D12(ERDICullMode _cullMode) noexcept;
+D3D12_CONSERVATIVE_RASTERIZATION_MODE ConvertConservativeRasterizationModeToD3D12(ERDIConservativeRasterizationMode _conservativeRasterizationMode) noexcept;
+D3D12_STENCIL_OP ConvertStencilOpToD3D12(ERDIStencilOperator _stencilOperator) noexcept;
+D3D12_PRIMITIVE_TOPOLOGY_TYPE ConvertPrimitiveTopologyTypeToD3D12(ERDIPrimitiveTopologyType _primitiveTopologyType) noexcept;
+D3D12_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopologyToD3D12(ERDIPrimitiveTopology _primitiveTopology) noexcept;
+D3D12_CLEAR_FLAGS ConvertClearFlagToD3D12(ERDIClearFlag _clearFlag) noexcept;

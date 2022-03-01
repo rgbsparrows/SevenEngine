@@ -5,11 +5,11 @@
 class SD3D12CommandQueue : public IRDICommandQueue
 {
 public:
-	void Init(void* _commandQueueNativePtr, void* _fenceNativePtr) noexcept;
+	void Init(ID3D12CommandQueue* _commandQueueNativePtr, ID3D12Fence* _fenceNativePtr) noexcept;
 	void Clear() noexcept;
 
-	void* GetCommandQueueNativePtr() noexcept { return mCommandQueueNativePtr; }
-	void* GetFenceNativePtr() noexcept { return mFenceNativePtr; }
+	ID3D12CommandQueue* GetCommandQueueNativePtr() noexcept { return mCommandQueueNativePtr; }
+	ID3D12Fence* GetFenceNativePtr() noexcept { return mFenceNativePtr; }
 
 public:
 	void ExecuteCommandLists(uint32_t _commandListCount, IRDICommandList* const* _commandLists) noexcept override;
@@ -21,8 +21,8 @@ public:
 	void WaitForCompletion(uint64_t _fenceValue) noexcept;
 
 private:
-	void* mCommandQueueNativePtr = nullptr;
-	void* mFenceNativePtr = nullptr;
+	ID3D12CommandQueue* mCommandQueueNativePtr = nullptr;
+	ID3D12Fence* mFenceNativePtr = nullptr;
 
 	uint64_t mCurrentFenceValue = 0;
 };

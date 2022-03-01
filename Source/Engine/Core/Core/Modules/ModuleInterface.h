@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string_view>
+
 __interface IModuleInterface
 {
 	bool Init() noexcept;

@@ -1,5 +1,5 @@
-#include "Core/Macros/Assert.h"
-#include "Core/Path/BasicPath.h"
+#include "Core/Util/Assert.h"
+#include "Core/ProgramConfiguation/BasicPath.h"
 #include "Core/Logging/Logging.h"
 #include "Core/Modules/ModuleManager.h"
 #include "Core/Modules/ModuleInterface.h"

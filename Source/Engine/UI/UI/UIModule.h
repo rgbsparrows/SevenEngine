@@ -1,47 +1,17 @@
 #pragma once
-
-#include "UI/UIObject.h"
-#include "Core/Class/ClassObject.h"
-#include "Core/Class/ClassManager.h"
 #include "Core/Modules/ModuleInterface.h"
 
-using IUIClassObjectInterface = TClassObjectInterface<SUIObject>;
+__interface UWindowInterface;
 
-class IUIModuleInterface : public IModuleInterface
+__interface IUIModuleInterface : IModuleInterface
 {
-public:
-	virtual void ProcessMessage() noexcept = 0;
+	bool Init() noexcept;
+	void Clear() noexcept;
 
-	virtual SUIObject* CreateUIObject(uint64_t _typeHash) noexcept = 0;
-	virtual SUIObject* CreateUIObject(const IClassObjectInterface* _classObject) noexcept = 0;
-	virtual SUIObject* CreateUIObject(const IUIClassObjectInterface* _classObject) noexcept = 0;
+	void OnGUI() noexcept;
 
-	template<typename _type>
-	_type* CreateUIObject(uint64_t _typeHash) noexcept
-	{
-		using Type = _type;
-		auto classObject = SClassManager::Get().GetClassObject(_typeHash);
-		if (classObject) return CreateUIObject<Type>(classObject);
-		else return nullptr;
-	}
-
-	template<typename _type>
-	_type* CreateUIObject(const IClassObjectInterface* _classObject) noexcept
-	{
-		using Type = _type;
-		if (_classObject->IsDrivedFromAncestor(SUIObject::ClassObjectType::StaticGetClassHash()))
-			return CreateUIObject<Type>(static_cast<const IUIClassObjectInterface*>(_classObject));
-		else return nullptr;
-	}
-
-	template<typename _type>
-	_type* CreateUIObject(const IUIClassObjectInterface* _classObject) noexcept
-	{
-		using Type = _type;
-		if (_classObject->IsInstanceOf(TTypeHash<Type>))
-			return static_cast<Type*>(CreateUIObject(_classObject));
-		else return nullptr;
-	}
+	void AddWindow(const std::wstring& _windowTag, UWindowInterface* _window) noexcept;
+	UWindowInterface* GetWindowByTag(const std::wstring& _windowTag) noexcept;
 };
 
 IUIModuleInterface* GetUIModule() noexcept;

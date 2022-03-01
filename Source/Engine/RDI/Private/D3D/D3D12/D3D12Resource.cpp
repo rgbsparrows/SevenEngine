@@ -1,17 +1,17 @@
 #include "D3D/D3DUtil.h"
 #include "D3D12Resource.h"
-#include "Core/Macros/Assert.h"
+#include "Core/Util/Assert.h"
 #include "D3D/D3D12/D3D12Device.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarper.h"
 
-void SD3D12Buffer::Init(void* _nativePtr, const SRDIBufferResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Buffer::Init(ID3D12Resource* _nativePtr, const SRDIBufferResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
+	mDevice = _device;
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
 
-	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
 
-	D3D12APIWarp_Impl::D3D12GetGPUVirtualAddress_D3D12Impl(GetNativePtr(), &mGpuVirtualAddress);
+	mGpuVirtualAddress = GetNativePtr()->GetGPUVirtualAddress();
 	
 	if ((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) == ERDIResourceUsage::IndexBuffer)
 	{
@@ -44,6 +44,20 @@ void SD3D12Buffer::Init(void* _nativePtr, const SRDIBufferResourceDesc* _desc, S
 		mUAV = descriptorHeap->CreateUAV(this);
 }
 
+void SD3D12Buffer::Map(void** _dataPtr) noexcept
+{
+	CHECK(mDesc.mHeapType == ERDIHeapType::Upload || mDesc.mHeapType == ERDIHeapType::ReadBack);
+
+	D3D12_RANGE range(0, 0);
+	VERIFY_D3D_RETURN(mResourceNativePtr->Map(0, &range, _dataPtr));
+}
+
+void SD3D12Buffer::Unmap() noexcept
+{
+	D3D12_RANGE range(0, 0);
+	mResourceNativePtr->Unmap(0, &range);
+}
+
 IRDIIndexBufferView* SD3D12Buffer::GetIBV() noexcept
 {
 	CHECK((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) == ERDIResourceUsage::IndexBuffer);
@@ -68,12 +82,26 @@ IRDIUnorderedAccessView* SD3D12Buffer::GetUAV() noexcept
 	return mUAV;
 }
 
-void SD3D12Texture1D::Init(void* _nativePtr, const SRDITexture1DResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Buffer::Release() noexcept
 {
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::ShaderResource) == ERDIResourceUsage::ShaderResource)
+		descriptorHeap->ReleaseSRV(mSRV);
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+		descriptorHeap->ReleaseUAV(mUAV);
+
+	mDevice->ReleaseBuffer(this);
+}
+
+void SD3D12Texture1D::Init(ID3D12Resource* _nativePtr, const SRDITexture1DResourceDesc* _desc, SD3D12Device* _device) noexcept
+{
+	mDevice = _device;
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
 
-	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
 
 	CHECK(mDesc.mMipCount != 0);
 	CHECK((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) != ERDIResourceUsage::IndexBuffer);
@@ -138,12 +166,47 @@ IRDIUnorderedAccessView* SD3D12Texture1D::GetUAV(uint32_t _mipSlice) noexcept
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12Texture1DArray::Init(void* _nativePtr, const SRDITexture1DArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture1D::Release() noexcept
 {
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::RenderTarget) == ERDIResourceUsage::RenderTarget)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseRTV(mRTVs[i]);
+		}
+	}
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::DepthStencil) == ERDIResourceUsage::DepthStencil)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseDSV(mDSVs[i]);
+		}
+	}
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::ShaderResource) == ERDIResourceUsage::ShaderResource)
+		descriptorHeap->ReleaseSRV(mSRV);
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseUAV(mUAVs[i]);
+		}
+	}
+
+	mDevice->ReleaseTexture1D(this);
+}
+
+void SD3D12Texture1DArray::Init(ID3D12Resource* _nativePtr, const SRDITexture1DArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
+{
+	mDevice = _device;
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
 
-	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
 
 	CHECK(mDesc.mMipCount != 0);
 	CHECK((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) != ERDIResourceUsage::IndexBuffer);
@@ -178,12 +241,31 @@ IRDIUnorderedAccessView* SD3D12Texture1DArray::GetUAV(uint32_t _mipSlice) noexce
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12Texture2D::Init(void* _nativePtr, const SRDITexture2DResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture1DArray::Release() noexcept
 {
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::ShaderResource) == ERDIResourceUsage::ShaderResource)
+		descriptorHeap->ReleaseSRV(mSRV);
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseUAV(mUAVs[i]);
+		}
+	}
+
+	mDevice->ReleaseTexture1DArray(this);
+}
+
+void SD3D12Texture2D::Init(ID3D12Resource* _nativePtr, const SRDITexture2DResourceDesc* _desc, SD3D12Device* _device) noexcept
+{
+	mDevice = _device;
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
 
-	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
 
 	CHECK(mDesc.mMipCount != 0);
 	CHECK((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) != ERDIResourceUsage::IndexBuffer);
@@ -248,12 +330,47 @@ IRDIUnorderedAccessView* SD3D12Texture2D::GetUAV(uint32_t _mipSlice) noexcept
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12Texture2DArray::Init(void* _nativePtr, const SRDITexture2DArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture2D::Release() noexcept
 {
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::RenderTarget) == ERDIResourceUsage::RenderTarget)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseRTV(mRTVs[i]);
+		}
+	}
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::DepthStencil) == ERDIResourceUsage::DepthStencil)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseDSV(mDSVs[i]);
+		}
+	}
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::ShaderResource) == ERDIResourceUsage::ShaderResource)
+		descriptorHeap->ReleaseSRV(mSRV);
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseUAV(mUAVs[i]);
+		}
+	}
+
+	mDevice->ReleaseTexture2D(this);
+}
+
+void SD3D12Texture2DArray::Init(ID3D12Resource* _nativePtr, const SRDITexture2DArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
+{
+	mDevice = _device;
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
 
-	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
 
 	CHECK(mDesc.mMipCount != 0);
 	CHECK((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) != ERDIResourceUsage::IndexBuffer);
@@ -288,12 +405,31 @@ IRDIUnorderedAccessView* SD3D12Texture2DArray::GetUAV(uint32_t _mipSlice) noexce
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12Texture3D::Init(void* _nativePtr, const SRDITexture3DResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture2DArray::Release() noexcept
 {
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::ShaderResource) == ERDIResourceUsage::ShaderResource)
+		descriptorHeap->ReleaseSRV(mSRV);
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseUAV(mUAVs[i]);
+		}
+	}
+
+	mDevice->ReleaseTexture2DArray(this);
+}
+
+void SD3D12Texture3D::Init(ID3D12Resource* _nativePtr, const SRDITexture3DResourceDesc* _desc, SD3D12Device* _device) noexcept
+{
+	mDevice = _device;
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
 
-	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
 
 	CHECK(mDesc.mMipCount != 0);
 	CHECK((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) != ERDIResourceUsage::IndexBuffer);
@@ -343,12 +479,39 @@ IRDIUnorderedAccessView* SD3D12Texture3D::GetUAV(uint32_t _mipSlice) noexcept
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12TextureCube::Init(void* _nativePtr, const SRDITextureCubeResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12Texture3D::Release() noexcept
 {
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::RenderTarget) == ERDIResourceUsage::RenderTarget)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseRTV(mRTVs[i]);
+		}
+	}
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::ShaderResource) == ERDIResourceUsage::ShaderResource)
+		descriptorHeap->ReleaseSRV(mSRV);
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseUAV(mUAVs[i]);
+		}
+	}
+
+	mDevice->ReleaseTexture3D(this);
+}
+
+void SD3D12TextureCube::Init(ID3D12Resource* _nativePtr, const SRDITextureCubeResourceDesc* _desc, SD3D12Device* _device) noexcept
+{
+	mDevice = _device;
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
 
-	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
 
 	CHECK(mDesc.mMipCount != 0);
 	CHECK((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) != ERDIResourceUsage::IndexBuffer);
@@ -415,12 +578,49 @@ IRDIUnorderedAccessView* SD3D12TextureCube::GetUAV(uint32_t _mipSlice) noexcept
 	return mUAVs[_mipSlice];
 }
 
-void SD3D12TextureCubeArray::Init(void* _nativePtr, const SRDITextureCubeArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
+void SD3D12TextureCube::Release() noexcept
 {
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::RenderTarget) == ERDIResourceUsage::RenderTarget)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			for (size_t cubeFace = 0; cubeFace != EnumToInt(ERDITextureCubeFace::FaceCount); ++cubeFace)
+				descriptorHeap->ReleaseRTV(mRTVs[cubeFace + 1ull * i * EnumToInt(ERDITextureCubeFace::FaceCount)]);
+		}
+	}
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::DepthStencil) == ERDIResourceUsage::DepthStencil)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			for (size_t cubeFace = 0; cubeFace != EnumToInt(ERDITextureCubeFace::FaceCount); ++cubeFace)
+				descriptorHeap->ReleaseDSV(mDSVs[cubeFace + 1ull * i * EnumToInt(ERDITextureCubeFace::FaceCount)]);
+		}
+	}
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::ShaderResource) == ERDIResourceUsage::ShaderResource)
+		descriptorHeap->ReleaseSRV(mSRV);
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseUAV(mUAVs[i]);
+		}
+	}
+
+	mDevice->ReleaseTextureCube(this);
+}
+
+void SD3D12TextureCubeArray::Init(ID3D12Resource* _nativePtr, const SRDITextureCubeArrayResourceDesc* _desc, SD3D12Device* _device) noexcept
+{
+	mDevice = _device;
 	mResourceNativePtr = _nativePtr;
 	mDesc = *_desc;
 
-	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
 
 	CHECK(mDesc.mMipCount != 0);
 	CHECK((mDesc.mResourceUsage & ERDIResourceUsage::IndexBuffer) != ERDIResourceUsage::IndexBuffer);
@@ -455,11 +655,30 @@ IRDIUnorderedAccessView* SD3D12TextureCubeArray::GetUAV(uint32_t _mipSlice) noex
 	return mUAVs[_mipSlice];
 }
 
+void SD3D12TextureCubeArray::Release() noexcept
+{
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::ShaderResource) == ERDIResourceUsage::ShaderResource)
+		descriptorHeap->ReleaseSRV(mSRV);
+
+	if ((mDesc.mResourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+	{
+		for (uint32_t i = 0; i != mDesc.mMipCount; ++i)
+		{
+			descriptorHeap->ReleaseUAV(mUAVs[i]);
+		}
+	}
+
+	mDevice->ReleaseTextureCubeArray(this);
+}
+
 void SD3D12Sampler::Init(const SRDISamplerResourceDesc* _desc, SD3D12Device* _device) noexcept
 {
+	mDevice = _device;
 	mDesc = *_desc;
 
-	SD3D12DescriptorHeap* descriptorHeap = _device->GetDescriptorHeap();
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
 
 	mSamplerView = descriptorHeap->CreateSamplerView(this);
 }
@@ -467,4 +686,13 @@ void SD3D12Sampler::Init(const SRDISamplerResourceDesc* _desc, SD3D12Device* _de
 IRDISamplerView* SD3D12Sampler::GetSamplerView() noexcept
 {
 	return mSamplerView;
+}
+
+void SD3D12Sampler::Release() noexcept
+{
+	SD3D12DescriptorHeap* descriptorHeap = mDevice->GetDescriptorHeap();
+
+	descriptorHeap->ReleaseSamplerView(mSamplerView);
+
+	mDevice->ReleaseSampler(this);
 }

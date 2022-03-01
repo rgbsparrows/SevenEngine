@@ -2,9 +2,8 @@
 
 #include "D3D/D3D12/D3D12Resource.h"
 #include "Core/Container/ElementPool.h"
-#include "Core/Allocator/AllocatorHelper.h"
+#include "Core/Container/AllocatorHelper.h"
 #include "RDI/Interface/RDIDescriptorHeapRange.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarperHelper.h"
 
 #include <stdint.h>
 
@@ -45,8 +44,8 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGpuDescriptorHandle() const noexcept { return mGPUDescriptorHandle; }
 
 public:
-	void SetSRV(IRDIShaderResourceView* _srv, uint64_t _offset) noexcept override;
-	void SetUAV(IRDIUnorderedAccessView* _uav, uint64_t _offset) noexcept override;
+	void SetSRV(uint64_t _offset, IRDIShaderResourceView* _srv) noexcept override;
+	void SetUAV(uint64_t _offset, IRDIUnorderedAccessView* _uav) noexcept override;
 	void Release() noexcept override;
 
 private:
@@ -56,8 +55,8 @@ private:
 	uint16_t mSrvDescriptorCount = 0;
 	uint16_t mUavDescriptorCount = 0;
 
-	D3D12_CPU_DESCRIPTOR_HANDLE mCPUDescriptorHandle = 0;
-	D3D12_GPU_DESCRIPTOR_HANDLE mGPUDescriptorHandle = 0;
+	D3D12_CPU_DESCRIPTOR_HANDLE mCPUDescriptorHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE mGPUDescriptorHandle = {};
 };
 
 class SD3D12SamplerHeapRange : public IRDISamplerHeapRange
@@ -71,7 +70,7 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetGpuDescriptorHandle() const noexcept { return mGPUDescriptorHandle; }
 
 public:
-	void SetSampler(IRDISamplerView* _sampler, uint64_t _offset) noexcept override;
+	void SetSampler(uint64_t _offset, IRDISamplerView* _sampler) noexcept override;
 	void Release() noexcept override;
 
 private:
@@ -80,24 +79,24 @@ private:
 	uint64_t mSamplerViewDescriptorHeapIndex = 0;
 	uint16_t mSamplerViewDescriptorCount = 0;
 
-	D3D12_CPU_DESCRIPTOR_HANDLE mCPUDescriptorHandle = 0;
-	D3D12_GPU_DESCRIPTOR_HANDLE mGPUDescriptorHandle = 0;
+	D3D12_CPU_DESCRIPTOR_HANDLE mCPUDescriptorHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE mGPUDescriptorHandle = {};
 };
 
 class SD3D12ShaderVisibleDescriptorHeap
 {
 public:
 	void Init(
-		void* _srvUavDescriptorHeapNativePtr,
+		ID3D12DescriptorHeap* _srvUavDescriptorHeapNativePtr,
 		uint64_t _srvUavDescriptorCount,
-		void* _samplerViewDescriptorHeapNativePtr,
+		ID3D12DescriptorHeap* _samplerViewDescriptorHeapNativePtr,
 		uint64_t _samplerViewDescriptorCount,
 		SD3D12Device* _device
 	) noexcept;
 	void Clear() noexcept;
 
-	void* GetSrvUavDescriptorHeapNativePtr() noexcept { return mSrvUavDescriptorHeapNativePtr; }
-	void* GetSamplerViewDescriptorHeapNativePtr() noexcept { return mSamplerViewDescriptorHeapNativePtr; }
+	ID3D12DescriptorHeap* GetSrvUavDescriptorHeapNativePtr() noexcept { return mSrvUavDescriptorHeapNativePtr; }
+	ID3D12DescriptorHeap* GetSamplerViewDescriptorHeapNativePtr() noexcept { return mSamplerViewDescriptorHeapNativePtr; }
 
 public:
 	SD3D12DescriptorHeapRange* AllocateDescriptorHeapRange(uint16_t _srvDescriptorCount, uint16_t _uavDescriptorCount) noexcept;
@@ -106,9 +105,9 @@ public:
 	void ReleaseSamplerHeapRange(IRDISamplerHeapRange* _samplerHeapRange) noexcept;
 
 	//下面这些Set方法应该都只通过IRDIDescriptorHeapRange中的Set方法间接调用
-	void SetSRV(IRDIShaderResourceView* _srv, uint64_t _index) noexcept;
-	void SetUAV(IRDIUnorderedAccessView* _uav, uint64_t _index) noexcept;
-	void SetSampler(IRDISamplerView* _sampler, uint64_t _index) noexcept;
+	void SetSRV(uint64_t _index, IRDIShaderResourceView* _srv) noexcept;
+	void SetUAV(uint64_t _index, IRDIUnorderedAccessView* _uav) noexcept;
+	void SetSampler(uint64_t _index, IRDISamplerView* _sampler) noexcept;
 
 	uint32_t GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE _descriptorHeapType) noexcept;
 
@@ -121,8 +120,8 @@ public:
 private:
 	SD3D12Device* mDevice = nullptr;
 
-	void* mSrvUavDescriptorHeapNativePtr = nullptr;
-	void* mSamplerViewDescriptorHeapNativePtr = nullptr;
+	ID3D12DescriptorHeap* mSrvUavDescriptorHeapNativePtr = nullptr;
+	ID3D12DescriptorHeap* mSamplerViewDescriptorHeapNativePtr = nullptr;
 
 	SCircularSlotArrayAllocatorHelper mSrvUavDescriptorAlloctorHelper;
 	SCircularSlotArrayAllocatorHelper mSamplerViewAlloctorHelper;
@@ -130,26 +129,26 @@ private:
 	TElementPool<SD3D12DescriptorHeapRange> mDescriptorHeapRangePool;
 	TElementPool<SD3D12SamplerHeapRange> mSamplerHeapRangePool;
 
-	D3D12_CPU_DESCRIPTOR_HANDLE mSrvUavDescriptorHeapStartCPUDescriptorHandle = 0;
-	D3D12_CPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartCPUDescriptorHandle = 0;
+	D3D12_CPU_DESCRIPTOR_HANDLE mSrvUavDescriptorHeapStartCPUDescriptorHandle = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartCPUDescriptorHandle = {};
 
-	D3D12_GPU_DESCRIPTOR_HANDLE mSrvUavDescriptorHeapStartGPUDescriptorHandle = 0;
-	D3D12_GPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartGPUDescriptorHandle = 0;
+	D3D12_GPU_DESCRIPTOR_HANDLE mSrvUavDescriptorHeapStartGPUDescriptorHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartGPUDescriptorHandle = {};
 };
 
 class SD3D12DescriptorHeap
 {
 public:
 	void Init(
-		void* _rtvDescriptorHeapNativePtr,
+		ID3D12DescriptorHeap* _rtvDescriptorHeapNativePtr,
 		uint64_t _rtvDescriptorCount,
-		void* _dsvDescriptorHeapNativePtr,
+		ID3D12DescriptorHeap* _dsvDescriptorHeapNativePtr,
 		uint64_t _dsvDescriptorCount,
-		void* _srvDescriptorHeapNativePtr,
+		ID3D12DescriptorHeap* _srvDescriptorHeapNativePtr,
 		uint64_t _srvDescriptorCount,
-		void* _uavDescriptorHeapNativePtr,
+		ID3D12DescriptorHeap* _uavDescriptorHeapNativePtr,
 		uint64_t _uavDescriptorCount,
-		void* _samplerViewDescriptorHeapNativePtr,
+		ID3D12DescriptorHeap* _samplerViewDescriptorHeapNativePtr,
 		uint64_t _samplerViewDescriptorCount,
 		SD3D12Device* _device
 	) noexcept;
@@ -192,20 +191,20 @@ public:
 	void ReleaseSamplerView(SD3D12SamplerView* _samplerView) noexcept;
 
 private:
-	SD3D12RenderTargetView* CreateRTV(void* _resourceNativePtr, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept;
-	SD3D12DepthStencilView* CreateDSV(void* _resourceNativePtr, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept;
-	SD3D12ShaderResourceView* CreateSRV(void* _resourceNativePtr, const D3D12_SHADER_RESOURCE_VIEW_DESC* _desc) noexcept;
-	SD3D12UnorderedAccessView* CreateUAV(void* _resourceNativePtr, const D3D12_UNORDERED_ACCESS_VIEW_DESC* _desc) noexcept;
+	SD3D12RenderTargetView* CreateRTV(ID3D12Resource* _resourceNativePtr, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept;
+	SD3D12DepthStencilView* CreateDSV(ID3D12Resource* _resourceNativePtr, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept;
+	SD3D12ShaderResourceView* CreateSRV(ID3D12Resource* _resourceNativePtr, const D3D12_SHADER_RESOURCE_VIEW_DESC* _desc) noexcept;
+	SD3D12UnorderedAccessView* CreateUAV(ID3D12Resource* _resourceNativePtr, const D3D12_UNORDERED_ACCESS_VIEW_DESC* _desc) noexcept;
 	SD3D12SamplerView* CreateSamplerView(const D3D12_SAMPLER_DESC* _desc) noexcept;
 
 private:
 	SD3D12Device* mDevice = nullptr;
 
-	void* mRTVDescriptorHeapNativePtr = nullptr;
-	void* mDSVDescriptorHeapNativePtr = nullptr;
-	void* mSRVDescriptorHeapNativePtr = nullptr;
-	void* mUAVDescriptorHeapNativePtr = nullptr;
-	void* mSamplerViewDescriptorHeapNativePtr = nullptr;
+	ID3D12DescriptorHeap* mRTVDescriptorHeapNativePtr = nullptr;
+	ID3D12DescriptorHeap* mDSVDescriptorHeapNativePtr = nullptr;
+	ID3D12DescriptorHeap* mSRVDescriptorHeapNativePtr = nullptr;
+	ID3D12DescriptorHeap* mUAVDescriptorHeapNativePtr = nullptr;
+	ID3D12DescriptorHeap* mSamplerViewDescriptorHeapNativePtr = nullptr;
 
 	SCircularSlotAllocatorHelper mRTVAllocatorHelper;
 	SCircularSlotAllocatorHelper mDSVAllocatorHelper;
@@ -213,21 +212,21 @@ private:
 	SCircularSlotAllocatorHelper mUAVAllocatorHelper;
 	SCircularSlotAllocatorHelper mSamplerViewAllocatorHelper;
 
-	TElementPool<SD3D12RenderTargetView> mRenderTargetViewPool;
-	TElementPool<SD3D12DepthStencilView> mDepthStencilViewPool;
-	TElementPool<SD3D12ShaderResourceView> mShaderResourceViewPool;
-	TElementPool<SD3D12UnorderedAccessView> mUnorderedAccessViewPool;
-	TElementPool<SD3D12SamplerView> mSamplerViewPool;
+	TElementPool<SD3D12RenderTargetView, EElementPoolFlag::StaticCapacity> mRenderTargetViewPool;
+	TElementPool<SD3D12DepthStencilView, EElementPoolFlag::StaticCapacity> mDepthStencilViewPool;
+	TElementPool<SD3D12ShaderResourceView, EElementPoolFlag::StaticCapacity> mShaderResourceViewPool;
+	TElementPool<SD3D12UnorderedAccessView, EElementPoolFlag::StaticCapacity> mUnorderedAccessViewPool;
+	TElementPool<SD3D12SamplerView, EElementPoolFlag::StaticCapacity> mSamplerViewPool;
 
-	D3D12_CPU_DESCRIPTOR_HANDLE mRTVDescriptorHeapStartCPUDescriptorHandle = 0;
-	D3D12_CPU_DESCRIPTOR_HANDLE mDSVDescriptorHeapStartCPUDescriptorHandle = 0;
-	D3D12_CPU_DESCRIPTOR_HANDLE mSRVDescriptorHeapStartCPUDescriptorHandle = 0;
-	D3D12_CPU_DESCRIPTOR_HANDLE mUAVDescriptorHeapStartCPUDescriptorHandle = 0;
-	D3D12_CPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartCPUDescriptorHandle = 0;
+	D3D12_CPU_DESCRIPTOR_HANDLE mRTVDescriptorHeapStartCPUDescriptorHandle = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE mDSVDescriptorHeapStartCPUDescriptorHandle = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE mSRVDescriptorHeapStartCPUDescriptorHandle = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE mUAVDescriptorHeapStartCPUDescriptorHandle = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartCPUDescriptorHandle = {};
 
-	D3D12_GPU_DESCRIPTOR_HANDLE mRTVDescriptorHeapStartGPUDescriptorHandle = 0;
-	D3D12_GPU_DESCRIPTOR_HANDLE mDSVDescriptorHeapStartGPUDescriptorHandle = 0;
-	D3D12_GPU_DESCRIPTOR_HANDLE mSRVDescriptorHeapStartGPUDescriptorHandle = 0;
-	D3D12_GPU_DESCRIPTOR_HANDLE mUAVDescriptorHeapStartGPUDescriptorHandle = 0;
-	D3D12_GPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartGPUDescriptorHandle = 0;
+	D3D12_GPU_DESCRIPTOR_HANDLE mRTVDescriptorHeapStartGPUDescriptorHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE mDSVDescriptorHeapStartGPUDescriptorHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE mSRVDescriptorHeapStartGPUDescriptorHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE mUAVDescriptorHeapStartGPUDescriptorHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartGPUDescriptorHandle = {};
 };

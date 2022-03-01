@@ -1,23 +1,27 @@
 #include "D3D/D3DUtil.h"
 #include "D3D/D3D12/D3D12Factory.h"
-#include "D3D/Warper/D3DImplWarper.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarper.h"
-#include "Core/BuildConfiguation/BuildConfiguation.h"
+#include "Core/ProgramConfiguation/BuildConfiguation.h"
+
+#pragma comment(lib, "dxgi.lib")
 
 bool SD3D12Factory::Init() noexcept
 {
 	//DebugLayer
 	{
 #if WITH_DEBUG_CODE
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12GetDebugInterface_D3D12Impl(&mD3D12DebugNativePtr));
-		D3D12APIWarp_Impl::D3D12EnableDebugLayer_D3D12Impl(GetDebugNativePtr());
-		D3D12APIWarp_Impl::D3D12SetEnableGPUBasedValidation_D3D12Impl(GetDebugNativePtr());
+		VERIFY_D3D_RETURN(D3D12GetDebugInterface(IID_PPV_ARGS(&mD3D12DebugNativePtr)));
+		GetD3D12DebugNativePtr()->EnableDebugLayer();
+		GetD3D12DebugNativePtr()->SetEnableGPUBasedValidation(true);
+		GetD3D12DebugNativePtr()->SetEnableSynchronizedCommandQueueValidation(true);
+		GetD3D12DebugNativePtr()->SetGPUBasedValidationFlags(D3D12_GPU_BASED_VALIDATION_FLAGS_NONE);
+		VERIFY_D3D_RETURN(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIDebugNativePtr)));
 #endif
 	}
 
 	//DXGIFactory
 	{
-		VERIFY_D3D_RETURN(D3DAPIWarp_Impl::CreateDXGIFactory_D3DImpl(SBuildConfiguation::GIsDebugMode, &mDXGIFactoryNativePtr));
+		
+		VERIFY_D3D_RETURN(CreateDXGIFactory2(SBuildConfiguation::GIsDebugMode ? DXGI_CREATE_FACTORY_DEBUG : 0,IID_PPV_ARGS(&mDXGIFactoryNativePtr)));
 	}
 
 	//Adapter
@@ -26,12 +30,11 @@ bool SD3D12Factory::Init() noexcept
 		{
 			uint32_t res = 0;
 			uint32_t index = 0;
-			void* adapterNativePtr = nullptr;
+			IDXGIAdapter* adapterNativePtr = nullptr;
 
-			for (void(); D3DAPIWarp_Impl::EnumDXGIAdapter_D3DImpl(GetNativePtr(), index, &adapterNativePtr) == 0; ++index)
+			for(void(); mDXGIFactoryNativePtr->EnumAdapters(index, &adapterNativePtr) == S_OK; ++index)
 			{
 				mAdpaters.push_back(SD3D12Adapter());
-
 				mAdpaters.back().Init(adapterNativePtr);
 			}
 		}
@@ -39,11 +42,10 @@ bool SD3D12Factory::Init() noexcept
 		//Warp Adapter
 		if (mAdpaters.empty())
 		{
-			void* warpAdapterNativePtr = nullptr;
-			VERIFY_D3D_RETURN(D3DAPIWarp_Impl::EnumDXGIWarpAdapter_D3DImpl(GetNativePtr(), &warpAdapterNativePtr));
+			IDXGIAdapter* warpAdapterNativePtr = nullptr;
+			VERIFY_D3D_RETURN(mDXGIFactoryNativePtr->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapterNativePtr)));
 
 			mAdpaters.push_back(SD3D12Adapter());
-
 			mAdpaters.back().Init(warpAdapterNativePtr);
 		}
 
@@ -54,8 +56,9 @@ bool SD3D12Factory::Init() noexcept
 
 	//Device
 	{
-		void* d3d12DeviceNativePtr = nullptr;
-		VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12CreateDevice_D3D12Impl(mAdpaters[0].GetNativePtr(), &d3d12DeviceNativePtr));
+		ID3D12Device* d3d12DeviceNativePtr = nullptr;
+		D3D12CreateDevice(mAdpaters[0].GetNativePtr(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&d3d12DeviceNativePtr));
+
 		mD3D12Device.Init(d3d12DeviceNativePtr, &mAdpaters[0], this);
 	}
 

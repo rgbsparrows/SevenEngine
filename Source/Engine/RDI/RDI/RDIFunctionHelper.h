@@ -2,10 +2,10 @@
 
 #include "Core/Math/Type.h"
 #include "RDI/RDIPixelFormat.h"
-#include "Core/Macros/UtilMacros.h"
+#include "Core/Util/UtilMacros.h"
 #include "Core/Container/Blob.h"
-#include "Core/Template/TemplateUtil.h"
-#include "WindowsPlatform/WindowsTypes.h"
+#include "Core/Util/TemplateUtil.h"
+#include "Core/Misc/windowsEx.h"
 
 #include <string_view>
 #include <filesystem>
@@ -131,7 +131,6 @@ enum class ERDIResourceState
 	ResolveDest,
 	ResolveSource,
 	RayTracingAccelerationStructure,
-	ShadingRateSource,
 	GenericRead,
 	Present,
 	Predication,
@@ -235,10 +234,13 @@ struct SRDITexture2DResourceDesc
 	ERDIPixelFormat mSrvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mUavPixelFormat = ERDIPixelFormat::UNKNOWN;
 
-	uint16_t mMipCount = 0;
+	uint16_t mMipCount = 1;
 
 	uint32_t mSizeX = 0;
 	uint32_t mSizeY = 0;
+
+	bool operator ==(const SRDITexture2DResourceDesc&) const = default;
+	bool operator !=(const SRDITexture2DResourceDesc&) const = default;
 };
 
 struct SRDITexture2DArrayResourceDesc
@@ -361,22 +363,22 @@ enum class ERDIShaderVisibility
 
 struct SRDICbvRootParameter
 {
-	uint32_t mCbvShaderRegister = 0;
+	uint32_t mCbvShaderRegister;
 };
 
 struct SRDIDescriptorTableRootParameter
 {
-	uint32_t mSrvStartShaderRegister = 0;
-	uint32_t mSrvNumDescriptors = 0;
+	uint32_t mSrvStartShaderRegister;
+	uint32_t mSrvNumDescriptors;
 
-	uint32_t mUavStartShaderRegister = 0;
-	uint32_t mUavNumDescriptors = 0;
+	uint32_t mUavStartShaderRegister;
+	uint32_t mUavNumDescriptors;
 };
 
 struct SRDISamplerTableRootParameter
 {
-	uint32_t mSamplerStartShaderRegister = 0;
-	uint32_t mSamplerNumDescriptors = 0;
+	uint32_t mSamplerStartShaderRegister;
+	uint32_t mSamplerNumDescriptors;
 };
 
 struct SRDIRootParameter
@@ -519,8 +521,8 @@ struct SRDIBlendState
 	bool mBlendEnable = false;
 	bool mLogicOpEnable = false;
 
-	ERDIBlendFactory mSrcBlend = ERDIBlendFactory::SRC_COLOR;
-	ERDIBlendFactory mDestBlend = ERDIBlendFactory::DEST_COLOR;
+	ERDIBlendFactory mSrcBlend = ERDIBlendFactory::SRC_ALPHA;
+	ERDIBlendFactory mDestBlend = ERDIBlendFactory::INV_SRC_ALPHA;
 	ERDIBlendOperator mBlendOperator = ERDIBlendOperator::ADD;
 
 	ERDIBlendFactory mSrcAlphaBlend = ERDIBlendFactory::ONE;
@@ -598,20 +600,20 @@ enum class ERDIStencilOperator
 
 struct SRDIDepthStencilOperatorDesc
 {
-	ERDIStencilOperator mStencilFailOp;
-	ERDIStencilOperator mStencilDepthFailOp;
-	ERDIStencilOperator mStencilPassOp;
-	ERDIComparisonFunc mStencilCompareFunc;
+	ERDIStencilOperator mStencilFailOp = ERDIStencilOperator::KEEP;
+	ERDIStencilOperator mStencilDepthFailOp = ERDIStencilOperator::KEEP;
+	ERDIStencilOperator mStencilPassOp = ERDIStencilOperator::KEEP;
+	ERDIComparisonFunc mStencilCompareFunc = ERDIComparisonFunc::ALWAYS;
 };
 
 struct SRDIDepthStencilState
 {
-	bool mDepthTestEnable;
-	bool mDepthWriteEnable;
-	ERDIComparisonFunc mDepthCompareFunc;
-	bool mStencilTestEnable;
-	uint8_t mStencilReadMask;
-	uint8_t mStencilWriteMask;
+	bool mDepthTestEnable = true;
+	bool mDepthWriteEnable = true;
+	ERDIComparisonFunc mDepthCompareFunc = ERDIComparisonFunc::LESS_EQUAL;
+	bool mStencilTestEnable = false;
+	uint8_t mStencilReadMask = 0xff;
+	uint8_t mStencilWriteMask = 0xff;
 	SRDIDepthStencilOperatorDesc mFrontFaceDepthStencilOperator;
 	SRDIDepthStencilOperatorDesc mBackFaceDepthStencilOperator;
 };

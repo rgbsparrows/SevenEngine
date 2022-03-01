@@ -44,11 +44,14 @@ __interface IRDISamplerView
 
 __interface IRDIResource
 {
+	void Release() noexcept;
 };
 
 __interface IRDIBuffer : IRDIResource
 {
 	void GetDesc(SRDIBufferResourceDesc* _desc)const noexcept;
+	void Map(void** _dataPtr) noexcept;
+	void Unmap() noexcept;
 
 	IRDIIndexBufferView* GetIBV() noexcept;
 	IRDIVertexBufferView* GetVBV() noexcept;

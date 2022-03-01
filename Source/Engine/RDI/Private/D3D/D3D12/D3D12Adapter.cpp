@@ -1,9 +1,7 @@
 #include "D3D/D3DUtil.h"
 #include "D3D/D3D12/D3D12Adapter.h"
-#include "D3D/Warper/D3DImplWarper.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarper.h"
 
-void SD3D12Adapter::Init(void* _nativePtr) noexcept
+void SD3D12Adapter::Init(IDXGIAdapter* _nativePtr) noexcept
 {
 	{
 		mAdapterNativePtr = _nativePtr;
@@ -11,7 +9,14 @@ void SD3D12Adapter::Init(void* _nativePtr) noexcept
 
 	//Desc
 	{
-		VERIFY_D3D_RETURN(D3DAPIWarp_Impl::GetDXGIAdapterDesc_D3DImpl(GetNativePtr(), &mDesc.mDescription, &mDesc.mDedicatedVideoMemory, &mDesc.mDedicatedSystemMemory, &mDesc.mSharedSystemMemory));
+		DXGI_ADAPTER_DESC desc;
+		GetNativePtr()->GetDesc(&desc);
+
+		mDesc.mDescription = desc.Description;
+		mDesc.mDedicatedVideoMemory = desc.DedicatedVideoMemory;
+		mDesc.mDedicatedSystemMemory = desc.DedicatedSystemMemory;
+		mDesc.mSharedSystemMemory = desc.SharedSystemMemory;
+
 		mCachedDesc.mDescription = mDesc.mDescription;
 		mCachedDesc.mDedicatedVideoMemory = mDesc.mDedicatedVideoMemory;
 		mCachedDesc.mDedicatedSystemMemory = mDesc.mDedicatedSystemMemory;
@@ -22,9 +27,9 @@ void SD3D12Adapter::Init(void* _nativePtr) noexcept
 	{
 		uint32_t res = 0;
 		uint32_t index = 0;
-		void* outputNativePtr = nullptr;
+		IDXGIOutput* outputNativePtr = nullptr;
 
-		for (void(); D3DAPIWarp_Impl::EnumDXGIOutput_D3DImpl(GetNativePtr(), index, &outputNativePtr) == 0; ++index)
+		for (void(); GetNativePtr()->EnumOutputs(index, &outputNativePtr) == S_OK; ++index)
 		{
 			mOutputs.push_back(SD3D12Output());
 

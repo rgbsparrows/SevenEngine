@@ -1,9 +1,15 @@
 #pragma once
-
+#include "UIWindow.h"
 #include "UI/UIModule.h"
-#include "Core/Allocator/Allocator.h"
-#include "WindowsPlatform/WindowsTypes.h"
-#include "UI/UIInterface/UIWinMessageHandlerInterface.h"
+#include "Core/Misc/windowsEx.h"
+
+#include "Core/Misc/PreWindowsApi.h"
+#include <Xinput.h>
+#include <shellscalingapi.h>
+#include "Core/Misc/PostWindowsApi.h"
+
+#include <string>
+#include <map>
 
 class SUIModuleImpl : public IUIModuleInterface
 {
@@ -11,28 +17,49 @@ public:
 	bool Init() noexcept override;
 	void Clear() noexcept override;
 
-	void ProcessMessage() noexcept override;
+	TODO("Imgui NewFrame调用，各个窗口的OnGui，窗口的渲染调用")
+	void OnGUI() noexcept override;
 
-	SUIObject* CreateUIObject(uint64_t _typeHash) noexcept override;
-
-	SUIObject* CreateUIObject(const IClassObjectInterface* _classObject) noexcept override;
-
-	SUIObject* CreateUIObject(const IUIClassObjectInterface* _classObject) noexcept override;
-
-	void ReleaseUIObject(SUIObject* _uiObject) noexcept;
-
-	void RegistWindow(HWND _hwnd, IUIWinMessageHandler* _handler) noexcept;
-
-	void UnregistWindow(HWND _hwnd) noexcept;
-
-	IUIWinMessageHandler* FindHandler(HWND _hwnd) noexcept;
-
-	std::wstring_view GetDefaultWindowClassName() noexcept { return L"SE Window"; }
+	void AddWindow(const std::wstring& _windowTag, UWindowInterface* _window) noexcept override;
+	UWindowInterface* GetWindowByTag(const std::wstring& _windowTag) noexcept override;
 
 private:
-	SRawAllocator mAllocator;
+	void InitImgui() noexcept;
+	void InitImguiConfig() noexcept;
+	void InitImguiCallBack() noexcept;
 
-	std::map<HWND, IUIWinMessageHandler*> mHwndHandlerMap;
+	void ClearImgui() noexcept;
+
+	void ProcessWndMessage() noexcept;
+	void ImguiNewFrame() noexcept;
+	void ImguiEndFrame() noexcept;
+
+	void RegistWindowClass() noexcept;
+	void UnregistWindowClass() noexcept;
+
+	static LRESULT CALLBACK WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lParam);
+	static BOOL CALLBACK UpdateMonitors_EnumFunc(HMONITOR monitor, HDC, LPRECT, LPARAM);
+
+private:
+	using SXInputGetCapabilitiesFuncType = DWORD(WINAPI)(DWORD, DWORD, XINPUT_CAPABILITIES*);
+	using SXInputGetStateFuncType = DWORD(WINAPI)(DWORD, XINPUT_STATE*);
+	using SGetDpiForMonitorFuncType = HRESULT(WINAPI)(HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*);
+
+private:
+	SUIInternalWindow* mMainWindow = nullptr;
+	std::vector<SUIInternalWindow*> mAdditionWindow;
+
+	std::map<std::wstring, UWindowInterface*> mUIWindows;
+	std::vector<UWindowInterface*> mAnonymousUIWindows;
+
+	RRenderProxy<RTexture2D>* mFontTexture = nullptr;
+	RRenderProxy<RImguiTexture2D>* mImFontTexture = nullptr;
+	RDirtyFlag mImFontTextureDirtyFlag;
+
+	HICON mIcon = nullptr;
+	HMODULE mXInputDLL = nullptr;
+	SXInputGetCapabilitiesFuncType* mXInputGetCapabilitiesFunc = nullptr;
+	SXInputGetStateFuncType* mXInputGetStateFunc = nullptr;
 };
 
 SUIModuleImpl* GetUIModuleImpl() noexcept;

@@ -2,6 +2,7 @@
 
 #include "RDI/Interface/RDIDevice.h"
 
+#include "D3D/Helper/D3DHelper.h"
 #include "D3D/D3D12/D3D12Shader.h"
 #include "D3D/D3D12/D3D12Adapter.h"
 #include "D3D/D3D12/D3D12SwapChain.h"
@@ -12,6 +13,11 @@
 #include "D3D/D3D12/D3D12PipelineState.h"
 #include "D3D/D3D12/D3D12DescriptorHeap.h"
 
+#include "Core/Misc/PreWindowsApi.h"
+#include <d3d12.h>
+#include <d3dcompiler.h>
+#include "Core/Misc/PostWindowsApi.h"
+
 #include <vector>
 #include <functional>
 
@@ -20,20 +26,21 @@ class SD3D12Factory;
 class SD3D12Device : public IRDIDevice
 {
 public:
-	void Init(void* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory* _factory) noexcept;
+	void Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D12Factory* _factory) noexcept;
 	void Clear() noexcept;
 
-	void* GetNativePtr() noexcept { return mD3D12DeviceNativePtr; }
+	ID3D12Device* GetNativePtr() noexcept { return mD3D12DeviceNativePtr; }
 
 public:
-
 	IRDIAdapter* GetAdapter() noexcept override { return mAdapter; }
 	IRDICommandQueue* GetCommandQueue() noexcept override { return &mCommandQueue; }
 	IRDICommandList* GetCommandList(uint16_t _commandListIndex) noexcept;
 
 	IRDISwapChain* CreateSwapChain(const SRDISwapChainDesc* _swapChainDesc) noexcept override;
 
-	void EnsureCommandListCount(size_t _commandListCount) noexcept;
+	void EnsureCommandListCount(size_t _commandListCount) noexcept override;
+	void ResetCommandListAlocator(size_t _commandAllocatorIndex) noexcept override;
+	void SetCurrentCommandListAllocator(size_t _commandAllocatorIndex) noexcept override;
 
 	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept override;
 
@@ -71,18 +78,43 @@ public:
 	IRDIComputeShader* CreateComputeShader(SBufferView _compiledShader) noexcept override;
 
 public:
+	void ReleaseSwapChain(SD3D12SwapChain* _swapChain) noexcept;
+	void ReleaseInputLayout(SD3D12InputLayout* _inputLayout) noexcept;
+	void ReleaseRootSignature(SD3D12RootSignature* _rootSignature) noexcept;
+
+	void ReleaseGraphicsPipelineState(SD3D12GraphicsPipelineState* _graphicPipelineState) noexcept;
+	void ReleaseComputePipelineState(SD3D12ComputePipelineState* _computePipelineState) noexcept;
+
+	void ReleaseBuffer(SD3D12Buffer* _buffer) noexcept;
+	void ReleaseTexture1D(SD3D12Texture1D* _texture1D) noexcept;
+	void ReleaseTexture1DArray(SD3D12Texture1DArray* _texture1DArray) noexcept;
+	void ReleaseTexture2D(SD3D12Texture2D* _texture2D) noexcept;
+	void ReleaseTexture2DArray(SD3D12Texture2DArray* _texture2DArray) noexcept;
+	void ReleaseTexture3D(SD3D12Texture3D* _texture3D) noexcept;
+	void ReleaseTextureCube(SD3D12TextureCube* _textureCube) noexcept;
+	void ReleaseTextureCubeArray(SD3D12TextureCubeArray* _textureCubeArray) noexcept;
+	void ReleaseSampler(SD3D12Sampler* _sampler) noexcept;
+
+	void ReleaseVertexShader(SD3D12VertexShader* _shader) noexcept;
+	void ReleaseHullShader(SD3D12HullShader* _shader) noexcept;
+	void ReleaseDomainShader(SD3D12DomainShader* _shader) noexcept;
+	void ReleaseGeometryShader(SD3D12GeometryShader* _shader) noexcept;
+	void ReleasePixelShader(SD3D12PixelShader* _shader) noexcept;
+	void ReleaseComputeShader(SD3D12ComputeShader* _shader) noexcept;
+
+public:
 	SD3D12DescriptorHeap* GetDescriptorHeap() noexcept { return &mDescriptorHeap; }
 	SD3D12ShaderVisibleDescriptorHeap* GetShaderVisibleDescriptorHeap() noexcept { return &mShaderVisibleDescriptorHeap; }
 	uint32_t GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE _descriptorHeapType) noexcept { return mDescriptorHandleIncrement[EnumToInt(_descriptorHeapType)]; }
-	IRDITexture2D* CreateTexture2DWithCreatedResource(const SRDITexture2DResourceDesc* _desc, void* _resource) noexcept;
+	IRDITexture2D* CreateTexture2DWithCreatedResource(const SRDITexture2DResourceDesc* _desc, ID3D12Resource* _resource) noexcept;
 
 public:
-	void* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, D3D12_RESOURCE_STATES _state) noexcept;
+	ID3D12Resource* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, D3D12_RESOURCE_STATES _state) noexcept;
 	bool CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept;
-	void GenerateErrorInfo(const std::vector<uint8_t>& _errorBlob, SRDIErrorInfo* _errorInfo);
+	void GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _errorInfo);
 
 private:
-	void* mD3D12DeviceNativePtr = nullptr;
+	ID3D12Device* mD3D12DeviceNativePtr = nullptr;
 	SD3D12Factory* mFactory = nullptr;
 
 	static constexpr uint64_t ShaderVisibleCbvSrvUavDescriptorCount = 4096;
@@ -125,8 +157,8 @@ private:
 	TElementPool<SD3D12PixelShader> mPixelShaderPool;
 	TElementPool<SD3D12ComputeShader> mComputeShaderPool;
 
-	uint32_t mDescriptorHandleIncrement[EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)] = {};
+	uint32_t mDescriptorHandleIncrement[EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)] = {};
 
-	EShaderCompileFlag mShaderCompileFlag = EShaderCompileFlag::D3DCOMPILE_NONE;
-	std::function<std::filesystem::path(const std::filesystem::path&)> mSearchShaderHeaderFileFunc;
+	uint32_t mShaderCompileFlag = 0;
+	D3DInclude mD3DInclude;
 };

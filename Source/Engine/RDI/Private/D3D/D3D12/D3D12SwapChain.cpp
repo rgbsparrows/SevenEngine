@@ -1,11 +1,9 @@
 #include "D3D/D3DUtil.h"
 #include "D3D12SwapChain.h"
 #include "D3D/D3D12/D3D12Device.h"
-#include "D3D/Warper/D3DImplWarper.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarper.h"
 #include "D3D12Adapter.h"
 
-void SD3D12SwapChain::Init(void* _nativePtr, const SRDISwapChainDesc* _desc, SD3D12Device* _device, SD3D12Adapter* _adapter) noexcept
+void SD3D12SwapChain::Init(IDXGISwapChain* _nativePtr, const SRDISwapChainDesc* _desc, SD3D12Device* _device, SD3D12Adapter* _adapter) noexcept
 {
 	{
 		mSwapChainNativePtr = _nativePtr;
@@ -27,15 +25,15 @@ void SD3D12SwapChain::Init(void* _nativePtr, const SRDISwapChainDesc* _desc, SD3
 
 		for (uint32_t i = 0; i != mDesc.mBufferCount; ++i)
 		{
-			void* renderTargetNativePtr = nullptr;
-			VERIFY_D3D_RETURN(D3D12APIWarp_Impl::D3D12SwapChainGetBuffer_D3D12Impl(GetNativePtr(), i, &renderTargetNativePtr));
+			ID3D12Resource* renderTargetNativePtr = nullptr;
+			GetNativePtr()->GetBuffer(i, IID_PPV_ARGS(&renderTargetNativePtr));
 			mRenderTargets[i] = mDevice->CreateTexture2DWithCreatedResource(&desc, renderTargetNativePtr);
 		}
 	}
 
 	{
-		void* outputNativePtr = nullptr;
-		D3DAPIWarp_Impl::GetContainingOutput_D3DImpl(GetNativePtr(), &outputNativePtr);
+		IDXGIOutput* outputNativePtr = nullptr;
+		GetNativePtr()->GetContainingOutput(&outputNativePtr);
 
 		for (auto _output : mAdapter->GetOutputs())
 		{
@@ -44,10 +42,22 @@ void SD3D12SwapChain::Init(void* _nativePtr, const SRDISwapChainDesc* _desc, SD3
 			if (output->GetNativePtr() == outputNativePtr)
 				mOutput = output;
 		}
+		outputNativePtr->Release();
 	}
 }
 
-void SD3D12SwapChain::Present() noexcept
+void SD3D12SwapChain::Release() noexcept
 {
-	VERIFY_D3D_RETURN(D3DAPIWarp_Impl::Present_D3DImpl(GetNativePtr()));
+	for (uint32_t i = 0; i != mDesc.mBufferCount; ++i)
+	{
+		mRenderTargets[i]->Release();
+	}
+
+	mDevice->ReleaseSwapChain(this);
+}
+
+void SD3D12SwapChain::Present(bool _sync) noexcept
+{
+	GetNativePtr()->Present(_sync ? 1 : 0, 0);
+	mCurrentBackBufferIndex = (mCurrentBackBufferIndex + 1) % mDesc.mBufferCount;
 }

@@ -1,21 +1,27 @@
 #pragma once
 
 #include "RDI/Interface/RDICommandList.h"
-#include "D3D/D3D12/Warper/D3D12ImplWarperHelper.h"
+#include "D3D/D3D12/Helper/D3D12Helper.h"
+
+#include "Core/Misc/PreWindowsApi.h"
+#include <d3d12.h>
+#include "Core/Misc/PostWindowsApi.h"
 
 class SD3D12Device;
 
 class SD3D12CommandList : public IRDICommandList
 {
 public:
-	void Init(void* _commandAllocatorNativePtr, void* _commandListNativePtr, SD3D12Device* _device) noexcept;
+	void Init(ID3D12CommandAllocator* _commandAllocatorNativePtr, ID3D12GraphicsCommandList* _commandListNativePtr, SD3D12Device* _device) noexcept;
 	void Clear() noexcept;
 
-	void* GetCommandListNativePtr() noexcept { return mCommandListNativePtr; }
-	void* GetCommandAllocatorNativePtr() noexcept { return mCommandAllocatorNativePtr; }
+	ID3D12GraphicsCommandList* GetCommandListNativePtr() noexcept { return mCommandListNativePtr; }
+	ID3D12CommandAllocator* GetCommandAllocatorNativePtr(size_t _commandAllocatorIndex) noexcept { return mCommandAllocatorNativePtr[_commandAllocatorIndex]; }
+	ID3D12CommandAllocator* GetCurrentCommandAllocatorNativePtr() noexcept { return mCommandAllocatorNativePtr[mCurrentAllocatorIndex]; }
 
 public:
-	void ResetCommandAllocator() noexcept override;
+	void ResetCommandAllocator(size_t _commandAllocatorIndex) noexcept;
+	void SetCurrentCommandAllocator(size_t _commandAllocatorIndex) noexcept;
 
 	void ResetCommandList() noexcept override;
 	void Close() noexcept override;
@@ -32,6 +38,14 @@ public:
 	void CopyTexture3D(IRDITexture3D* _destTexture, IRDITexture3D* _srcTexture) noexcept override;
 	void CopyTextureCube(IRDITextureCube* _destTexture, IRDITextureCube* _srcTexture) noexcept override;
 	void CopyTextureCubeArray(IRDITextureCubeArray* _destTexture, IRDITextureCubeArray* _srcTexture) noexcept override;
+
+	void CopyTexture1D(IRDITexture1D* _destTexture, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept override;
+	void CopyTexture1DArray(IRDITexture1DArray* _destTexture, uint32_t _mipSlice, uint32_t _texIndex, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept override;
+	void CopyTexture2D(IRDITexture2D* _destTexture, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept override;
+	void CopyTexture2DArray(IRDITexture2DArray* _destTexture, uint32_t _mipSlice, uint32_t _texIndex, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept override;
+	void CopyTexture3D(IRDITexture3D* _destTexture, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept override;
+	void CopyTextureCube(IRDITextureCube* _destTexture, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept override;
+	void CopyTextureCubeArray(IRDITextureCubeArray* _destTexture, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice, uint32_t _texIndex, IRDIBuffer* _srcBuffer, uint64_t _srcOffset) noexcept override;
 
 	void UnorderAccessResourceBarrier(IRDIBuffer* _resource) noexcept override;
 	void UnorderAccessResourceBarrier(IRDITexture1D* _resource) noexcept override;
@@ -76,37 +90,41 @@ public:
 	void ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag, float _depth, uint8_t _stencil) noexcept override;
 	void ClearRenderTargetView(IRDIRenderTargetView* _rtv, Math::SFColor _color) noexcept override;
 
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUColor _value) noexcept override;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SUColor _value) noexcept override;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SUColor _value) noexcept override;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SUColor _value) noexcept override;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SUColor _value) noexcept override;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SUColor _value) noexcept override;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SUColor _value) noexcept override;
-	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SUColor _value) noexcept override;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUInt4 _value) noexcept override;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SUInt4 _value) noexcept override;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SUInt4 _value) noexcept override;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SUInt4 _value) noexcept override;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SUInt4 _value) noexcept override;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SUInt4 _value) noexcept override;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SUInt4 _value) noexcept override;
+	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SUInt4 _value) noexcept override;
 
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SFColor _value) noexcept override;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SFColor _value) noexcept override;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SFColor _value) noexcept override;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SFColor _value) noexcept override;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SFColor _value) noexcept override;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SFColor _value) noexcept override;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SFColor _value) noexcept override;
-	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFColor _value) noexcept override;
-
-private:
-	void UnorderAccessResourceBarrier(void* _resourceNativePtr) noexcept;
-	void TranstionResourceState(void* _resourceNativePtr, ERDIResourceState _before, ERDIResourceState _after) noexcept;
-	void ClearUnorderAccessViewUINT(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, void* _resourceNativePtr, Math::SUColor _value) noexcept;
-	void ClearUnorderAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, void* _resourceNativePtr, Math::SFColor _value) noexcept;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SFloat4 _value) noexcept override;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SFloat4 _value) noexcept override;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1DArray* _resource, Math::SFloat4 _value) noexcept override;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2D* _resource, Math::SFloat4 _value) noexcept override;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture2DArray* _resource, Math::SFloat4 _value) noexcept override;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SFloat4 _value) noexcept override;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SFloat4 _value) noexcept override;
+	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFloat4 _value) noexcept override;
 
 private:
-	void* mCommandAllocatorNativePtr = nullptr;
-	void* mCommandListNativePtr = nullptr;
+	void EnsureCommandAllocator(size_t _index) noexcept;
+
+	void CopyTextureRegion(ID3D12Resource* _destTexture, ID3D12Resource* _srcTexture, uint32_t _subResourceIndex, D3D12_PLACED_SUBRESOURCE_FOOTPRINT _subResourceFootprint) noexcept;
+	void UnorderAccessResourceBarrier(ID3D12Resource* _resourceNativePtr) noexcept;
+	void TranstionResourceState(ID3D12Resource* _resourceNativePtr, ERDIResourceState _before, ERDIResourceState _after) noexcept;
+	void ClearUnorderAccessViewUINT(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, ID3D12Resource* _resourceNativePtr, Math::SUInt4 _value) noexcept;
+	void ClearUnorderAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, ID3D12Resource* _resourceNativePtr, Math::SFloat4 _value) noexcept;
+
+private:
+	ID3D12CommandAllocator* mCommandAllocatorNativePtr[D3D12_COMMAND_LIST_ALLOCATOR_COUNT] = {};
+	size_t mCurrentAllocatorIndex = 0;
+	ID3D12GraphicsCommandList* mCommandListNativePtr = nullptr;
 
 	SD3D12Device* mDevice = nullptr;
 
-	D3D12_VERTEX_BUFFER_VIEW mViewDescCache[16] = {};
+	D3D12_VERTEX_BUFFER_VIEW mViewDescCache[D3D12_VERTEX_BUFFER_SLOT_COUNT] = {};
 	D3D12_VIEWPORT mViewportsCache[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE] = {};
 	D3D12_RECT mScissorRectCache[D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE] = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE mRtvDescriptorHandlesCache[D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT] = {};

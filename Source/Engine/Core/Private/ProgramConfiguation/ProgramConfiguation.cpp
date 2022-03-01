@@ -1,0 +1,28 @@
+﻿#include "Core/ProgramConfiguation/ProgramConfiguation.h"
+#include "Core/Misc/CommandLine.h"
+
+std::filesystem::path SProgramConfiguation::GetEnginePath() noexcept
+{
+	static std::filesystem::path enginePath = SCommandLine::GetArgumentValue<std::filesystem::path>(L"EnginePath").second;
+	return enginePath;
+}
+
+bool SProgramConfiguation::IsWithProject() noexcept
+{
+	static bool isWithProject = SCommandLine::HasArgument(L"ProjectPath");
+	return isWithProject;
+}
+
+std::filesystem::path SProgramConfiguation::GetProjectPath() noexcept
+{
+	static std::filesystem::path projectPath = SCommandLine::GetArgumentValue<std::filesystem::path>(L"ProjectPath").second;
+	return projectPath;
+}
+
+bool SProgramConfiguation::UseDebugShader() noexcept
+{
+	static bool useDebugShader = SCommandLine::GetArgumentValue<bool>(L"UseDebugShader", false).second;
+	return useDebugShader;
+}
+
+TODO("应该保证所有的Release调用后，对象都可以恰当地完成释放，而无需其他操作")
