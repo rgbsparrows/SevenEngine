@@ -16,14 +16,12 @@ class SD3D12SamplerView;
 class SD3D12ViewBase
 {
 public:
-	SD3D12ViewBase(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle, D3D12_GPU_DESCRIPTOR_HANDLE _gpuDescriptorHandle) :
-		mCpuDescriptorHandle(_cpuDescriptorHandle),
-		mGpuDescriptorHandle(_gpuDescriptorHandle)
+	SD3D12ViewBase(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle) :
+		mCpuDescriptorHandle(_cpuDescriptorHandle)
 	{
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE mCpuDescriptorHandle = {};
-	D3D12_GPU_DESCRIPTOR_HANDLE mGpuDescriptorHandle = {};
 };
 
 class SD3D12IndexBufferView : public IRDIIndexBufferView
@@ -45,8 +43,8 @@ public:
 class SD3D12RenderTargetView : public IRDIRenderTargetView, public SD3D12ViewBase
 {
 public:
-	SD3D12RenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle, D3D12_GPU_DESCRIPTOR_HANDLE _gpuDescriptorHandle)
-		:SD3D12ViewBase(_cpuDescriptorHandle, _gpuDescriptorHandle)
+	SD3D12RenderTargetView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle)
+		:SD3D12ViewBase(_cpuDescriptorHandle)
 	{
 	}
 };
@@ -54,8 +52,8 @@ public:
 class SD3D12DepthStencilView : public IRDIDepthStencilView, public SD3D12ViewBase
 {
 public:
-	SD3D12DepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle, D3D12_GPU_DESCRIPTOR_HANDLE _gpuDescriptorHandle)
-		:SD3D12ViewBase(_cpuDescriptorHandle, _gpuDescriptorHandle)
+	SD3D12DepthStencilView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle)
+		:SD3D12ViewBase(_cpuDescriptorHandle)
 	{
 	}
 };
@@ -63,8 +61,8 @@ public:
 class SD3D12ShaderResourceView : public IRDIShaderResourceView, public SD3D12ViewBase
 {
 public:
-	SD3D12ShaderResourceView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle, D3D12_GPU_DESCRIPTOR_HANDLE _gpuDescriptorHandle)
-		:SD3D12ViewBase(_cpuDescriptorHandle, _gpuDescriptorHandle)
+	SD3D12ShaderResourceView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle)
+		:SD3D12ViewBase(_cpuDescriptorHandle)
 	{
 	}
 };
@@ -72,8 +70,8 @@ public:
 class SD3D12UnorderedAccessView : public IRDIUnorderedAccessView, public SD3D12ViewBase
 {
 public:
-	SD3D12UnorderedAccessView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle, D3D12_GPU_DESCRIPTOR_HANDLE _gpuDescriptorHandle)
-		:SD3D12ViewBase(_cpuDescriptorHandle, _gpuDescriptorHandle)
+	SD3D12UnorderedAccessView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle)
+		:SD3D12ViewBase(_cpuDescriptorHandle)
 	{
 	}
 };
@@ -81,8 +79,8 @@ public:
 class SD3D12SamplerView : public IRDISamplerView, public SD3D12ViewBase
 {
 public:
-	SD3D12SamplerView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle, D3D12_GPU_DESCRIPTOR_HANDLE _gpuDescriptorHandle)
-		:SD3D12ViewBase(_cpuDescriptorHandle, _gpuDescriptorHandle)
+	SD3D12SamplerView(D3D12_CPU_DESCRIPTOR_HANDLE _cpuDescriptorHandle)
+		:SD3D12ViewBase(_cpuDescriptorHandle)
 	{
 	}
 };

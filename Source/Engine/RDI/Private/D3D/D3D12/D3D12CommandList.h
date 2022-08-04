@@ -16,6 +16,7 @@ public:
 	void Clear() noexcept;
 
 	ID3D12GraphicsCommandList* GetNativePtr() noexcept { return mCommandListNativePtr; }
+	void SetDescriptorHeap() noexcept;
 
 public:
 	void Reset(IRDICommandAllocator* _commandAllocator) noexcept override;

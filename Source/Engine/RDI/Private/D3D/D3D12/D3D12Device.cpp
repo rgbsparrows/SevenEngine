@@ -153,6 +153,7 @@ IRDICommandList* SD3D12Device::CreateCommandList(ERDICommandListType _commandLis
 
 	SD3D12CommandList* commandList = mCommandListPool.AllocateElement();
 	commandList->Init(commandListNativePtr, this);
+	commandList->SetDescriptorHeap();
 
 	return commandList;
 }

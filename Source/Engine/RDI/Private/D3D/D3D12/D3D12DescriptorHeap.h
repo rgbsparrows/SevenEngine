@@ -223,10 +223,4 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE mSRVDescriptorHeapStartCPUDescriptorHandle = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE mUAVDescriptorHeapStartCPUDescriptorHandle = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartCPUDescriptorHandle = {};
-
-	D3D12_GPU_DESCRIPTOR_HANDLE mRTVDescriptorHeapStartGPUDescriptorHandle = {};
-	D3D12_GPU_DESCRIPTOR_HANDLE mDSVDescriptorHeapStartGPUDescriptorHandle = {};
-	D3D12_GPU_DESCRIPTOR_HANDLE mSRVDescriptorHeapStartGPUDescriptorHandle = {};
-	D3D12_GPU_DESCRIPTOR_HANDLE mUAVDescriptorHeapStartGPUDescriptorHandle = {};
-	D3D12_GPU_DESCRIPTOR_HANDLE mSamplerViewDescriptorHeapStartGPUDescriptorHandle = {};
 };

@@ -178,9 +178,6 @@ void SRenderModuleImpl::RefrashTextureResource() noexcept
 	{
 		auto& createStaticTexture2DList = mFrameResource->Get_RenderThread().mRefrashexture2DList;
 
-		if (createStaticTexture2DList.empty())
-			return;
-
 		IRDICommandList* commandList = mRdiDevice->CreateCommandList(ERDICommandListType::Direct, GetCommandAllocator());
 
 		std::vector<IRDIBuffer*> uploadBufferList;

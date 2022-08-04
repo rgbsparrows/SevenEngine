@@ -14,17 +14,22 @@ void SD3D12CommandList::Init(ID3D12GraphicsCommandList* _commandListNativePtr, S
 	mDevice = _device;
 }
 
-void SD3D12CommandList::Reset(IRDICommandAllocator* _commandAllocator) noexcept
+void SD3D12CommandList::SetDescriptorHeap() noexcept
 {
-	SD3D12CommandAllocator* commandAllocator = static_cast<SD3D12CommandAllocator*>(_commandAllocator);
-	VERIFY_D3D_RETURN(GetNativePtr()->Reset(commandAllocator->GetNativePtr(), nullptr));
-
 	ID3D12DescriptorHeap* descriptorHeaps[] =
 	{
 		mDevice->GetShaderVisibleDescriptorHeap()->GetSrvUavDescriptorHeapNativePtr(),
 		mDevice->GetShaderVisibleDescriptorHeap()->GetSamplerViewDescriptorHeapNativePtr(),
 	};
 	GetNativePtr()->SetDescriptorHeaps(static_cast<UINT>(ArraySize(descriptorHeaps)), descriptorHeaps);
+}
+
+void SD3D12CommandList::Reset(IRDICommandAllocator* _commandAllocator) noexcept
+{
+	SD3D12CommandAllocator* commandAllocator = static_cast<SD3D12CommandAllocator*>(_commandAllocator);
+	VERIFY_D3D_RETURN(GetNativePtr()->Reset(commandAllocator->GetNativePtr(), nullptr));
+
+	SetDescriptorHeap();
 }
 
 void SD3D12CommandList::Close() noexcept

@@ -43,7 +43,7 @@ bool SUIModuleImpl::Init() noexcept
 
 void SUIModuleImpl::Clear() noexcept
 {
-9	TODO("清理Imgui");
+	9	TODO("清理Imgui");
 	//ClearImgui();
 
 	UnregistWindowClass();
@@ -63,7 +63,8 @@ void SUIModuleImpl::OnGUI() noexcept
 
 	ImguiNewFrame();
 
-	ImGui::Begin("Seven Engine###MainWindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
+	static bool isOpen = true;
+	ImGui::Begin("Seven Engine###MainWindow", &isOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
 	ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
 	ImGui::End();
 
