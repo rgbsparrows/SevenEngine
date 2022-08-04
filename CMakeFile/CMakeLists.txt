@@ -74,7 +74,7 @@ SET_PROPERTY(TARGET SevenEngine PROPERTY FOLDER "Engine")
 file(WRITE ${ENGINE_DIR}/Intermediate/SevenEngine.vcxproj.user "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <Project ToolsVersion=\"Current\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">
   <PropertyGroup>
-    <LocalDebuggerCommandArguments>EnginePath="$(SolutionDir).."</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>EnginePath=\"$(SolutionDir)..\"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>")

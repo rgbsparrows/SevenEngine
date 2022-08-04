@@ -29,9 +29,30 @@
 * 渲染线程的结构
     * 由渲染模块直接持有全部的FrameResource，并且在上述所描述的步骤中，来变更当前的FrameResource
     * 辅助各个线程及GPU同步的对象及Fence不属于FrameResource的一部分，而是直接由渲染模块接管，将其从FrameResource中剥离出来
+    * 需要强调的一点是，渲染线程是可以直接持有原始的RDI资源的，不一定必须有RenderProxy的封装
+    * 存在一个问题，现在因为缺乏阻塞式的同步机制，使得独占模式的RenderProxy大多数只能被废弃后新建
+        * 这对于部分资源创建来说，还是不特别方便，可能还是会需要想办法讲渲染线程改造成伪任务队列模式，至少需要存在命令，使得其保证之前帧的任务执行完毕
 * 开发步骤
     * 完成渲染线程的同步操作的设计与实现 -- 已实现
-    * 引入IMGUI库，同时在渲染模块中完成UI的渲染操作，以及对UI库的重新封装（只做简单封装即可）
+    * 引入IMGUI库，同时在渲染模块中完成UI的渲染操作，以及对UI库的重新封装（只做简单封装即可） -- 完成
+    * 基础的渲染资源
+        * Mesh
+        * RenderTarget
+        * WorldProxy
+        * Texture -- Texture暂时也无所谓了
+        * Material -- 可能在有材质之前就需要能先构建Shader并绘制，Material要比Shader复杂的多，材质先空着，Shader直接随便弄个纯色先用着
     * 完成对RenderGraph的定义与设计
         * 管线的执行流程
         * 借着这个机会深入学习下UE的RenderGraph结构
+        * 调整CommandAllocator与COmmandList的逻辑与关系，将COmmandAllocator拆除，而COmmandList的性质变得更临时化。
+        * 调整TranslateResourceState，将函数回归到变更前的状态
+        * 调整资源创建，包括贴图创建与RDI资源创建
+            * 去除ResourceState的指定
+        * 让RenderPass中对资源状态的操作尽量依赖于隐式状态转换，来避免在RenderState上管理所耗费的成本。不过这个和之前所设想的，每次用完之后将资源状态转为Common类似，但要简单一些
+        * PIXBeginEvent
+        * PIXBeginEvent
+        * 增加ComputeCommandQueue
+    * RDI修改
+        * 增加ComputeCommandQueue，可能还需要对应的CommandList
+        * 增加CommandAllocator，调整CommandList
+        * CommandAllocator交由外部管理

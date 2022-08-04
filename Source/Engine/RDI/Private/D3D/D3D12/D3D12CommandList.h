@@ -12,18 +12,13 @@ class SD3D12Device;
 class SD3D12CommandList : public IRDICommandList
 {
 public:
-	void Init(ID3D12CommandAllocator* _commandAllocatorNativePtr, ID3D12GraphicsCommandList* _commandListNativePtr, SD3D12Device* _device) noexcept;
+	void Init(ID3D12GraphicsCommandList* _commandListNativePtr, SD3D12Device* _device) noexcept;
 	void Clear() noexcept;
 
-	ID3D12GraphicsCommandList* GetCommandListNativePtr() noexcept { return mCommandListNativePtr; }
-	ID3D12CommandAllocator* GetCommandAllocatorNativePtr(size_t _commandAllocatorIndex) noexcept { return mCommandAllocatorNativePtr[_commandAllocatorIndex]; }
-	ID3D12CommandAllocator* GetCurrentCommandAllocatorNativePtr() noexcept { return mCommandAllocatorNativePtr[mCurrentAllocatorIndex]; }
+	ID3D12GraphicsCommandList* GetNativePtr() noexcept { return mCommandListNativePtr; }
 
 public:
-	void ResetCommandAllocator(size_t _commandAllocatorIndex) noexcept;
-	void SetCurrentCommandAllocator(size_t _commandAllocatorIndex) noexcept;
-
-	void ResetCommandList() noexcept override;
+	void Reset(IRDICommandAllocator* _commandAllocator) noexcept override;
 	void Close() noexcept override;
 
 	void DrawIndexedInstanced(uint32_t _indexCount, uint32_t _instanceCount, uint32_t _startIndexLocation, uint32_t _baseVertexLocation) noexcept override;
@@ -108,9 +103,9 @@ public:
 	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SFloat4 _value) noexcept override;
 	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFloat4 _value) noexcept override;
 
-private:
-	void EnsureCommandAllocator(size_t _index) noexcept;
+	void Release() noexcept override;
 
+private:
 	void CopyTextureRegion(ID3D12Resource* _destTexture, ID3D12Resource* _srcTexture, uint32_t _subResourceIndex, D3D12_PLACED_SUBRESOURCE_FOOTPRINT _subResourceFootprint) noexcept;
 	void UnorderAccessResourceBarrier(ID3D12Resource* _resourceNativePtr) noexcept;
 	void TranstionResourceState(ID3D12Resource* _resourceNativePtr, ERDIResourceState _before, ERDIResourceState _after) noexcept;
@@ -118,8 +113,6 @@ private:
 	void ClearUnorderAccessViewFloat(D3D12_GPU_DESCRIPTOR_HANDLE _shaderVisibleViewGpuHandle, D3D12_CPU_DESCRIPTOR_HANDLE _cpuHandle, ID3D12Resource* _resourceNativePtr, Math::SFloat4 _value) noexcept;
 
 private:
-	ID3D12CommandAllocator* mCommandAllocatorNativePtr[D3D12_COMMAND_LIST_ALLOCATOR_COUNT] = {};
-	size_t mCurrentAllocatorIndex = 0;
 	ID3D12GraphicsCommandList* mCommandListNativePtr = nullptr;
 
 	SD3D12Device* mDevice = nullptr;

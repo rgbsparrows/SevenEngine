@@ -19,7 +19,7 @@ void SD3D12CommandQueue::ExecuteCommandLists(uint32_t _commandListCount, IRDICom
 
 	ID3D12CommandList* commandList[D3D12_EXECUTE_COMMAND_LIST_COUNT];
 	for (uint32_t i = 0; i != _commandListCount; ++i)
-		commandList[i] = static_cast<SD3D12CommandList*>(_commandLists[i])->GetCommandListNativePtr();
+		commandList[i] = static_cast<SD3D12CommandList*>(_commandLists[i])->GetNativePtr();
 
 	GetCommandQueueNativePtr()->ExecuteCommandLists(_commandListCount, commandList);
 }

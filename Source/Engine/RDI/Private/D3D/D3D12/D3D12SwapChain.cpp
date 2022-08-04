@@ -16,7 +16,6 @@ void SD3D12SwapChain::Init(IDXGISwapChain* _nativePtr, const SRDISwapChainDesc* 
 		SRDITexture2DResourceDesc desc;
 		desc.mHeapType = ERDIHeapType::Default;
 		desc.mResourceUsage = ERDIResourceUsage::RenderTarget;
-		desc.mResourceState = ERDIResourceState::Common;
 		desc.mPixelFormat = _desc->mPixelFormat;
 		desc.mRtvPixelFormat = _desc->mPixelFormat;
 		desc.mMipCount = 1;

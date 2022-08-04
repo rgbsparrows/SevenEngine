@@ -28,10 +28,10 @@ template<typename _renderInfoType>
 concept CRenderInfo = CExclusiveRenderInfo<_renderInfoType> || CShareRenderInfo<_renderInfoType>;
 
 template<typename _renderInfoType>
-concept CClearableRenderInfo = CRenderInfo<_renderInfoType> && requires(_renderInfoType & _renderInfo) { _renderInfo.Clear(); };
+concept CInitableRenderInfo = CRenderInfo<_renderInfoType> && requires(_renderInfoType & _renderInfo, IRDIDevice* _device) { _renderInfo.Init(_device); };
 
 template<typename _renderInfoType>
-concept CInitableRenderInfo = CRenderInfo<_renderInfoType> && requires(_renderInfoType & _renderInfo, IRDIDevice* _device) { _renderInfo.Init(_device); };
+concept CClearableRenderInfo = CRenderInfo<_renderInfoType> && requires(_renderInfoType & _renderInfo) { _renderInfo.Clear(); };
 
 __interface RRenderProxyBase
 {

@@ -12,6 +12,7 @@
 #include "D3D/D3D12/D3D12RootSignature.h"
 #include "D3D/D3D12/D3D12PipelineState.h"
 #include "D3D/D3D12/D3D12DescriptorHeap.h"
+#include "D3D/D3D12/D3D12CommandAllocator.h"
 
 #include "Core/Misc/PreWindowsApi.h"
 #include <d3d12.h>
@@ -34,13 +35,12 @@ public:
 public:
 	IRDIAdapter* GetAdapter() noexcept override { return mAdapter; }
 	IRDICommandQueue* GetCommandQueue() noexcept override { return &mCommandQueue; }
-	IRDICommandList* GetCommandList(uint16_t _commandListIndex) noexcept;
+	IRDICommandQueue* GetComputeCommandQueue() noexcept { return &mComputeCommandQueue; }
+
+	IRDICommandAllocator* CreateCommandAllocator(ERDICommandListType _commandListType) noexcept;
+	IRDICommandList* CreateCommandList(ERDICommandListType _commandListType, IRDICommandAllocator* _commandAllocator) noexcept;
 
 	IRDISwapChain* CreateSwapChain(const SRDISwapChainDesc* _swapChainDesc) noexcept override;
-
-	void EnsureCommandListCount(size_t _commandListCount) noexcept override;
-	void ResetCommandListAlocator(size_t _commandAllocatorIndex) noexcept override;
-	void SetCurrentCommandListAllocator(size_t _commandAllocatorIndex) noexcept override;
 
 	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept override;
 
@@ -78,6 +78,9 @@ public:
 	IRDIComputeShader* CreateComputeShader(SBufferView _compiledShader) noexcept override;
 
 public:
+	void ReleaseCommandAllocator(SD3D12CommandAllocator* _commandAllocator) noexcept;
+	void ReleaseCommandList(SD3D12CommandList* _commandList) noexcept;
+
 	void ReleaseSwapChain(SD3D12SwapChain* _swapChain) noexcept;
 	void ReleaseInputLayout(SD3D12InputLayout* _inputLayout) noexcept;
 	void ReleaseRootSignature(SD3D12RootSignature* _rootSignature) noexcept;
@@ -109,7 +112,7 @@ public:
 	IRDITexture2D* CreateTexture2DWithCreatedResource(const SRDITexture2DResourceDesc* _desc, ID3D12Resource* _resource) noexcept;
 
 public:
-	ID3D12Resource* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, D3D12_RESOURCE_STATES _state) noexcept;
+	ID3D12Resource* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc) noexcept;
 	bool CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept;
 	void GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _errorInfo);
 
@@ -127,10 +130,13 @@ private:
 
 	SD3D12Adapter* mAdapter = nullptr;
 	SD3D12CommandQueue mCommandQueue;
-	std::vector<SD3D12CommandList> mCommandList;
+	SD3D12CommandQueue mComputeCommandQueue;
 
 	SD3D12ShaderVisibleDescriptorHeap mShaderVisibleDescriptorHeap;
 	SD3D12DescriptorHeap mDescriptorHeap;
+
+	TElementPool<SD3D12CommandAllocator> mCommandAllocatorPool;
+	TElementPool<SD3D12CommandList> mCommandListPool;
 
 	TElementPool<SD3D12SwapChain> mSwapChainPool;
 

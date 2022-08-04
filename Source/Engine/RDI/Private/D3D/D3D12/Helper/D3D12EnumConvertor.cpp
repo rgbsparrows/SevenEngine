@@ -158,3 +158,14 @@ D3D12_CLEAR_FLAGS ConvertClearFlagToD3D12(ERDIClearFlag _clearFlag) noexcept
 {
 	return static_cast<D3D12_CLEAR_FLAGS>(_clearFlag);
 }
+
+D3D12_COMMAND_LIST_TYPE ConvertCommandListTypeToD3D12(ERDICommandListType _commandListType) noexcept
+{
+	static constexpr D3D12_COMMAND_LIST_TYPE commandListTypeMap[EnumToInt(ERDICommandListType::Num)] = 
+	{
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		D3D12_COMMAND_LIST_TYPE_COMPUTE,
+	};
+
+	return commandListTypeMap[EnumToInt(_commandListType)];
+}

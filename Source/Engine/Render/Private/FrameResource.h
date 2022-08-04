@@ -1,33 +1,34 @@
 #pragma once
 #include "Core/Misc/windowsEx.h"
-#include "Render/RenderProxy/RenderProxy.h"
+#include "RDI/Interface/RDIDevice.h"
 #include "Render/RenderProxy/WindowInfo.h"
+#include "Render/RenderProxy/RenderProxy.h"
 
 #include <functional>
 
 struct RRefrashSwapChainInfo
 {
-	RRenderProxy<RSwapChain>* mSwapChain;
-	RRenderProxy<RSwapChainData>* mSwapChainData;
+	RRenderProxy<RSwapChain>* mSwapChain = nullptr;
+	RRenderProxy<RSwapChainData>* mSwapChainData = nullptr;
 };
 
 struct RRenderWindowInfo
 {
-	RRenderProxy<RSwapChain>* mSwapChain;
-	RRenderProxy<RImguiDrawData>* mImguiDrawData;
+	RRenderProxy<RSwapChain>* mSwapChain = nullptr;
+	RRenderProxy<RImguiDrawData>* mImguiDrawData = nullptr;
 };
 
 struct RRefrashStaticTexture2DInfo
 {
-	RRenderProxy<RTexture2D>* mTexture2D;
-	RRenderProxy<RTexture2DData>* mStaticTexture2DDataProxy;
+	RRenderProxy<RTexture2D>* mTexture2D = nullptr;
+	RRenderProxy<RTexture2DData>* mStaticTexture2DDataProxy = nullptr;
 	RTexture2DData mStaticTexture2DData;
 };
 
 struct RRefrashImTexture2DInfo
 {
-	RRenderProxy<RTexture2D>* mTexture2D;
-	RRenderProxy<RImguiTexture2D>* mImTexture;
+	RRenderProxy<RTexture2D>* mTexture2D = nullptr;
+	RRenderProxy<RImguiTexture2D>* mImTexture = nullptr;
 };
 
 struct RFrameResource
@@ -35,16 +36,7 @@ struct RFrameResource
 public:
 	void Init(IRDIDevice* _device) noexcept
 	{
-		mGameThreadFrameResourceReadyEvent = CreateEventW(nullptr, FALSE, TRUE, nullptr);
-		mRenderThreadFrameResourceReadyEvent = CreateEventW(nullptr, FALSE, FALSE, nullptr);
-	}
-
-	void Clear() noexcept
-	{
-		CloseHandle(mGameThreadFrameResourceReadyEvent);
-		CloseHandle(mRenderThreadFrameResourceReadyEvent);
-		mGameThreadFrameResourceReadyEvent = nullptr;
-		mRenderThreadFrameResourceReadyEvent = nullptr;
+		mCommandAllocator = _device->CreateCommandAllocator(ERDICommandListType::Direct);
 	}
 
 	void OnRenderFrameEnd() noexcept
@@ -59,10 +51,11 @@ public:
 
 public:
 	bool mRequireExit = false;
-
-	HANDLE mGameThreadFrameResourceReadyEvent = nullptr;
-	HANDLE mRenderThreadFrameResourceReadyEvent = nullptr;
+	std::atomic_bool mGameThreadFrameResourceReadyFlag = true;
+	std::atomic_bool mRenderThreadFrameResourceReadyFlag = false;
 	uint64_t mGpuFence = 0;
+
+	IRDICommandAllocator* mCommandAllocator = nullptr;
 
 	std::vector<RRenderProxyBase*> mNeedInitRenderProxy;
 	std::vector<RRenderProxyBase*> mExpiringRenderProxy;

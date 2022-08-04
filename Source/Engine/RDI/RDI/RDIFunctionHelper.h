@@ -37,6 +37,17 @@ struct SRDIErrorInfo
 
 #pragma endregion
 
+#pragma region RDICommandList
+
+enum class ERDICommandListType
+{
+	Direct,
+	Compute,
+
+	Num,
+};
+
+#pragma endregion
 
 #pragma region RDIAdapter
 
@@ -95,6 +106,7 @@ enum class ERDIHeapType
 	ReadBack,
 	Custom,
 
+	Num,
 	Error = TErrorEnumValue<ERDIHeapType>
 };
 
@@ -184,7 +196,6 @@ struct SRDIBufferResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	uint64_t mBufferSize = 0;
 	//只在Buffer用作IndexBuffer/VertexBuffer时有意义
 	uint32_t mElementStride = 0;
@@ -194,7 +205,6 @@ struct SRDITexture1DResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -210,7 +220,6 @@ struct SRDITexture1DArrayResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -227,7 +236,6 @@ struct SRDITexture2DResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -247,7 +255,6 @@ struct SRDITexture2DArrayResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -265,7 +272,6 @@ struct SRDITexture3DResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -283,7 +289,6 @@ struct SRDITextureCubeResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -299,7 +304,6 @@ struct SRDITextureCubeArrayResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;

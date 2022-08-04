@@ -8,7 +8,9 @@ enum class ERDIResourceState;
 enum class ERDIPrimitiveTopology;
 enum class ERDITextureCubeFace;
 
+
 __interface IRDIRootSignature;
+__interface IRDICommandAllocator;
 __interface IRDIDescriptorHeapRange;
 __interface IRDISamplerHeapRange;
 __interface IRDIGraphicsPipelineState;
@@ -36,7 +38,7 @@ enum class ERDIClearFlag;
 
 __interface IRDICommandList
 {
-	void ResetCommandList() noexcept;
+	void Reset(IRDICommandAllocator* _commandAllocator) noexcept;
 	void Close() noexcept;
 
 	void CopyBufferRegion(IRDIBuffer* _destBuffer, uint64_t _destOffset, IRDIBuffer* _srcBuffer, uint64_t _srcOffset, uint64_t _numByte) noexcept;
@@ -120,4 +122,6 @@ __interface IRDICommandList
 	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SFloat4 _value) noexcept;
 	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SFloat4 _value) noexcept;
 	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFloat4 _value) noexcept;
+
+	void Release() noexcept;
 };

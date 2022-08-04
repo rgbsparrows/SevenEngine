@@ -24,16 +24,19 @@ struct SRDIShaderMacro;
 struct SRDIAdditionalInclude;
 struct SRDIErrorInfo;
 
+enum class ERDICommandListType;
+
 __interface IRDIAdapter;
 __interface IRDISwapChain;
 __interface IRDICommandList;
 __interface IRDIInputLayout;
 __interface IRDICommandQueue;
 __interface IRDIRootSignature;
-__interface IRDIDescriptorHeapRange;
+__interface IRDICommandAllocator;
 __interface IRDISamplerHeapRange;
-__interface IRDIGraphicsPipelineState;
+__interface IRDIDescriptorHeapRange;
 __interface IRDIComputePipelineState;
+__interface IRDIGraphicsPipelineState;
 
 __interface IRDIBuffer;
 __interface IRDITexture1D;
@@ -56,13 +59,12 @@ __interface IRDIDevice
 {
 	IRDIAdapter* GetAdapter() noexcept;
 	IRDICommandQueue* GetCommandQueue() noexcept;
-	IRDICommandList* GetCommandList(uint16_t _commandListIndex) noexcept;
+	IRDICommandQueue* GetComputeCommandQueue() noexcept;
+
+	IRDICommandAllocator* CreateCommandAllocator(ERDICommandListType _commandListType) noexcept;
+	IRDICommandList* CreateCommandList(ERDICommandListType _commandListType, IRDICommandAllocator* _commandAllocator) noexcept;
 
 	IRDISwapChain* CreateSwapChain(const SRDISwapChainDesc* _swapChainDesc) noexcept;
-
-	void EnsureCommandListCount(size_t _commandListCount) noexcept;
-	void ResetCommandListAlocator(size_t _commandAllocatorIndex) noexcept;
-	void SetCurrentCommandListAllocator(size_t _commandAllocatorIndex) noexcept;
 
 	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept;
 

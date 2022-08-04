@@ -25,4 +25,3 @@ bool SProgramConfiguation::UseDebugShader() noexcept
 	return useDebugShader;
 }
 
-TODO("应该保证所有的Release调用后，对象都可以恰当地完成释放，而无需其他操作")

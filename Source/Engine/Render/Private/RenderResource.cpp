@@ -8,7 +8,7 @@
 #include "RDI/Interface/RDIPipelineState.h"
 #include "RDI/Interface/RDIResource.h"
 
-void RStaticRenderResource::Init(IRDIDevice* _device)
+void RStaticRenderResource::Init(IRDIDevice* _device) noexcept
 {
 	const char* vertexShader = 
 		"cbuffer MainCb : register(b0)										\n"
@@ -79,7 +79,7 @@ void RStaticRenderResource::Init(IRDIDevice* _device)
 	texParameter.mDescriptorTableRootParameter.mUavNumDescriptors = 0;
 
 	SRDIStaticSamplerDesc staticSampler;
-	staticSampler.mFilter = ERDIFilter::MIN_LINER | ERDIFilter::MAG_LINER | ERDIFilter::MIP_LINER;
+	staticSampler.mFilter = ERDIFilter::MIN_POINT | ERDIFilter::MAG_POINT | ERDIFilter::MIP_POINT;
 	staticSampler.mAddressU = ERDIAddressMode::MIRROR;
 	staticSampler.mAddressV = ERDIAddressMode::MIRROR;
 	staticSampler.mAddressW = ERDIAddressMode::MIRROR;
@@ -145,7 +145,7 @@ void RStaticRenderResource::Init(IRDIDevice* _device)
 	inputLayout->Release();
 }
 
-void RStaticRenderResource::Clear()
+void RStaticRenderResource::Clear() noexcept
 {
 	mImguiSDRPipelineState->Release();
 	mImguiHDR10PipelineState->Release();
@@ -156,7 +156,7 @@ void RStaticRenderResource::Clear()
 		mConstantBuffer->Release();
 }
 
-void RFrameRenderResource::Clear()
+void RFrameRenderResource::Clear() noexcept
 {
 	if (mConstantUploadBuffer)
 		mConstantUploadBuffer->Release();

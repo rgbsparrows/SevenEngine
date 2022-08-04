@@ -91,7 +91,7 @@ SD3D12DescriptorHeapRange* SD3D12ShaderVisibleDescriptorHeap::AllocateDescriptor
 {
 	uint64_t srvUavStart = mSrvUavDescriptorAlloctorHelper.AllocateSlotArray(0ull + _srvDescriptorCount + _uavDescriptorCount);
 
-	CHECK(srvUavStart != std::numeric_limits<uint64_t>::max() && L"描述符堆中没有充足的空间以为新资源分配描述符");
+	CHECK(srvUavStart != SCircularSlotArrayAllocatorHelper::ErrorSlot && L"描述符堆中没有充足的空间以为新资源分配描述符");
 
 	SD3D12DescriptorHeapRange descriptorHeapRange;
 	descriptorHeapRange.Init(srvUavStart, _srvDescriptorCount, _uavDescriptorCount, this);
@@ -103,7 +103,7 @@ SD3D12SamplerHeapRange* SD3D12ShaderVisibleDescriptorHeap::AllocateSamplerHeapRa
 {
 	uint64_t samplerViewStart = mSamplerViewAlloctorHelper.AllocateSlotArray(_samplerViewDescriptorCount);
 
-	CHECK(samplerViewStart != std::numeric_limits<uint64_t>::max() && L"Sampler描述符堆中没有充足的空间以为新资源分配描述符");
+	CHECK(samplerViewStart != SCircularSlotArrayAllocatorHelper::ErrorSlot && L"Sampler描述符堆中没有充足的空间以为新资源分配描述符");
 
 	SD3D12SamplerHeapRange descriptorHeapRange;
 	descriptorHeapRange.Init(samplerViewStart, _samplerViewDescriptorCount, this);
@@ -740,7 +740,7 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(ID3D12Resource* _resourc
 {
 	uint64_t slotIndex = mRTVAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mRTVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -756,7 +756,7 @@ SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(ID3D12Resource* _resourc
 {
 	uint64_t slotIndex = mDSVAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mDSVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
@@ -772,7 +772,7 @@ SD3D12ShaderResourceView* SD3D12DescriptorHeap::CreateSRV(ID3D12Resource* _resou
 {
 	uint64_t slotIndex = mSRVAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mSRVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -788,7 +788,7 @@ SD3D12UnorderedAccessView* SD3D12DescriptorHeap::CreateUAV(ID3D12Resource* _reso
 {
 	uint64_t slotIndex = mUAVAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mUAVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -804,7 +804,7 @@ SD3D12SamplerView* SD3D12DescriptorHeap::CreateSamplerView(const D3D12_SAMPLER_D
 {
 	uint64_t slotIndex = mSamplerViewAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mSamplerViewDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);

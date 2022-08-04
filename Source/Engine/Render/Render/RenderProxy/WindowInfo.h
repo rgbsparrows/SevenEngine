@@ -20,7 +20,7 @@ struct RSwapChainData
 	HWND mOutputWindow = nullptr;
 	bool mIsWindowed = true;
 
-	bool mNeedResize;
+	bool mNeedResize = false;
 };
 template<> struct RRenderInfoTraits<RSwapChainData> : RExclusiveMode {};
 

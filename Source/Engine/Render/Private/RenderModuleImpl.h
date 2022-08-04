@@ -40,6 +40,7 @@ private:
 	void PresentWindows() noexcept;
 
 private:
+	IRDICommandAllocator* GetCommandAllocator() noexcept { return mFrameResource->Get_RenderThread().mCommandAllocator; }
 	void SyncToGpuFrameEnd(bool _force = false) noexcept;
 
 private:
@@ -57,9 +58,9 @@ private:
 	size_t mFrameCount_GameThread = 0;
 	size_t mFrameCount_RenderThread = 0;
 
-	RRenderProxy<RFrameResource>* mFrameResource;
-	RRenderProxy<RStaticRenderResource>* mStaticRenderResource;
-	RRenderProxy<RFrameRenderResource>* mFrameRenderResource;
+	RRenderProxy<RFrameResource>* mFrameResource = nullptr;
+	RRenderProxy<RStaticRenderResource>* mStaticRenderResource = nullptr;
+	RRenderProxy<RFrameRenderResource>* mFrameRenderResource = nullptr;
 	SRenderCommandListImpl mRenderCommandList;
 };
 

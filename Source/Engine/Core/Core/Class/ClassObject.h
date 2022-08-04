@@ -111,12 +111,12 @@ private:																										\
 	inline static ClassObjectType ClassObject;																	
 
 //DECLARE_CLASSOBJECT_BODY(_class, _baseClass, _interface)
-#define DECLARE_CLASSOBJECT_BODY(_class, ...)																	\
+#define DECLARE_CLASSOBJECT_BODY(_class, _baseClass, ...)														\
 public:																											\
-	using ClassObjectType = TClassObject<_class, __VA_ARGS__>;													\
+	using ClassObjectType = TClassObject<_class, _baseClass, __VA_ARGS__>;										\
 	static const ClassObjectType* StaticGetClassObject() noexcept { return &ClassObject; }						\
 	const ClassObjectInterfaceType* GetClassObject()const noexcept override { return StaticGetClassObject(); }	\
-	using AncestorClass = typename ClassObjectType::AncestorClass;													\
-	using BaseClass = typename ClassObjectType::BaseClass;															\
+	using AncestorClass = typename ClassObjectType::AncestorClass;												\
+	using BaseClass = typename ClassObjectType::BaseClass;														\
 private:																										\
 	inline static ClassObjectType ClassObject;																	

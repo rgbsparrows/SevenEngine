@@ -4,7 +4,7 @@
 #include <vector>
 
 template<typename ..._elementTypes>
-using PackageVector = std::vector<std::tuple<_elementTypes...> >;
+using PackageVector = std::vector<std::tuple<_elementTypes...>>;
 
 class SBlob
 {
