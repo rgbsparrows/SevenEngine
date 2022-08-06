@@ -43,7 +43,7 @@ bool SUIModuleImpl::Init() noexcept
 
 void SUIModuleImpl::Clear() noexcept
 {
-	9	TODO("清理Imgui");
+	TODO("清理Imgui");
 	//ClearImgui();
 
 	UnregistWindowClass();
@@ -63,10 +63,13 @@ void SUIModuleImpl::OnGUI() noexcept
 
 	ImguiNewFrame();
 
-	static bool isOpen = true;
-	ImGui::Begin("Seven Engine###MainWindow", &isOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
-	ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
-	ImGui::End();
+	static bool isMainWindowOpen = true;
+	if (isMainWindowOpen)
+	{
+		ImGui::Begin("Seven Engine###MainWindow", &isMainWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
+		ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
+		ImGui::End();
+	}
 
 	ImGui::ShowDemoWindow();
 
@@ -449,6 +452,9 @@ void SUIModuleImpl::ImguiEndFrame() noexcept
 		mMainWindow->SetWindowSize(Math::SFloat2(imMainWindowSize.x, imMainWindowSize.y));
 
 	mMainWindow->FlushImguiDrawData();
+
+	if (ImGui::IsWindowActive("Seven Engine###MainWindow") == false)
+		mMainWindow->Release();
 
 	ImGui::UpdatePlatformWindows();
 	ImGui::RenderPlatformWindowsDefault();

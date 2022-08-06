@@ -7221,6 +7221,15 @@ bool ImGui::IsWindowHovered(ImGuiHoveredFlags flags)
     return true;
 }
 
+bool ImGui::IsWindowActive(const char* name)
+{
+	ImGuiWindow* window = FindWindowByName(name);
+	if (window != nullptr)
+		return window->Active;
+
+	return false;
+}
+
 bool ImGui::IsWindowFocused(ImGuiFocusedFlags flags)
 {
     ImGuiContext& g = *GImGui;
@@ -11606,24 +11615,8 @@ static void ImGui::UpdateViewportsNewFrame()
 
     // Mouse handling: decide on the actual mouse viewport for this frame between the active/focused viewport and the hovered viewport.
     // Note that 'viewport_hovered' should skip over any viewport that has the ImGuiViewportFlags_NoInputs flags set.
-    ImGuiViewportP* viewport_hovered = NULL;
-    if (g.IO.BackendFlags & ImGuiBackendFlags_HasMouseHoveredViewport)
-    {
-        viewport_hovered = g.IO.MouseHoveredViewport ? (ImGuiViewportP*)FindViewportByID(g.IO.MouseHoveredViewport) : NULL;
-        if (viewport_hovered && (viewport_hovered->Flags & ImGuiViewportFlags_NoInputs))
-        {
-            // Backend failed at honoring its contract if it returned a viewport with the _NoInputs flag.
-            IM_ASSERT(0);
-            viewport_hovered = FindHoveredViewportFromPlatformWindowStack(g.IO.MousePos);
-        }
-    }
-    else
-    {
-        // If the backend doesn't know how to honor ImGuiViewportFlags_NoInputs, we do a search ourselves. Note that this search:
-        // A) won't take account of the possibility that non-imgui windows may be in-between our dragged window and our target window.
-        // B) uses LastFrameAsRefViewport as a flawed replacement for the last time a window was focused (we could/should fix that by introducing Focus functions in PlatformIO)
-        viewport_hovered = FindHoveredViewportFromPlatformWindowStack(g.IO.MousePos);
-    }
+    ImGuiViewportP* viewport_hovered = FindHoveredViewportFromPlatformWindowStack(g.IO.MousePos);
+
     if (viewport_hovered != NULL)
         g.MouseLastHoveredViewport = viewport_hovered;
     else if (g.MouseLastHoveredViewport == NULL)
