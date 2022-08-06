@@ -1,4 +1,33 @@
+#include "Core/Misc/Thread.h"
 #include "RenderCommandListImpl.h"
+
+bool SRenderCommandListImpl::HasImmediatelyRenderCommand() const noexcept
+{
+	return mCommandQueueBegin != mCommandQueueEnd;
+}
+
+void SRenderCommandListImpl::ExecuateImmediatelyRenderCommand(SRenderContent& _renderContent) noexcept
+{
+	while (HasImmediatelyRenderCommand())
+	{
+		mImmediatelyRenderCommandQueue[mCommandQueueBegin](_renderContent);
+		mCommandQueueBegin = (mCommandQueueBegin + 1) % mImmediatelyRenderCommandQueue.size();
+	}
+}
+
+void SRenderCommandListImpl::AddRenderCommand(std::function<void(SRenderContent&)> _renderCommand) noexcept
+{
+	if (mCommandQueueEnd == (mCommandQueueBegin + 1) % mImmediatelyRenderCommandQueue.size())
+	{
+		RefrashImmediatelyRenderCommand();
+		mImmediatelyRenderCommandQueue.resize(mImmediatelyRenderCommandQueue.size() * 2);
+		mCommandQueueBegin = 0;
+		mCommandQueueEnd = 0;
+	}
+
+	mImmediatelyRenderCommandQueue[mCommandQueueEnd] = _renderCommand;
+	mCommandQueueEnd = (mCommandQueueEnd + 1) % mImmediatelyRenderCommandQueue.size();
+}
 
 void SRenderCommandListImpl::InitRenderProxy(RRenderProxyBase* _renderProxy) noexcept
 {
@@ -22,9 +51,9 @@ void SRenderCommandListImpl::AddExpiringRenderProxy(std::initializer_list<RRende
 		AddExpiringRenderProxy(_renderProxy);
 }
 
-void SRenderCommandListImpl::RefrashStaticTexture2D(RRenderProxy<RTexture2D>* _texture2D, RRenderProxy<RTexture2DData>* _textureData) noexcept
+void SRenderCommandListImpl::RefrashImmediatelyRenderCommand() noexcept
 {
-	GetFrameResource_GameThread().mRefrashexture2DList.push_back(RRefrashStaticTexture2DInfo{ _texture2D, _textureData, RTexture2DData() });
+	Thread::YieldUntilValue(mCommandQueueBegin, mCommandQueueEnd.load());
 }
 
 void SRenderCommandListImpl::RefrashStaticTexture2D(RRenderProxy<RTexture2D>* _texture2D, RTexture2DData&& _textureData) noexcept

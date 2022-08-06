@@ -1,7 +1,8 @@
 ﻿#pragma once
 
+#include "Core/Misc/Thread.h"
+#include "Render/RenderContent.h"
 #include "Core/Class/ClassObject.h"
-#include "Render/RenderPass/RenderContent.h"
 
 #include <vector>
 #include <thread>
@@ -180,7 +181,6 @@ public:
 		{
 			mRequireExit = true;
 			mNewFrameFlag = true;
-			mNewFrameFlag.notify_all();
 		}
 
 		for (std::thread& subThread : mSubRenderThread)
@@ -204,9 +204,8 @@ public:
 			mExecuatedRenderPackageCount = 0;
 
 			mNewFrameFlag = true;
-			mNewFrameFlag.notify_all();
 
-			mExecuatedRenderPackageCount.wait(mRenderPackageList.size());
+			Thread::YieldUntilValue(mExecuatedRenderPackageCount, mRenderPackageList.size());
 
 			mNewFrameFlag = false;
 		}
@@ -226,7 +225,8 @@ public:
 	{
 		while (true)
 		{
-			mNewFrameFlag.wait(false);
+			Thread::YieldUntilValue(mNewFrameFlag, true);
+
 			if (mRequireExit)
 				break;
 

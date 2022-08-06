@@ -16,9 +16,8 @@ public:
 	void Init(IRDIDevice* _device, IRDICommandQueue* _commandQueue, size_t _threadCount) noexcept;
 	void Clear() noexcept;
 
-
 	IRDICommandList* AllocateCommandList() noexcept;
-	IRDICommandAllocator* GetCommandAllocator(uint32_t _threadIndex) noexcept
+	IRDICommandAllocator* GetCommandAllocator(uint32_t _threadIndex = 0) noexcept
 	{
 		return mCommandAllocatorList[_threadIndex];
 	}
@@ -27,7 +26,6 @@ public:
 	{
 		mRDICommandQueue->ExecuteCommandLists(_commandListCount, _commandLists);
 	}
-
 
 private:
 	IRDIDevice* mRDIDevice = nullptr;

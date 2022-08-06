@@ -48,6 +48,7 @@ bool SRenderModuleImpl::Init() noexcept
 
 	{
 		mFrameResource->Init(mRdiDevice);
+		mMainRenderContent.Init(mRdiDevice, mRdiCommandQueue, 1);
 		mRenderCommandList.SetFrameResource(mFrameResource);
 	}
 
@@ -100,7 +101,7 @@ void SRenderModuleImpl::Clear() noexcept
 
 void SRenderModuleImpl::BeginFrame_GameThread() noexcept
 {
-	mFrameResource->Get_GameThread().mGameThreadFrameResourceReadyFlag.wait(false);
+	Thread::YieldUntilValue(mFrameResource->Get_GameThread().mGameThreadFrameResourceReadyFlag, true);
 	mFrameResource->Get_GameThread().mGameThreadFrameResourceReadyFlag = false;
 }
 
@@ -112,12 +113,11 @@ void SRenderModuleImpl::EndFrame_GameThread() noexcept
 	mFrameInfoIndex_GameThread = mFrameCount_GameThread % GRenderInfoCount;
 
 	renderThreadFrameResourceReadyFlag = true;
-	renderThreadFrameResourceReadyFlag.notify_one();
 }
 
 void SRenderModuleImpl::BeginFrame_RenderThread() noexcept
 {
-	mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyFlag.wait(false);
+	Thread::YieldUntilValue(mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyFlag, true);
 	mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyFlag = false;
 
 	mRdiCommandQueue->YieldUntilCompletion(mFrameResource->Get_RenderThread().mGpuFence);
@@ -154,17 +154,29 @@ void SRenderModuleImpl::EndFrame_RenderThread() noexcept
 	mFrameInfoIndex_RenderThread = mFrameCount_RenderThread % GRenderInfoCount;
 
 	gameThreadFrameResourceReadyFlag = true;
-	gameThreadFrameResourceReadyFlag.notify_one();
 }
 
 void SRenderModuleImpl::RenderThreadMain() noexcept
 {
 	Thread::SetCurrentThreadName(L"渲染线程");
-	while (mFrameResource->Get_RenderThread().mRequireExit == false)
+	while (true)
 	{
-		BeginFrame_RenderThread();
-		FrameTick_RenderThread();
-		EndFrame_RenderThread();
+		Thread::YieldUntil(
+			[&]() {return mRenderCommandList.HasImmediatelyRenderCommand() || mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyFlag; }
+		);
+
+		if (mRenderCommandList.HasImmediatelyRenderCommand())
+			mRenderCommandList.ExecuateImmediatelyRenderCommand(mMainRenderContent);
+
+		if (mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyFlag)
+		{
+			if (mFrameResource->Get_RenderThread().mRequireExit)
+				return;
+
+			BeginFrame_RenderThread();
+			FrameTick_RenderThread();
+			EndFrame_RenderThread();
+		}
 	}
 }
 

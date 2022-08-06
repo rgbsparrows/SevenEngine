@@ -4,6 +4,7 @@
 #include "RenderResource.h"
 #include "Core/Misc/windowsEx.h"
 #include "Render/RenderModule.h"
+#include "Render/RenderContent.h"
 #include "RenderCommandListImpl.h"
 #include "RDI/Interface/RDIFactory.h"
 #include "Render/RenderProxy/RenderProxy.h"
@@ -51,6 +52,8 @@ private:
 	IRDIFactory* mRdiFactory = nullptr;
 	IRDIDevice* mRdiDevice = nullptr;
 	IRDICommandQueue* mRdiCommandQueue = nullptr;
+	SRenderContent mMainRenderContent;
+
 
 	size_t mFrameInfoIndex_GameThread = 0;
 	size_t mFrameInfoIndex_RenderThread = 0;

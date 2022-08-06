@@ -80,4 +80,9 @@ struct RTexture2DData
 };
 template<> struct RRenderInfoTraits<RTexture2DData> : RExclusiveMode {};
 
+struct RRenderTarget2D
+{
+	IRDITexture2D* mRenderTarget;
+};
+
 #pragma endregion

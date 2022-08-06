@@ -66,7 +66,8 @@ void SUIModuleImpl::OnGUI() noexcept
 	static bool isMainWindowOpen = true;
 	if (isMainWindowOpen)
 	{
-		ImGui::Begin("Seven Engine###MainWindow", &isMainWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
+		std::string str = std::format("Seven Engine FPS : {0} ###MainWindow", 1.F / GClock.GetAbsoluteDeltaTime());
+		ImGui::Begin(str.c_str(), &isMainWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
 		ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
 		ImGui::End();
 	}
