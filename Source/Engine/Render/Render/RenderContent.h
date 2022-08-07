@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RDI/Interface/RDICommandQueue.h"
+#include "Render/RenderModule.h"
 
 #include <vector>
 
@@ -13,23 +13,30 @@ __interface IRDICommandAllocator;
 class SRenderContent
 {
 public:
-	void Init(IRDIDevice* _device, IRDICommandQueue* _commandQueue, size_t _threadCount) noexcept;
+	void Init(IRDIDevice* _device, IRDICommandQueue* _commandQueue) noexcept;
 	void Clear() noexcept;
 
-	IRDICommandList* AllocateCommandList() noexcept;
-	IRDICommandAllocator* GetCommandAllocator(uint32_t _threadIndex = 0) noexcept
-	{
-		return mCommandAllocatorList[_threadIndex];
-	}
+	void BeginFrame() noexcept;
+	void EndFrame() noexcept;
 
-	void ExecuateCommandList(uint32_t _commandListCount, IRDICommandList* const* _commandLists) noexcept
-	{
-		mRDICommandQueue->ExecuteCommandLists(_commandListCount, _commandLists);
-	}
+	void EnsureThreadCount(uint32_t _threadCount) noexcept;
+
+	IRDIDevice* GetDevice() noexcept;
+
+	IRDICommandList* AllocateCommandList(uint32_t _threadIndex = 0) noexcept;
+	IRDICommandAllocator* GetCommandAllocator(uint32_t _threadIndex = 0) noexcept;
+
+	void ExecuteCommandList(IRDICommandList* _commandList) noexcept;
+	void ExecuteCommandLists(uint32_t _commandListCount, IRDICommandList* const* _commandLists) noexcept;
+
+	void SyncToGpuFrameEnd(bool _force = false) noexcept;
 
 private:
 	IRDIDevice* mRDIDevice = nullptr;
 	IRDICommandQueue* mRDICommandQueue = nullptr;
+	IRDICommandList* mRDICommandList = nullptr;
 
-	std::vector<IRDICommandAllocator*> mCommandAllocatorList;
+	bool mIsSyncToGpuFrameEnd = false;
+
+	std::vector<IRDICommandAllocator*> mCommandAllocatorList[GRenderInfoCount];
 };

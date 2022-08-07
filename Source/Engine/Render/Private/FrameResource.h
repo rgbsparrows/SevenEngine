@@ -9,7 +9,7 @@
 struct RRefrashSwapChainInfo
 {
 	RRenderProxy<RSwapChain>* mSwapChain = nullptr;
-	RRenderProxy<RSwapChainData>* mSwapChainData = nullptr;
+	RSwapChainData mSwapChainData;
 };
 
 struct RRenderWindowInfo
@@ -21,7 +21,6 @@ struct RRenderWindowInfo
 struct RRefrashStaticTexture2DInfo
 {
 	RRenderProxy<RTexture2D>* mTexture2D = nullptr;
-	RRenderProxy<RTexture2DData>* mStaticTexture2DDataProxy = nullptr;
 	RTexture2DData mStaticTexture2DData;
 };
 
@@ -34,11 +33,6 @@ struct RRefrashImTexture2DInfo
 struct RFrameResource
 {
 public:
-	void Init(IRDIDevice* _device) noexcept
-	{
-		mCommandAllocator = _device->CreateCommandAllocator(ERDICommandListType::Direct);
-	}
-
 	void OnRenderFrameEnd() noexcept
 	{
 		mNeedInitRenderProxy.resize(0);
@@ -54,8 +48,6 @@ public:
 	std::atomic_bool mGameThreadFrameResourceReadyFlag = true;
 	std::atomic_bool mRenderThreadFrameResourceReadyFlag = false;
 	uint64_t mGpuFence = 0;
-
-	IRDICommandAllocator* mCommandAllocator = nullptr;
 
 	std::vector<RRenderProxyBase*> mNeedInitRenderProxy;
 	std::vector<RRenderProxyBase*> mExpiringRenderProxy;

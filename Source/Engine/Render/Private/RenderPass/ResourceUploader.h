@@ -203,7 +203,6 @@ private:
 
 		uploadBufferDesc.mHeapType = ERDIHeapType::Upload;
 		uploadBufferDesc.mResourceUsage = ERDIResourceUsage::None;
-		uploadBufferDesc.mResourceState = ERDIResourceState::GenericRead;
 
 		RDIResourceDescType resourceDesc;
 		mRDIResource->GetDesc(&resourceDesc);

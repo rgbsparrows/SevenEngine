@@ -55,11 +55,7 @@ void SUIModuleImpl::OnGUI() noexcept
 {
 	ProcessWndMessage();
 
-	if (mImFontTextureDirtyFlag.IsDirty())
-	{
-		GetRenderModule()->GetRenderCommandList()->RefrashImTexture2D(mFontTexture, mImFontTexture);
-		mImFontTextureDirtyFlag.Update();
-	}
+	GetRenderModule()->GetRenderCommandList()->RefrashImTexture2D_I(mFontTexture, mImFontTexture);
 
 	ImguiNewFrame();
 
@@ -258,8 +254,8 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 		texture2dData.mResourceData = std::move(resourceData);
 		texture2dData.mSubresourceData.push_back(subResourceData);
 
-		GetRenderModule()->GetRenderCommandList()->RefrashStaticTexture2D(mFontTexture, std::move(texture2dData));
-		mImFontTextureDirtyFlag.MarkDirty();
+
+		GetRenderModule()->GetRenderCommandList()->RefrashStaticTexture2D_I(mFontTexture, std::move(texture2dData));
 
 		ImGui::GetIO().Fonts->TexID = mImFontTexture;
 	}

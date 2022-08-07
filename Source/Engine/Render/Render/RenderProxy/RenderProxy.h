@@ -65,6 +65,14 @@ public:
 			return mRenderInfo[GetRenderModule()->GetFrameInfoIndex_RenderThread()];
 	}
 
+	RenderInfoType& Get() noexcept
+	{
+		if constexpr (ExclusiveMode == EExclusiveMode::Share)
+			return mRenderInfo[0];
+		else
+			return *static_cast<RenderInfoType*>(nullptr);
+	}
+
 	void Init(IRDIDevice* _device) noexcept override
 	{
 		if constexpr (HasInitMethod)

@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #include "Core/Misc/Thread.h"
-#include "Render/RenderContent.h"
 #include "Core/Class/ClassObject.h"
+#include "Render/RenderPass/SubRenderContent.h"
 
 #include <vector>
 #include <thread>
@@ -154,10 +154,20 @@ public:
 		return false;
 	}
 
-	void Init(IRDIDevice* _device, IRDICommandQueue* _commandQueue) noexcept
+	void Init(SRenderContent* _renderContent) noexcept
 	{
-		uint32_t subThreadCount = std::thread::hardware_concurrency() - 2;
-		mRenderContent.Init(_device, _commandQueue, subThreadCount);
+		uint32_t subThreadCount = 0;
+		
+		uint32_t currentRenderPackageIndex = 0;
+		for (size_t i = 0; i != mSyncPoint.size(); ++i)
+		{
+			subThreadCount = std::max(subThreadCount, mSyncPoint[i] - currentRenderPackageIndex);
+			currentRenderPackageIndex = mSyncPoint[i];
+		}
+
+		subThreadCount = std::min(subThreadCount, std::thread::hardware_concurrency() - 2);
+
+		mRenderContent.Init(_renderContent, subThreadCount);
 
 		for (RRenderPass* renderPass : mRenderPassList)
 			renderPass->Init(mRenderContent);
@@ -213,7 +223,7 @@ public:
 		uint32_t currentRenderPackageIndex = 0;
 		for (size_t i = 0; i != mSyncPoint.size(); ++i)
 		{
-			mRenderContent.ExecuateCommandList(mSyncPoint[i] - currentRenderPackageIndex, &mRenderPackageCommandList[currentRenderPackageIndex]);
+			mRenderContent.ExecuteCommandLists(mSyncPoint[i] - currentRenderPackageIndex, &mRenderPackageCommandList[currentRenderPackageIndex]);
 			currentRenderPackageIndex = mSyncPoint[i];
 		}
 
@@ -223,6 +233,7 @@ public:
 
 	void SubRenderThreadMain(uint32_t _threadIndex)
 	{
+		Thread::SetCurrentThreadName(std::format(L"RenderGraph [{0}] : {1}", mRenderGraphName, _threadIndex));
 		while (true)
 		{
 			Thread::YieldUntilValue(mNewFrameFlag, true);
@@ -243,13 +254,14 @@ public:
 	}
 
 private:
+	std::wstring mRenderGraphName;
 	RRenderingData* mCurrentRenderingData = nullptr;
 
 	std::vector<RRenderPass*> mRenderPassList;
 	std::vector<RRenderPackage> mRenderPackageList;
 	std::vector<IRDICommandList*> mRenderPackageCommandList;
 	std::vector<size_t> mSyncPoint;
-	SRenderContent mRenderContent;
+	SSubRenderContent mRenderContent;
 
 	std::vector<std::thread> mSubRenderThread;
 

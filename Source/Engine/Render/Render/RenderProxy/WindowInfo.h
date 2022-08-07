@@ -22,7 +22,6 @@ struct RSwapChainData
 
 	bool mNeedResize = false;
 };
-template<> struct RRenderInfoTraits<RSwapChainData> : RExclusiveMode {};
 
 struct RSwapChain
 {
@@ -41,7 +40,7 @@ struct RImguiTexture2D
 			mDescriptorHeapRange->Release();
 	}
 };
-template<> struct RRenderInfoTraits<RImguiTexture2D> : RExclusiveMode {};
+template<> struct RRenderInfoTraits<RImguiTexture2D> : RShareMode {};
 
 struct RImguiVertex
 {

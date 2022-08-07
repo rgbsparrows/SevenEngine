@@ -33,27 +33,16 @@ public:
 private:
 	void RenderThreadMain() noexcept;
 
-	void RefrashResources() noexcept;
-	void RefrashTextureResource() noexcept;
-
-	void RefrashSwapChain() noexcept;
 	void RenderImgui() noexcept;
 	void PresentWindows() noexcept;
 
 private:
-	IRDICommandAllocator* GetCommandAllocator() noexcept { return mFrameResource->Get_RenderThread().mCommandAllocator; }
-	void SyncToGpuFrameEnd(bool _force = false) noexcept;
-
-private:
 	std::thread mRenderThread;
-
-	bool mIsSyncToGpuFrameEnd = false;
 
 	IRDIFactory* mRdiFactory = nullptr;
 	IRDIDevice* mRdiDevice = nullptr;
 	IRDICommandQueue* mRdiCommandQueue = nullptr;
 	SRenderContent mMainRenderContent;
-
 
 	size_t mFrameInfoIndex_GameThread = 0;
 	size_t mFrameInfoIndex_RenderThread = 0;

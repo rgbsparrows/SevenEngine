@@ -78,7 +78,6 @@ struct RTexture2DData
 	std::vector<SBufferView> mSubresourceData;
 	SBlob mResourceData;
 };
-template<> struct RRenderInfoTraits<RTexture2DData> : RExclusiveMode {};
 
 struct RRenderTarget2D
 {

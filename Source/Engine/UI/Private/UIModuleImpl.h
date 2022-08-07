@@ -54,7 +54,6 @@ private:
 
 	RRenderProxy<RTexture2D>* mFontTexture = nullptr;
 	RRenderProxy<RImguiTexture2D>* mImFontTexture = nullptr;
-	RDirtyFlag mImFontTextureDirtyFlag;
 
 	HICON mIcon = nullptr;
 	HMODULE mXInputDLL = nullptr;
