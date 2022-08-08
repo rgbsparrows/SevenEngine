@@ -108,7 +108,7 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 				for (uint32_t i = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
 				{
 					if (mTexture2DData.mSubresourceData[i].IsEmpty() == false)
-						memcpy_s(dataPtr, desc.mBufferSize, mTexture2DData.mSubresourceData[i].GetBuffer(), mTexture2DData.mSubresourceData[i].GetBufferSize());
+						memcpy_s(dataPtr, desc.mBufferSize, mTexture2DData.mSubresourceData[i].GetBuffer(mTexture2DData.mResourceData), mTexture2DData.mSubresourceData[i].GetSize());
 
 					dataPtr = reinterpret_cast<uint8_t*>(dataPtr) + SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
 				}
@@ -132,7 +132,7 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 		}
 	};
 
-	AddRenderCommand(SRefrashStaticTexture2DCommand{ _texture2D, std::move(_textureData)});
+	AddRenderCommand(SRefrashStaticTexture2DCommand{ _texture2D, std::move(_textureData) });
 }
 
 void SRenderCommandListImpl::RefrashImTexture2D_I(RRenderProxy<RTexture2D>* _texture2D, RRenderProxy<RImguiTexture2D>* _imTexture2D) noexcept
@@ -154,7 +154,7 @@ void SRenderCommandListImpl::RefrashImTexture2D_I(RRenderProxy<RTexture2D>* _tex
 		}
 	};
 
-	AddRenderCommand(SRefrashImTexture2D{_texture2D, _imTexture2D});
+	AddRenderCommand(SRefrashImTexture2D{ _texture2D, _imTexture2D });
 }
 
 void SRenderCommandListImpl::RefrashSwapChain_I(RRenderProxy<RSwapChain>* _swapChain, const RSwapChainData& _swapChainData) noexcept
@@ -188,6 +188,11 @@ void SRenderCommandListImpl::RefrashSwapChain_I(RRenderProxy<RSwapChain>* _swapC
 	};
 
 	AddRenderCommand(SRefrashSwapChainCommand{ _swapChain, _swapChainData });
+}
+
+void SRenderCommandListImpl::RenderWorld(RRenderProxy<R3DWorldRenderData>* _3dWorldData, R3DWorldRenderGraph* _renderGraph) noexcept
+{
+	GetFrameResource_GameThread().mRender3DWorldList.push_back(RRender3DWorldInfo{ _3dWorldData, _renderGraph });
 }
 
 void SRenderCommandListImpl::RenderWindow(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData) noexcept

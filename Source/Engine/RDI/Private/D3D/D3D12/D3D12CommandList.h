@@ -13,7 +13,6 @@ class SD3D12CommandList : public IRDICommandList
 {
 public:
 	void Init(ID3D12GraphicsCommandList* _commandListNativePtr, SD3D12Device* _device) noexcept;
-	void Clear() noexcept;
 
 	ID3D12GraphicsCommandList* GetNativePtr() noexcept { return mCommandListNativePtr; }
 	void SetDescriptorHeap() noexcept;

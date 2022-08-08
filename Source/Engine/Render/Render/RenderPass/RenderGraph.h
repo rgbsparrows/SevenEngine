@@ -13,7 +13,7 @@ __interface IRDIDevice;
 __interface IRDICommandQueue;
 __interface IRDICommandList;
 
-class SRenderContent;
+class SSubRenderContent;
 
 class RRenderPassBase
 {
@@ -28,8 +28,8 @@ public:
 
 	virtual bool IsEmptyCommandRenderPass() const noexcept { return false; }
 
-	virtual void Init(SRenderContent& _renderContent) noexcept {}
-	virtual void Clear(SRenderContent& _renderContent) noexcept {}
+	virtual void Init(SSubRenderContent& _renderContent) noexcept {}
+	virtual void Clear(SSubRenderContent& _renderContent) noexcept {}
 
 private:
 	std::vector<RRenderPassBase*> mPrecursorRenderPassList;
@@ -44,13 +44,13 @@ public:
 	using RRenderingData = _renderingDataType;
 	using RRenderPass = TRenderPass<RRenderingData>;
 
-	virtual void PreRender(RRenderingData& _renderSource, SRenderContent& _renderContent) noexcept {}
+	virtual void PreRender(RRenderingData& _renderSource, SSubRenderContent& _renderContent) noexcept {}
 	virtual void Render(RRenderingData& _renderSource, IRDICommandList* _commandList) noexcept {}
-	virtual void PostRender(RRenderingData& _renderSource, SRenderContent& _renderContent) noexcept {}
+	virtual void PostRender(RRenderingData& _renderSource, SSubRenderContent& _renderContent) noexcept {}
 };
 
 bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList, uint64_t _renderPassBaseClassHash) noexcept;
-bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_t _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<std::pair<size_t, size_t>>& _renderPackageGroup, std::vector<size_t>& _syncPointForRenderPackage) noexcept;
+bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_t _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<size_t>& _renderPackageGroup, std::vector<size_t>& _syncPointForRenderPackage) noexcept;
 
 template<typename _renderingDataType>
 class TRenderGraph
@@ -75,12 +75,12 @@ public:
 			mRenderPassList = _renderPassList;
 		}
 
-		void Init(SRenderContent& _renderContent) noexcept
+		void Init(SSubRenderContent& _renderContent) noexcept
 		{
 			mRDICommandList = _renderContent.AllocateCommandList();
 		}
 
-		void Clear(SRenderContent& _renderContent) noexcept
+		void Clear(SSubRenderContent& _renderContent) noexcept
 		{
 			mRDICommandList->Release();
 		}
@@ -154,11 +154,11 @@ public:
 		return false;
 	}
 
-	void Init(SRenderContent* _renderContent) noexcept
+	void Init(SSubRenderContent* _renderContent) noexcept
 	{
 		uint32_t subThreadCount = 0;
 		
-		uint32_t currentRenderPackageIndex = 0;
+		size_t currentRenderPackageIndex = 0;
 		for (size_t i = 0; i != mSyncPoint.size(); ++i)
 		{
 			subThreadCount = std::max(subThreadCount, mSyncPoint[i] - currentRenderPackageIndex);
@@ -220,10 +220,10 @@ public:
 			mNewFrameFlag = false;
 		}
 
-		uint32_t currentRenderPackageIndex = 0;
+		size_t currentRenderPackageIndex = 0;
 		for (size_t i = 0; i != mSyncPoint.size(); ++i)
 		{
-			mRenderContent.ExecuteCommandLists(mSyncPoint[i] - currentRenderPackageIndex, &mRenderPackageCommandList[currentRenderPackageIndex]);
+			mRenderContent.ExecuteCommandLists(static_cast<uint32_t>(mSyncPoint[i] - currentRenderPackageIndex), &mRenderPackageCommandList[currentRenderPackageIndex]);
 			currentRenderPackageIndex = mSyncPoint[i];
 		}
 
@@ -267,8 +267,8 @@ private:
 
 	bool mRequireExit = false;
 
-	std::atomic<uint32_t> mExecuatingRenderPackageCount = 0;
-	std::atomic<uint32_t> mExecuatedRenderPackageCount = 0;
+	std::atomic<size_t> mExecuatingRenderPackageCount = 0;
+	std::atomic<size_t> mExecuatedRenderPackageCount = 0;
 
 	std::atomic_bool mNewFrameFlag = false;
 };

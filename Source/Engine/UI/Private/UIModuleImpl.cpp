@@ -15,6 +15,7 @@
 #include "Core/Misc/PreWindowsApi.h"
 #include <XInput.h>
 #include "Core/Misc/PostWindowsApi.h"
+#include "Render/RenderPass/RenderGraph.h"
 
 static SUIModuleImpl* GUIModuleImpl = nullptr;
 
@@ -248,7 +249,7 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 		desc.mSizeY = height;
 
 		SBlob resourceData = SBlob(pixels, 1ull * width * height * sizeof(uint32_t));
-		SBufferView subResourceData = SBufferView(resourceData);
+		SRange subResourceData = SRange(resourceData.GetBufferSize());
 
 		texture2dData.mDesc = desc;
 		texture2dData.mResourceData = std::move(resourceData);

@@ -16,7 +16,7 @@ namespace NameOfDetail
 		funcsig.remove_prefix(110);
 		funcsig.remove_suffix(16);
 		size_t lastPos = funcsig.find_last_of(L' ');
-		if (lastPos != std::wstring_view::npos)
+		if (lastPos != std::wstring_view::npos && !funcsig.contains(L'<'))
 			funcsig.remove_prefix(lastPos + 1);
 		return funcsig;
 	}
@@ -25,7 +25,7 @@ namespace NameOfDetail
 	NO_DISCARD_RETURN constexpr std::wstring_view GetShortTypeName() noexcept
 	{
 		std::wstring_view typeName = GetFullTypeName<_type>();
-		if constexpr (!std::is_integral_v<_type> && !std::is_floating_point_v<_type>)
+		if (!std::is_integral_v<_type> && !std::is_floating_point_v<_type> && !typeName.contains(L'<'))
 		{
 			size_t lastPos = typeName.find_last_of(L':');
 			if (lastPos != std::wstring_view::npos)

@@ -33,6 +33,7 @@ public:
 private:
 	void RenderThreadMain() noexcept;
 
+	void RenderWorld() noexcept;
 	void RenderImgui() noexcept;
 	void PresentWindows() noexcept;
 

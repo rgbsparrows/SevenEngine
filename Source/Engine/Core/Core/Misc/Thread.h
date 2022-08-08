@@ -18,28 +18,28 @@ namespace Thread
 	void SetCurrentThreadName(std::wstring_view _threadName) noexcept;
 
 	template<typename _funcType>
-	void YieldUntil(_funcType _condition)
+	void YieldUntil(_funcType _condition) noexcept
 	{
 		while (_condition() == false)
 			std::this_thread::yield();
 	}
 
 	template<typename _valueType>
-	void YieldUntilValue(std::atomic<_valueType>& _atomicValue, _valueType _value)
+	void YieldUntilValue(std::atomic<_valueType>& _atomicValue, _valueType _value) noexcept
 	{
 		while (_atomicValue != _value)
 			std::this_thread::yield();
 	}
 
 	template<typename _funcType>
-	void YieldWhile(_funcType _condition)
+	void YieldWhile(_funcType _condition) noexcept
 	{
 		while (_condition())
 			std::this_thread::yield();
 	}
 
 	template<typename _valueType>
-	void YieldWhileValue(std::atomic<_valueType>& _atomicValue, _valueType _value)
+	void YieldWhileValue(std::atomic<_valueType>& _atomicValue, _valueType _value) noexcept
 	{
 		while (_atomicValue == _value)
 			std::this_thread::yield();

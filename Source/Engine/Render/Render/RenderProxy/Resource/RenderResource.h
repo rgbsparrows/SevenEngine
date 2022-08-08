@@ -43,12 +43,14 @@ struct RMesh
 
 	IRDIBuffer* mIndexBuffer;
 	IRDIBuffer* mVertexBuffer[EnumToInt(EVertexSemantic::Num)] = {};
+
+	std::vector<SRange> mSubMeshRange;
 };
 template<> struct RRenderInfoTraits<RMesh> : RShareMode {};
 
 struct RMeshData
 {
-	bool mIsDynamicMesh;
+	EVertexSemanticFlag mVertexSemantic;
 
 	std::vector<Math::SFloat3> mPositionBuffer;
 	std::vector<Math::SFloat3> mNormalBuffer;
@@ -57,8 +59,9 @@ struct RMeshData
 	std::vector<Math::SInt4> mBlendIndices;
 	std::vector<Math::SFloat4> mBlendWeight;
 	std::vector<Math::SFloat2> mUv[8];
+
+	std::vector<SRange> mSubMeshRange;
 };
-template<> struct RRenderInfoTraits<RMeshData> : RExclusiveMode {};
 
 #pragma endregion
 
@@ -75,13 +78,8 @@ struct RTexture2DData
 {
 	SRDITexture2DResourceDesc mDesc;
 
-	std::vector<SBufferView> mSubresourceData;
+	std::vector<SRange> mSubresourceData;
 	SBlob mResourceData;
-};
-
-struct RRenderTarget2D
-{
-	IRDITexture2D* mRenderTarget;
 };
 
 #pragma endregion

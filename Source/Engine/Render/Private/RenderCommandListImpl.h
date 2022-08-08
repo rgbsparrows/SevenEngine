@@ -27,6 +27,7 @@ public:
 	void RefrashImTexture2D_I(RRenderProxy<RTexture2D>* _texture2D, RRenderProxy<RImguiTexture2D>* _imTexture2D) noexcept override;
 	void RefrashSwapChain_I(RRenderProxy<RSwapChain>* _swapChain, const RSwapChainData& _swapChainData) noexcept override;
 
+	void RenderWorld(RRenderProxy<R3DWorldRenderData>* _3dWorldData, R3DWorldRenderGraph* _renderGraph) noexcept;
 	void RenderWindow(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData) noexcept;
 
 private:

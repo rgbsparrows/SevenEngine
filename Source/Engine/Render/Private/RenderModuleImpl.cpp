@@ -177,6 +177,18 @@ void SRenderModuleImpl::RenderThreadMain() noexcept
 	}
 }
 
+void SRenderModuleImpl::RenderWorld() noexcept
+{
+	auto& render3DWorldList = mFrameResource->Get_RenderThread().mRender3DWorldList;
+
+	for (size_t i = 0; i != render3DWorldList.size(); ++i)
+	{
+		RRender3DWorldInfo& render3DWorldInfo = render3DWorldList[i];
+
+		render3DWorldInfo.mRenderGraph->Render(render3DWorldInfo.m3DWorldRenderData->Get_RenderThread());
+	}
+}
+
 void SRenderModuleImpl::RenderImgui() noexcept
 {
 	auto& renderWindowList = mFrameResource->Get_RenderThread().mRenderWindowList;

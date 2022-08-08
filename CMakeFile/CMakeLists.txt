@@ -24,6 +24,7 @@ set(CMAKE_WIN32_EXECUTABLE ON)
 
 add_compile_options("/std:c++latest")
 add_compile_options("/GR-")
+add_compile_options("/MP")
 add_compile_options("/WX")
 add_compile_options("/Zc:char8_t-")
 add_compile_definitions("$<$<CONFIG:Debug>:SE_BUILD_DEBUG>$<$<CONFIG:Shipping>:SE_BUILD_SHIPPING>$<$<CONFIG:Profile>:SE_BUILD_PROFILE>$<$<CONFIG:Test>:SE_BUILD_TEST>=1")

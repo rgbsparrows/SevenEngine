@@ -3,31 +3,20 @@
 #include "RDI/Interface/RDIDevice.h"
 #include "Render/RenderProxy/WindowInfo.h"
 #include "Render/RenderProxy/RenderProxy.h"
+#include "Render/RenderProxy/World/WorldProxy.h"
 
 #include <functional>
 
-struct RRefrashSwapChainInfo
+struct RRender3DWorldInfo
 {
-	RRenderProxy<RSwapChain>* mSwapChain = nullptr;
-	RSwapChainData mSwapChainData;
+	RRenderProxy<R3DWorldRenderData>* m3DWorldRenderData = nullptr;
+	R3DWorldRenderGraph* mRenderGraph = nullptr;
 };
 
 struct RRenderWindowInfo
 {
 	RRenderProxy<RSwapChain>* mSwapChain = nullptr;
 	RRenderProxy<RImguiDrawData>* mImguiDrawData = nullptr;
-};
-
-struct RRefrashStaticTexture2DInfo
-{
-	RRenderProxy<RTexture2D>* mTexture2D = nullptr;
-	RTexture2DData mStaticTexture2DData;
-};
-
-struct RRefrashImTexture2DInfo
-{
-	RRenderProxy<RTexture2D>* mTexture2D = nullptr;
-	RRenderProxy<RImguiTexture2D>* mImTexture = nullptr;
 };
 
 struct RFrameResource
@@ -37,9 +26,6 @@ public:
 	{
 		mNeedInitRenderProxy.resize(0);
 		mExpiringRenderProxy.resize(0);
-		mRefrashexture2DList.resize(0);
-		mRefrashImTexture2DList.resize(0);
-		mRefrashSwapChainList.resize(0);
 		mRenderWindowList.resize(0);
 	}
 
@@ -52,10 +38,7 @@ public:
 	std::vector<RRenderProxyBase*> mNeedInitRenderProxy;
 	std::vector<RRenderProxyBase*> mExpiringRenderProxy;
 
-	std::vector<RRefrashStaticTexture2DInfo> mRefrashexture2DList;
-	std::vector<RRefrashImTexture2DInfo> mRefrashImTexture2DList;
-
-	std::vector<RRefrashSwapChainInfo> mRefrashSwapChainList;
+	std::vector<RRender3DWorldInfo> mRender3DWorldList;
 	std::vector<RRenderWindowInfo> mRenderWindowList;
 };
 template<> struct RRenderInfoTraits<RFrameResource> : RExclusiveMode {};
