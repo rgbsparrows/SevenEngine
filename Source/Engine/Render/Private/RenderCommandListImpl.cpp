@@ -3,6 +3,7 @@
 #include "RenderCommandListImpl.h"
 #include "RDI/Interface/RDISwapChain.h"
 #include "RDI/Interface/RDICommandList.h"
+#include "Render/RenderGraph/RenderGraph.h"
 
 bool SRenderCommandListImpl::HasImmediatelyRenderCommand() const noexcept
 {

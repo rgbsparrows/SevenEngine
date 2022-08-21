@@ -5,6 +5,7 @@
 
 #include <functional>
 
+class RRenderGraphBase;
 class R3DWorldRenderGraph;
 
 __interface IRenderCommandList
