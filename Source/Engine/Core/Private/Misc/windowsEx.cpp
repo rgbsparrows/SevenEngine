@@ -3,6 +3,21 @@
 
 #include <thread>
 
+std::wstring GetHResultMessage(HRESULT _hresult) noexcept
+{
+	wchar_t msgBuffer[512];
+
+	FormatMessageW(
+		FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL,
+		_hresult,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		msgBuffer,
+		512, NULL);
+
+	return msgBuffer;
+}
+
 void YieldForSingleObject(HANDLE _handle) noexcept
 {
 	Thread::YieldWhile(

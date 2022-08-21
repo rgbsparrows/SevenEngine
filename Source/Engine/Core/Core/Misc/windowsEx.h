@@ -17,16 +17,12 @@ extern "C" _ACRTIMP void __cdecl _wassert(
 );
 
 template<typename _functionType>
-auto GetProcAddress(HMODULE _module, std::string_view _funcSignature) noexcept
+auto GetProcAddress(HMODULE _module, const char* _funcSignature) noexcept
 {
 	using FunctionType = _functionType;
-	return reinterpret_cast<FunctionType*>(::GetRawProcAddress(_module, _funcSignature));
+	return reinterpret_cast<FunctionType*>(::GetProcAddress(_module, _funcSignature));
 }
 
-void* GetRawProcAddress(HMODULE _module, std::string_view _funcSignature) noexcept;
-void OutputDebugString(std::wstring_view _message) noexcept;
-
-void ProcessWinMessage() noexcept;
-bool IsWinMessageQueueClose() noexcept;
+std::wstring GetHResultMessage(HRESULT _hresult) noexcept;
 
 void YieldForSingleObject(HANDLE _handle) noexcept;

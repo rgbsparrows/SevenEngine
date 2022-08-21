@@ -12,6 +12,7 @@
 #undef DefWindowProc
 #undef PeekMessage
 #undef DispatchMessage
+#undef FormatMessage
 #undef max
 #undef min
 #undef assert

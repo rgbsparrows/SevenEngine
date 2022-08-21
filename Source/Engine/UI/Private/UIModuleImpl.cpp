@@ -211,8 +211,8 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 		if (HMODULE dll = ::LoadLibraryA(xinput_dll_names[n]))
 		{
 			mXInputDLL = dll;
-			mXInputGetCapabilitiesFunc = reinterpret_cast<SXInputGetCapabilitiesFuncType*>(::GetProcAddress(dll, "XInputGetCapabilities"));
-			mXInputGetStateFunc = reinterpret_cast<SXInputGetStateFuncType*>(::GetProcAddress(dll, "XInputGetState"));
+			mXInputGetCapabilitiesFunc = GetProcAddress<SXInputGetCapabilitiesFuncType>(dll, "XInputGetCapabilities");
+			mXInputGetStateFunc = GetProcAddress<SXInputGetStateFuncType>(dll, "XInputGetState");
 			break;
 		}
 	}
@@ -607,7 +607,7 @@ LRESULT SUIModuleImpl::WndProc(HWND _hwnd, UINT _msg, WPARAM _wParam, LPARAM _lP
 BOOL SUIModuleImpl::UpdateMonitors_EnumFunc(HMONITOR _monitor, HDC, LPRECT, LPARAM)
 {
 	static HMODULE shcoreDll = ::LoadLibraryA("shcore.dll");
-	static SGetDpiForMonitorFuncType* mGetDpiForMonitorFunc = reinterpret_cast<SGetDpiForMonitorFuncType*>(::GetProcAddress(shcoreDll, "GetDpiForMonitor"));
+	static SGetDpiForMonitorFuncType* mGetDpiForMonitorFunc = GetProcAddress<SGetDpiForMonitorFuncType>(shcoreDll, "GetDpiForMonitor");
 
 	static std::unique_ptr<HMODULE, void(*)(HMODULE* dllHandle)> shcoreDllDeleter = std::unique_ptr<HMODULE, void(*)(HMODULE* dllHandle)>(&shcoreDll, [](HMODULE* dllHandle) { FreeLibrary(*dllHandle); });
 
