@@ -203,7 +203,7 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture1D* _resource
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION::D3D12_RTV_DIMENSION_TEXTURE1D;
 	rtvDesc.Texture1D.MipSlice = _mipSlice;
 
-	return CreateRTV(texture1d->GetNativePtr(), &rtvDesc);
+	return CreateRTV(texture1d->GetNativePtr(), desc.mClearColor, &rtvDesc);
 }
 
 SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture2D* _resource, uint32_t _mipSlice) noexcept
@@ -222,7 +222,7 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture2D* _resource
 	rtvDesc.Texture2D.MipSlice = _mipSlice;
 	rtvDesc.Texture2D.PlaneSlice = 0;
 
-	return CreateRTV(texture2d->GetNativePtr(), &rtvDesc);
+	return CreateRTV(texture2d->GetNativePtr(), desc.mClearColor, &rtvDesc);
 }
 
 SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture3D* _resource, uint32_t _mipSlice) noexcept
@@ -242,7 +242,7 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture3D* _resource
 	rtvDesc.Texture3D.FirstWSlice = 0;
 	rtvDesc.Texture3D.WSize = desc.mSizeZ;
 
-	return CreateRTV(texture3d->GetNativePtr(), &rtvDesc);
+	return CreateRTV(texture3d->GetNativePtr(), desc.mClearColor, &rtvDesc);
 }
 
 SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITextureCube* _resource, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice) noexcept
@@ -263,7 +263,7 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITextureCube* _resour
 	rtvDesc.Texture2DArray.ArraySize = 1;
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-	return CreateRTV(textureCube->GetNativePtr(), &rtvDesc);
+	return CreateRTV(textureCube->GetNativePtr(), desc.mClearColor, &rtvDesc);
 }
 
 SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITexture1D* _resource, uint32_t _mipSlice) noexcept
@@ -282,7 +282,7 @@ SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITexture1D* _resource
 	dsvDesc.Flags = D3D12_DSV_FLAGS::D3D12_DSV_FLAG_NONE;
 	dsvDesc.Texture1D.MipSlice = _mipSlice;
 
-	return CreateDSV(texture1d->GetNativePtr(), &dsvDesc);
+	return CreateDSV(texture1d->GetNativePtr(), desc.mClearDepth, desc.mClearStencil, &dsvDesc);
 }
 
 SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITexture2D* _resource, uint32_t _mipSlice) noexcept
@@ -301,7 +301,7 @@ SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITexture2D* _resource
 	dsvDesc.Flags = D3D12_DSV_FLAGS::D3D12_DSV_FLAG_NONE;
 	dsvDesc.Texture2D.MipSlice = _mipSlice;
 
-	return CreateDSV(texture2d->GetNativePtr(), &dsvDesc);
+	return CreateDSV(texture2d->GetNativePtr(), desc.mClearDepth, desc.mClearStencil, &dsvDesc);
 }
 
 SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITextureCube* _resource, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice) noexcept
@@ -322,7 +322,7 @@ SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITextureCube* _resour
 	dsvDesc.Texture2DArray.FirstArraySlice = EnumToInt(_cubeFace);
 	dsvDesc.Texture2DArray.ArraySize = 1;
 
-	return CreateDSV(textureCube->GetNativePtr(), &dsvDesc);
+	return CreateDSV(textureCube->GetNativePtr(), desc.mClearDepth, desc.mClearStencil, &dsvDesc);
 }
 
 SD3D12ShaderResourceView* SD3D12DescriptorHeap::CreateSRV(IRDIBuffer* _resource) noexcept
@@ -680,10 +680,10 @@ SD3D12SamplerView* SD3D12DescriptorHeap::CreateSamplerView(IRDISampler* _sampler
 	samplerDesc.MipLODBias = desc.mMipLODBias;
 	samplerDesc.MaxAnisotropy = desc.mMaxAnisotropy;
 	samplerDesc.ComparisonFunc = ConvertComparisonFuncToD3D12(desc.mComparisonFunc);
-	samplerDesc.BorderColor[0] = desc.mBorderColor.R;
-	samplerDesc.BorderColor[1] = desc.mBorderColor.G;
-	samplerDesc.BorderColor[2] = desc.mBorderColor.B;
-	samplerDesc.BorderColor[3] = desc.mBorderColor.A;
+	samplerDesc.BorderColor[0] = desc.mBorderColor[0];
+	samplerDesc.BorderColor[1] = desc.mBorderColor[1];
+	samplerDesc.BorderColor[2] = desc.mBorderColor[2];
+	samplerDesc.BorderColor[3] = desc.mBorderColor[3];
 	samplerDesc.MinLOD = desc.mMinLod;
 	samplerDesc.MaxLOD = desc.mMaxLod;
 
@@ -730,7 +730,7 @@ void SD3D12DescriptorHeap::ReleaseSamplerView(SD3D12SamplerView* _samplerView) n
 	mSamplerViewPool.DeallocateElement(_samplerView);
 }
 
-SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(ID3D12Resource* _resourceNativePtr, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept
+SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(ID3D12Resource* _resourceNativePtr, Math::SFColor _clearValue, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mRTVAllocatorHelper.AllocateSlot();
 
@@ -741,10 +741,10 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(ID3D12Resource* _resourc
 
 	mDevice->GetNativePtr()->CreateRenderTargetView(_resourceNativePtr, _desc, cpuHandle);
 
-	return mRenderTargetViewPool.AllocateElement(cpuHandle);
+	return mRenderTargetViewPool.AllocateElement(cpuHandle, _clearValue);
 }
 
-SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(ID3D12Resource* _resourceNativePtr, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept
+SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(ID3D12Resource* _resourceNativePtr, float _clearDepth, uint8_t _clearStencil, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mDSVAllocatorHelper.AllocateSlot();
 
@@ -755,7 +755,7 @@ SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(ID3D12Resource* _resourc
 
 	mDevice->GetNativePtr()->CreateDepthStencilView(_resourceNativePtr, _desc, cpuHandle);
 
-	return mDepthStencilViewPool.AllocateElement(cpuHandle);
+	return mDepthStencilViewPool.AllocateElement(cpuHandle, _clearDepth, _clearStencil);
 }
 
 SD3D12ShaderResourceView* SD3D12DescriptorHeap::CreateSRV(ID3D12Resource* _resourceNativePtr, const D3D12_SHADER_RESOURCE_VIEW_DESC* _desc) noexcept

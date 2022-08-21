@@ -191,8 +191,8 @@ public:
 	void ReleaseSamplerView(SD3D12SamplerView* _samplerView) noexcept;
 
 private:
-	SD3D12RenderTargetView* CreateRTV(ID3D12Resource* _resourceNativePtr, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept;
-	SD3D12DepthStencilView* CreateDSV(ID3D12Resource* _resourceNativePtr, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept;
+	SD3D12RenderTargetView* CreateRTV(ID3D12Resource* _resourceNativePtr, Math::SFColor _clearValue, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept;
+	SD3D12DepthStencilView* CreateDSV(ID3D12Resource* _resourceNativePtr, float _clearDepth, uint8_t _clearStencil, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept;
 	SD3D12ShaderResourceView* CreateSRV(ID3D12Resource* _resourceNativePtr, const D3D12_SHADER_RESOURCE_VIEW_DESC* _desc) noexcept;
 	SD3D12UnorderedAccessView* CreateUAV(ID3D12Resource* _resourceNativePtr, const D3D12_UNORDERED_ACCESS_VIEW_DESC* _desc) noexcept;
 	SD3D12SamplerView* CreateSamplerView(const D3D12_SAMPLER_DESC* _desc) noexcept;

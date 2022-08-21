@@ -1,5 +1,4 @@
 ﻿#include "RDI/RDIModule.h"
-#include "Render/RenderProxy/Resource/RenderResource.h"
 #include "RenderModuleImpl.h"
 #include "Core/Misc/Thread.h"
 #include "Core/Misc/windowsEx.h"
@@ -8,10 +7,13 @@
 #include "RDI/Interface/RDISwapChain.h"
 #include "RDI/Interface/RDICommandList.h"
 #include "RDI/Interface/RDICommandQueue.h"
+#include "Render/RenderGraph/RenderGraph.h"
+#include "RenderGraph/3DWorldRenderGraph.h"
+#include "RDI/Interface/RDICommandAllocator.h"
 #include "RDI/Interface/RDIDescriptorHeapRange.h"
+#include "Render/RenderProxy/Resource/RenderResource.h"
 
 #include <functional>
-#include "RDI/Interface/RDICommandAllocator.h"
 
 SRenderModuleImpl* GRenderModuleImpl = nullptr;
 
@@ -144,6 +146,8 @@ void SRenderModuleImpl::FrameTick_RenderThread() noexcept
 
 	TODO("RenderGraph");
 
+	RenderWorld();
+
 	RenderImgui();
 	PresentWindows();
 
@@ -185,7 +189,7 @@ void SRenderModuleImpl::RenderWorld() noexcept
 	{
 		RRender3DWorldInfo& render3DWorldInfo = render3DWorldList[i];
 
-		render3DWorldInfo.mRenderGraph->Render(render3DWorldInfo.m3DWorldRenderData->Get_RenderThread());
+		render3DWorldInfo.mRenderGraph->Render(R3DWorldRawRenderingData{ &render3DWorldInfo.m3DWorld->Get_RenderThread(), &render3DWorldInfo.mCanvas->Get_RenderThread() });
 	}
 }
 
@@ -337,7 +341,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 
 		IRDIRenderTargetView* renderTargetView[1] = { swapChain.mSwapChain->GetRenderTarget()->GetRTV(0) };
 		commandList->OMSetRenderTargets(1, renderTargetView, nullptr);
-		commandList->ClearRenderTargetView(swapChain.mSwapChain->GetRenderTarget()->GetRTV(0), Math::SFColor(0.f, 0.f, 0.f, 1.f));
+		commandList->ClearRenderTargetView(swapChain.mSwapChain->GetRenderTarget()->GetRTV(0));
 
 		SRDISwapChainDesc swapChainDesc;
 		swapChain.mSwapChain->GetDesc(&swapChainDesc);
@@ -380,7 +384,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 
 	commandList->Close();
 	mRdiCommandQueue->ExecuteCommandLists(1, &commandList);
-	commandList->Release();
+	mMainRenderContent.ReleaseCommandList(commandList);
 }
 
 void SRenderModuleImpl::PresentWindows() noexcept

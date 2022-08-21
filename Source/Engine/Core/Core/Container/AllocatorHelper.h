@@ -69,7 +69,7 @@ public:
 
 	void DeallocateSlot(uint64_t _slotIndex)
 	{
-		CHECK(_slotIndex <= mBitmap.size() * 64ull);
+		CHECK(_slotIndex < mBitmap.size() * 64ull);
 		CHECK(IsSlotAllocated(_slotIndex) == true);
 
 		uint64_t wordIndex = _slotIndex / 64;
@@ -138,7 +138,7 @@ public:
 		CHECK(_arraySize <= 64ull);
 		CHECK(_arraySize != 0ull);
 
-		uint64_t slotMask[63][2];
+		uint64_t slotMask[64][2];
 
 		if (_arraySize == 64ull)
 			slotMask[0][0] = UINT64_MAX;
@@ -147,7 +147,7 @@ public:
 
 		slotMask[0][1] = 0;
 
-		for (size_t i = 1; i != 63; ++i)
+		for (size_t i = 1; i != 64; ++i)
 		{
 			slotMask[i][0] = slotMask[0][0] << i;
 			slotMask[i][1] = slotMask[0][0] >> (64 - i);
@@ -164,8 +164,8 @@ public:
 					(mBitmap[mCurrentWord + 1] & slotMask[i][1]) == slotMask[i][1]
 					)
 				{
-					mBitmap[mCurrentWord] &= slotMask[i][0];
-					mBitmap[mCurrentWord + 1] &= slotMask[i][1];
+					mBitmap[mCurrentWord] &= ~slotMask[i][0];
+					mBitmap[mCurrentWord + 1] &= ~slotMask[i][1];
 					return mCurrentWord * 64 + i;
 				}
 			}

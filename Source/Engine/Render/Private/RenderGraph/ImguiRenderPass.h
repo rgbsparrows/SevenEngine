@@ -1,8 +1,8 @@
 #pragma once
 
 #include "FrameResource.h"
-#include "ResourceUploader.h"
 #include "Render/RenderModule.h"
+#include "Render/RenderGraph/ResourceUploader.h"
 
 #include <vector>
 

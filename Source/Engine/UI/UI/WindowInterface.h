@@ -1,10 +1,9 @@
 #pragma once
 
-__interface UWindowInterface
+__interface IUIWindowInterface
 {
 	bool IsWindowOpen() noexcept;
 
 	void OnGui() noexcept;
-	void OnClose() noexcept;
 	void Release() noexcept;
 };

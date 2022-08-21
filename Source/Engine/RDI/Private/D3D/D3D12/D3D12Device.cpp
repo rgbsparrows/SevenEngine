@@ -118,17 +118,17 @@ void SD3D12Device::Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D1
 
 		mD3DInclude.Init(
 			[](const std::filesystem::path& _includeFile)
-		{
-			auto filePath = SBasicPath::GetEngineShaderPath() / _includeFile;
-			if (std::filesystem::exists(filePath))
-				return filePath;
+			{
+				auto filePath = SBasicPath::GetEngineShaderPath() / _includeFile;
+				if (std::filesystem::exists(filePath))
+					return filePath;
 
-			filePath = SBasicPath::GetProjectShaderPath() / _includeFile;
-			if (std::filesystem::exists(filePath))
-				return filePath;
+				filePath = SBasicPath::GetProjectShaderPath() / _includeFile;
+				if (std::filesystem::exists(filePath))
+					return filePath;
 
-			return std::filesystem::path();
-		}
+				return std::filesystem::path();
+			}
 		);
 	}
 }
@@ -452,9 +452,9 @@ IRDIBuffer* SD3D12Device::CreateBuffer(const SRDIBufferResourceDesc* _desc) noex
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc);
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, nullptr);
 
 	SD3D12Buffer* buffer = mBufferPool.AllocateElement();
 	buffer->Init(nativeResourcePtr, _desc, this);
@@ -474,9 +474,12 @@ IRDITexture1D* SD3D12Device::CreateTexture1D(const SRDITexture1DResourceDesc* _d
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
+	
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc);
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture1D* texture1D = mTexture1DPool.AllocateElement();
 	texture1D->Init(nativeResourcePtr, _desc, this);
@@ -496,9 +499,12 @@ IRDITexture1DArray* SD3D12Device::CreateTexture1DArray(const SRDITexture1DArrayR
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc);
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture1DArray* texture1DArray = mTexture1DArrayPool.AllocateElement();
 	texture1DArray->Init(nativeResourcePtr, _desc, this);
@@ -518,9 +524,12 @@ IRDITexture2D* SD3D12Device::CreateTexture2D(const SRDITexture2DResourceDesc* _d
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc);
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture2D* texture2D = mTexture2DPool.AllocateElement();
 	texture2D->Init(nativeResourcePtr, _desc, this);
@@ -540,9 +549,12 @@ IRDITexture2DArray* SD3D12Device::CreateTexture2DArray(const SRDITexture2DArrayR
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc);
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture2DArray* texture2DArray = mTexture2DArrayPool.AllocateElement();
 	texture2DArray->Init(nativeResourcePtr, _desc, this);
@@ -562,9 +574,12 @@ IRDITexture3D* SD3D12Device::CreateTexture3D(const SRDITexture3DResourceDesc* _d
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc);
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture3D* texture3D = mTexture3DPool.AllocateElement();
 	texture3D->Init(nativeResourcePtr, _desc, this);
@@ -584,9 +599,12 @@ IRDITextureCube* SD3D12Device::CreateTextureCube(const SRDITextureCubeResourceDe
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc);
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12TextureCube* textureCube = mTextureCubePool.AllocateElement();
 	textureCube->Init(nativeResourcePtr, _desc, this);
@@ -606,9 +624,12 @@ IRDITextureCubeArray* SD3D12Device::CreateTextureCubeArray(const SRDITextureCube
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc);
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12TextureCubeArray* textureCubeArray = mTextureCubeArrayPool.AllocateElement();
 	textureCubeArray->Init(nativeResourcePtr, _desc, this);
@@ -853,7 +874,46 @@ IRDITexture2D* SD3D12Device::CreateTexture2DWithCreatedResource(const SRDITextur
 	return texture2D;
 }
 
-ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc) noexcept
+D3D12_RESOURCE_FLAGS SD3D12Device::MakeD3D12ResourceFlag(ERDIResourceUsage _resourceUsage) noexcept
+{
+	D3D12_RESOURCE_FLAGS resourceFlag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+	if ((_resourceUsage & ERDIResourceUsage::RenderTarget) == ERDIResourceUsage::RenderTarget)
+		resourceFlag |= D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	if ((_resourceUsage & ERDIResourceUsage::DepthStencil) == ERDIResourceUsage::DepthStencil)
+		resourceFlag |= D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	if ((_resourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+		resourceFlag |= D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+	return resourceFlag;
+}
+
+D3D12_CLEAR_VALUE SD3D12Device::MakeD3D12ClearValue(ERDIResourceUsage _resourceUsage, ERDIPixelFormat _pixelFormat, ERDIPixelFormat _rtvPixelFormat, ERDIPixelFormat _dsvPixelFormat, Math::SFColor _clearColor, float _clearDepth, uint8_t _clearStencil) noexcept
+{
+	D3D12_CLEAR_VALUE clearValue = {};
+
+	_rtvPixelFormat = _rtvPixelFormat == ERDIPixelFormat::UNKNOWN ? _pixelFormat : _rtvPixelFormat;
+	_dsvPixelFormat = _dsvPixelFormat == ERDIPixelFormat::UNKNOWN ? _pixelFormat : _dsvPixelFormat;
+
+	if ((_resourceUsage & ERDIResourceUsage::RenderTarget) == ERDIResourceUsage::RenderTarget)
+	{
+		clearValue.Format = ConvertPixelFormatToD3D(_rtvPixelFormat);
+		clearValue.Color[0] = _clearColor[0];
+		clearValue.Color[1] = _clearColor[1];
+		clearValue.Color[2] = _clearColor[2];
+		clearValue.Color[3] = _clearColor[3];
+	}
+	else if ((_resourceUsage & ERDIResourceUsage::DepthStencil) == ERDIResourceUsage::DepthStencil)
+	{
+		clearValue.Format = ConvertPixelFormatToD3D(_dsvPixelFormat);
+		clearValue.DepthStencil.Depth = _clearDepth;
+		clearValue.DepthStencil.Stencil = _clearStencil;
+	}
+
+	return clearValue;
+}
+
+ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, const D3D12_CLEAR_VALUE* _clearValue) noexcept
 {
 	if (_desc->Dimension != D3D12_RESOURCE_DIMENSION_BUFFER)
 	{
@@ -879,7 +939,7 @@ ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, co
 	heapProperties.VisibleNodeMask = 0;
 
 	ID3D12Resource* nativeResourcePtr = nullptr;
-	VERIFY_D3D_RETURN(GetNativePtr()->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, _desc, resourceStateMap[EnumToInt(_heapType)], nullptr, IID_PPV_ARGS(&nativeResourcePtr)));
+	VERIFY_D3D_RETURN(GetNativePtr()->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, _desc, resourceStateMap[EnumToInt(_heapType)], _clearValue, IID_PPV_ARGS(&nativeResourcePtr)));
 
 	return nativeResourcePtr;
 }

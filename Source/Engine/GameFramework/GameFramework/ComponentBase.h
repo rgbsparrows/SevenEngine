@@ -6,17 +6,17 @@
 
 namespace GameFramework
 {
-	class SActorBase;
+	class UActorBase;
 
-	class SComponentBase : public SGameObject
+	class UComponentBase : public UGameObject
 	{
-		DECLARE_CLASSOBJECT_BODY(SComponentBase, SGameObject)
+		DECLARE_CLASSOBJECT_BODY(UComponentBase, UGameObject)
 
 	public:
 
 	private:
-		SActorBase* mActor = nullptr;
+		UActorBase* mActor = nullptr;
 
-		Transform mTransform;
+		STransform mTransform;
 	};
 }

@@ -514,19 +514,19 @@ void SD3D12CommandList::SetComputeRootSamplerDescriptorTable(uint32_t _rootParam
 	GetNativePtr()->SetComputeRootDescriptorTable(_rootParameterIndex, samplerRange->GetGpuDescriptorHandle());
 }
 
-void SD3D12CommandList::ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag, float _depth, uint8_t _stencil) noexcept
+void SD3D12CommandList::ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag) noexcept
 {
 	SD3D12DepthStencilView* dsv = static_cast<SD3D12DepthStencilView*>(_dsv);
 	D3D12_CLEAR_FLAGS clearFlags = ConvertClearFlagToD3D12(_clearFlag);
 
-	GetNativePtr()->ClearDepthStencilView(dsv->mCpuDescriptorHandle, clearFlags, _depth, _stencil, 0, nullptr);
+	GetNativePtr()->ClearDepthStencilView(dsv->mCpuDescriptorHandle, clearFlags, dsv->mClearDepth, dsv->mClearStencil, 0, nullptr);
 }
 
-void SD3D12CommandList::ClearRenderTargetView(IRDIRenderTargetView* _rtv, Math::SFColor _color) noexcept
+void SD3D12CommandList::ClearRenderTargetView(IRDIRenderTargetView* _rtv) noexcept
 {
 	SD3D12RenderTargetView* rtv = static_cast<SD3D12RenderTargetView*>(_rtv);
 
-	GetNativePtr()->ClearRenderTargetView(rtv->mCpuDescriptorHandle, _color.Color, 0, nullptr);
+	GetNativePtr()->ClearRenderTargetView(rtv->mCpuDescriptorHandle, rtv->mClearColor.Color, 0, nullptr);
 }
 
 void SD3D12CommandList::ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUInt4 _value) noexcept

@@ -7,9 +7,12 @@
 
 #include <functional>
 
+class R3DWorldRenderGraph;
+
 struct RRender3DWorldInfo
 {
-	RRenderProxy<R3DWorldRenderData>* m3DWorldRenderData = nullptr;
+	RRenderProxy<R3DWorld>* m3DWorld = nullptr;
+	RRenderProxy<RTexture2D>* mCanvas = nullptr;
 	R3DWorldRenderGraph* mRenderGraph = nullptr;
 };
 
@@ -26,6 +29,7 @@ public:
 	{
 		mNeedInitRenderProxy.resize(0);
 		mExpiringRenderProxy.resize(0);
+		mRender3DWorldList.resize(0);
 		mRenderWindowList.resize(0);
 	}
 

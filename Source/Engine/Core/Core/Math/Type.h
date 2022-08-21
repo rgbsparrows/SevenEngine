@@ -285,6 +285,16 @@ namespace Math
 		{
 		}
 
+		constexpr UnderlyingType operator[](size_t _index) const noexcept { return Color[_index]; }
+		constexpr UnderlyingType& operator[](size_t _index) noexcept { return Color[_index]; }
+
+		bool operator ==(const TColor& _other) const& noexcept
+		{
+			return r == _other.r && g == _other.g && b == _other.b && a == _other.a;
+		}
+
+		bool operator !=(const TColor&) const& noexcept = default;
+
 		union
 		{
 			UnderlyingType Color[4];

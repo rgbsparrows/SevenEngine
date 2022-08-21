@@ -82,8 +82,8 @@ public:
 	void SetGraphicsRootSamplerDescriptorTable(uint32_t _rootParameterIndex, IRDISamplerHeapRange* _samplerRange) noexcept override;
 	void SetComputeRootSamplerDescriptorTable(uint32_t _rootParameterIndex, IRDISamplerHeapRange* _samplerRange) noexcept override;
 
-	void ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag, float _depth, uint8_t _stencil) noexcept override;
-	void ClearRenderTargetView(IRDIRenderTargetView* _rtv, Math::SFColor _color) noexcept override;
+	void ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag) noexcept override;
+	void ClearRenderTargetView(IRDIRenderTargetView* _rtv) noexcept override;
 
 	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUInt4 _value) noexcept override;
 	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SUInt4 _value) noexcept override;

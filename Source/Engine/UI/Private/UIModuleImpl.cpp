@@ -15,7 +15,7 @@
 #include "Core/Misc/PreWindowsApi.h"
 #include <XInput.h>
 #include "Core/Misc/PostWindowsApi.h"
-#include "Render/RenderPass/RenderGraph.h"
+#include "Render/RenderGraph/RenderGraph.h"
 
 static SUIModuleImpl* GUIModuleImpl = nullptr;
 
@@ -56,8 +56,6 @@ void SUIModuleImpl::OnGUI() noexcept
 {
 	ProcessWndMessage();
 
-	GetRenderModule()->GetRenderCommandList()->RefrashImTexture2D_I(mFontTexture, mImFontTexture);
-
 	ImguiNewFrame();
 
 	static bool isMainWindowOpen = true;
@@ -71,12 +69,12 @@ void SUIModuleImpl::OnGUI() noexcept
 
 	ImGui::ShowDemoWindow();
 
-	std::vector<UWindowInterface*> windows;
+	std::vector<IUIWindowInterface*> windows;
 
-	for (auto it = mUIWindows.begin(); it != mUIWindows.end(); void())
+	for (auto it = mUIWindows.begin(); it != mUIWindows.end(); ++it)
 		windows.push_back(it->second);
 
-	for (auto it = mAnonymousUIWindows.begin(); it != mAnonymousUIWindows.end(); void())
+	for (auto it = mAnonymousUIWindows.begin(); it != mAnonymousUIWindows.end(); ++it)
 		windows.push_back(*it);
 
 	for (auto _window : windows)
@@ -86,42 +84,34 @@ void SUIModuleImpl::OnGUI() noexcept
 
 	for (auto it = mUIWindows.begin(); it != mUIWindows.end(); void())
 	{
-		UWindowInterface* window = it->second;
+		IUIWindowInterface* window = it->second;
 
 		if (window->IsWindowOpen() == false)
 		{
-			window->OnClose();
 			window->Release();
-
 			it = mUIWindows.erase(it);
 		}
 		else
-		{
 			++it;
-		}
 	}
 
 	for (auto it = mAnonymousUIWindows.begin(); it != mAnonymousUIWindows.end(); void())
 	{
-		UWindowInterface* window = *it;
+		IUIWindowInterface* window = *it;
 
 		if (window->IsWindowOpen() == false)
 		{
-			window->OnClose();
 			window->Release();
-
 			it = mAnonymousUIWindows.erase(it);
 		}
 		else
-		{
 			++it;
-		}
 	}
 
 	ImguiEndFrame();
 }
 
-void SUIModuleImpl::AddWindow(const std::wstring& _windowTag, UWindowInterface* _window) noexcept
+void SUIModuleImpl::AddWindow(const std::wstring& _windowTag, IUIWindowInterface* _window) noexcept
 {
 	if (_windowTag.empty() == false)
 	{
@@ -134,7 +124,7 @@ void SUIModuleImpl::AddWindow(const std::wstring& _windowTag, UWindowInterface* 
 	}
 }
 
-UWindowInterface* SUIModuleImpl::GetWindowByTag(const std::wstring& _windowTag) noexcept
+IUIWindowInterface* SUIModuleImpl::GetWindowByTag(const std::wstring& _windowTag) noexcept
 {
 	auto it = mUIWindows.find(_windowTag);
 
@@ -257,6 +247,7 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 
 
 		GetRenderModule()->GetRenderCommandList()->RefrashStaticTexture2D_I(mFontTexture, std::move(texture2dData));
+		GetRenderModule()->GetRenderCommandList()->RefrashImTexture2D_I(mFontTexture, mImFontTexture);
 
 		ImGui::GetIO().Fonts->TexID = mImFontTexture;
 	}

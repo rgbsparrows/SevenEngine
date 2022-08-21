@@ -16,7 +16,7 @@ void SEngineLoop::PreInit() noexcept
 
 	SModuleManager::Get().LoadModule(L"RenderModule");
 	SModuleManager::Get().LoadModule(L"UIModule");
-
+	SModuleManager::Get().LoadModule(L"EditorModule");
 }
 
 void SEngineLoop::Run() noexcept

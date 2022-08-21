@@ -1,5 +1,5 @@
 #include "Core/Util/Algorithm.h"
-#include "Render/RenderPass/RenderGraph.h"
+#include "Render/RenderGraph/RenderGraph.h"
 
 void RRenderPassBase::AddPrecursorRenderPass(std::initializer_list<RRenderPassBase*> _precursorRenderPassList) noexcept
 {
@@ -43,6 +43,8 @@ bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList,
 	if (Has(_renderPassList, nullptr))
 		return false;
 
+	std::wstring_view a111 = _renderPassList[0]->GetClassObject()->GetClassFullName();
+
 	if (HasIf(_renderPassList, [&](RRenderPassBase* _renderPass) { return _renderPass->GetClassObject()->IsDrivedFrom(_renderPassBaseClassHash) == false; }))
 		return false;
 
@@ -56,7 +58,7 @@ bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList,
 
 	//检查是否存在重复的RenderPassBaseClass
 	{
-		std::vector<RRenderPassBase*> tempRenderPassBase;
+		std::vector<RRenderPassBase*> tempRenderPassBase = _renderPassList;
 		Sort(tempRenderPassBase);
 		DedupForSortedRange(tempRenderPassBase);
 		if (tempRenderPassBase.size() != _renderPassList.size())
@@ -95,7 +97,7 @@ bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList,
 	return true;
 }
 
-bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_t _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<size_t>& _renderPackageGroup, std::vector<size_t>& _syncPointForRenderPackage) noexcept
+bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_t _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<uint32_t>& _renderPackageGroup, std::vector<uint32_t>& _syncPointForRenderPackage) noexcept
 {
 	TODO("当需要构建包含子Pass的RenderGraph时，需要追加拆解RenedrGraph的函数，但函数主体内容不需要变更");
 	_sortedRenderPassList.resize(0);
@@ -300,7 +302,7 @@ bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_
 
 			for (auto it = tempRenderPackageInfoList.begin(); it != tempRenderPackageInfoList.end(); void())
 			{
-				if ((*it)->mPrecursorRenderPackage.size() != 0)
+				if ((*it)->mPrecursorRenderPackage.size() == 0)
 				{
 					renderGroupList.back().push_back(*it);
 					removedRenderPackage.push_back(*it);
@@ -323,7 +325,7 @@ bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_
 
 	//缩略无用的RenderPackage，生成紧凑的同步点
 	{
-		size_t renderPackageIndex = 0;
+		uint32_t renderPackageIndex = 0;
 		for (std::vector<SRenderPackageInfo*>& renderGroup : renderGroupList)
 		{
 			for (SRenderPackageInfo* renderPackage : renderGroup)
@@ -335,7 +337,7 @@ bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_
 					_sortedRenderPassList.push_back(renderPassInfo->mRenderPass);
 
 					bool isEmptyCommandPass = renderPassInfo->mRenderPass->IsEmptyCommandRenderPass();
-					_renderPackageGroup.push_back(isEmptyCommandPass ? SIZE_MAX : renderPackageIndex);
+					_renderPackageGroup.push_back(isEmptyCommandPass ? UINT32_MAX : renderPackageIndex);
 					hasGpuRenderPass = hasGpuRenderPass || !isEmptyCommandPass;
 				}
 

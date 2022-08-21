@@ -4,7 +4,7 @@
 
 namespace GameFramework
 {
-	struct Transform
+	struct STransform
 	{
 		Math::SFloat3 mPosition;
 		Math::SFloat3 mRotation;
@@ -13,6 +13,6 @@ namespace GameFramework
 		Math::SFloat4x4 mWorldMatrix;
 		Math::SFloat4x4 mLocalMatrix;
 
-		void UpdateTransform(const Transform* _parentTransform);
+		void UpdateTransform(const STransform* _parentTransform);
 	};
 }

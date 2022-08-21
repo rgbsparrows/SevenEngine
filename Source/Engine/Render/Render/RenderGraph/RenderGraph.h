@@ -2,7 +2,8 @@
 
 #include "Core/Misc/Thread.h"
 #include "Core/Class/ClassObject.h"
-#include "Render/RenderPass/SubRenderContent.h"
+#include "RDI/Interface/RDICommandList.h"
+#include "Render/RenderGraph/SubRenderContent.h"
 
 #include <vector>
 #include <thread>
@@ -44,23 +45,36 @@ public:
 	using RRenderingData = _renderingDataType;
 	using RRenderPass = TRenderPass<RRenderingData>;
 
+	virtual void Init(SSubRenderContent& _renderContent) noexcept {}
+	virtual void Clear(SSubRenderContent& _renderContent) noexcept {}
+
 	virtual void PreRender(RRenderingData& _renderSource, SSubRenderContent& _renderContent) noexcept {}
 	virtual void Render(RRenderingData& _renderSource, IRDICommandList* _commandList) noexcept {}
 	virtual void PostRender(RRenderingData& _renderSource, SSubRenderContent& _renderContent) noexcept {}
 };
 
 bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList, uint64_t _renderPassBaseClassHash) noexcept;
-bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_t _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<size_t>& _renderPackageGroup, std::vector<size_t>& _syncPointForRenderPackage) noexcept;
+bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_t _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<uint32_t>& _renderPackageGroup, std::vector<uint32_t>& _syncPointForRenderPackage) noexcept;
 
-template<typename _renderingDataType>
-class TRenderGraph
+class RRenderGraphBase
 {
-	DECLARE_ANCESTOR_CLASSOBJECT_BODY(TRenderGraph);
+	DECLARE_ANCESTOR_CLASSOBJECT_BODY(RRenderGraphBase);
 
 public:
+	virtual void Init_RenderThread(SRenderContent* _renderContent) noexcept = 0;
+	virtual void Clear_RenderThread() noexcept = 0;
+};
+
+template<typename _rawRenderingDataType, typename _renderingDataType = _rawRenderingDataType>
+class TRenderGraph : public RRenderGraphBase
+{
+	DECLARE_CLASSOBJECT_BODY(TRenderGraph, RRenderGraphBase);
+
+public:
+	using RRawRenderingData = _rawRenderingDataType;
 	using RRenderingData = _renderingDataType;
 	using RRenderPass = TRenderPass<RRenderingData>;
-	using RRenderGraph = TRenderGraph<RRenderingData>;
+	using RRenderGraph = TRenderGraph<RRawRenderingData, RRenderingData>;
 
 	class RRenderPackage
 	{
@@ -78,6 +92,7 @@ public:
 		void Init(SSubRenderContent& _renderContent) noexcept
 		{
 			mRDICommandList = _renderContent.AllocateCommandList();
+			mRDICommandList->Close();
 		}
 
 		void Clear(SSubRenderContent& _renderContent) noexcept
@@ -103,62 +118,11 @@ public:
 		IRDICommandList* mRDICommandList = nullptr;
 	};
 
-	static bool CheckRenderGraphValid(const std::vector<RRenderPass*>& _renderPassList) noexcept
-	{
-		std::vector<RRenderPassBase*> renderPassList;
-		for (RRenderPass* renderPass : _renderPassList)
-			renderPassList.push_back(renderPass);
-		return CheckRenderGraphValid(renderPassList, RRenderPass::StaticGetClassObject()->GetClassHash());
-	}
-
-	bool Setup(std::vector<RRenderPass*> _renderPassList) noexcept
-	{
-		std::vector<RRenderPassBase*> renderPassList;
-		for (RRenderPass* renderPass : _renderPassList)
-			renderPassList.push_back(renderPass);
-
-		std::vector<RRenderPassBase*> sortedRenderPassList;
-		std::vector<size_t> renderPackageList;
-		std::vector<size_t> syncPointList;
-		bool rereorganizeSuccessed = ReorganizeRenderPass(renderPassList, RRenderPass::StaticGetClassObject()->GetClassHash(), sortedRenderPassList, renderPackageList, syncPointList);
-		if (rereorganizeSuccessed)
-		{
-			std::vector<RRenderPass*> renderPassForPackage;
-			for (size_t i = 0; i != sortedRenderPassList.size(); ++i)
-			{
-				if (renderPackageList[i] == SIZE_MAX)
-					continue;
-
-				if (renderPackageList[i] == mRenderPackageList.size())
-				{
-					if (mRenderPackageList.size() != 0)
-						mRenderPackageList.back().Setup(renderPassForPackage);
-
-					renderPassForPackage.resize(0);
-					renderPassForPackage.push_back(sortedRenderPassList[i]);
-				}
-
-				if (renderPackageList[i] == mRenderPackageList.size())
-					renderPassForPackage.push_back(sortedRenderPassList);
-			}
-
-			if (mRenderPackageList.size() != 0)
-				mRenderPackageList.back().Setup(renderPassForPackage);
-
-			mRenderPassList = sortedRenderPassList;
-			mSyncPoint = syncPointList;
-
-			return true;
-		}
-
-		return false;
-	}
-
-	void Init(SSubRenderContent* _renderContent) noexcept
+	void Init_RenderThread(SRenderContent* _renderContent) noexcept override
 	{
 		uint32_t subThreadCount = 0;
-		
-		size_t currentRenderPackageIndex = 0;
+
+		uint32_t currentRenderPackageIndex = 0;
 		for (size_t i = 0; i != mSyncPoint.size(); ++i)
 		{
 			subThreadCount = std::max(subThreadCount, mSyncPoint[i] - currentRenderPackageIndex);
@@ -185,8 +149,7 @@ public:
 		}
 	}
 
-
-	void Clear() noexcept
+	void Clear_RenderThread() noexcept override
 	{
 		{
 			mRequireExit = true;
@@ -202,22 +165,28 @@ public:
 		mRenderContent.Clear();
 	}
 
-	void Render(RRenderingData& _renderingData) noexcept
+	void Render(RRawRenderingData&& _renderingData) noexcept
 	{
+		RRenderingData renderingData = ProcessRawRenedrData(std::forward<RRawRenderingData>(_renderingData));
+
 		for (RRenderPass* renderPass : mRenderPassList)
-			renderPass->PreRender(_renderingData, mRenderContent);
+			renderPass->PreRender(renderingData, mRenderContent);
+
+		PrepareRenderPassResource(renderingData, mRenderContent);
 
 		{
-			mCurrentRenderingData = &_renderingData;
+			mCurrentRenderingData = &renderingData;
 
 			mExecuatingRenderPackageCount = 0;
 			mExecuatedRenderPackageCount = 0;
 
 			mNewFrameFlag = true;
 
-			Thread::YieldUntilValue(mExecuatedRenderPackageCount, mRenderPackageList.size());
+			Thread::YieldUntilValue(mExecuatedRenderPackageCount, static_cast<uint32_t>(mRenderPackageList.size()));
 
 			mNewFrameFlag = false;
+
+			mCurrentRenderingData = nullptr;
 		}
 
 		size_t currentRenderPackageIndex = 0;
@@ -228,7 +197,7 @@ public:
 		}
 
 		for (RRenderPass* renderPass : mRenderPassList)
-			renderPass->PostRender(_renderingData, mRenderContent);
+			renderPass->PostRender(renderingData, mRenderContent);
 	}
 
 	void SubRenderThreadMain(uint32_t _threadIndex)
@@ -253,6 +222,78 @@ public:
 		}
 	}
 
+protected:
+	static bool CheckRenderGraphValid(const std::vector<RRenderPass*>& _renderPassList) noexcept
+	{
+		std::vector<RRenderPassBase*> renderPassList;
+		for (RRenderPass* renderPass : _renderPassList)
+			renderPassList.push_back(renderPass);
+		return CheckRenderGraphValid(renderPassList, RRenderPass::StaticGetClassObject()->GetClassHash());
+	}
+
+	bool Setup(std::vector<RRenderPass*> _renderPassList) noexcept
+	{
+		std::vector<RRenderPassBase*> renderPassList;
+		for (RRenderPass* renderPass : _renderPassList)
+			renderPassList.push_back(renderPass);
+
+		std::vector<RRenderPassBase*> sortedRenderPassList;
+		std::vector<uint32_t> renderPackageList;
+		std::vector<uint32_t> syncPointList;
+		std::wstring_view a111 = RRenderPass::StaticGetClassObject()->GetClassFullName();
+		bool rereorganizeSuccessed = ReorganizeRenderPass(renderPassList, RRenderPass::StaticGetClassObject()->GetClassHash(), sortedRenderPassList, renderPackageList, syncPointList);
+		if (rereorganizeSuccessed)
+		{
+			std::vector<RRenderPass*> renderPassForPackage;
+			for (size_t i = 0; i != sortedRenderPassList.size(); ++i)
+			{
+				if (renderPackageList[i] == SIZE_MAX)
+					continue;
+
+				if (renderPackageList[i] == mRenderPackageList.size() + 1)
+				{
+					if (renderPackageList.size() != 0)
+					{
+						mRenderPackageList.push_back(RRenderPackage());
+						mRenderPackageList.back().Setup(renderPassForPackage);
+					}
+
+					renderPassForPackage.resize(0);
+					renderPassForPackage.push_back(static_cast<RRenderPass*>(sortedRenderPassList[i]));
+				}
+
+				if (renderPackageList[i] == mRenderPackageList.size())
+					renderPassForPackage.push_back(static_cast<RRenderPass*>(sortedRenderPassList[i]));
+			}
+
+			if (renderPassForPackage.size() != 0)
+			{
+				mRenderPackageList.push_back(RRenderPackage());
+				mRenderPackageList.back().Setup(renderPassForPackage);
+			}
+
+			for (size_t i = 0; i != sortedRenderPassList.size(); ++i)
+				mRenderPassList.push_back(static_cast<RRenderPass*>(sortedRenderPassList[i]));
+
+			mSyncPoint = syncPointList;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	virtual RRenderingData ProcessRawRenedrData(RRawRenderingData&& _renderingData) noexcept
+	{
+		if constexpr (std::is_same_v<RRenderingData, RRawRenderingData>)
+			return _renderingData;
+
+		return RRenderingData();
+	}
+
+	virtual void PrepareRenderPassResource(RRenderingData& _renderingData, SSubRenderContent& _renderContent) noexcept {}
+	virtual void PostRender(RRenderingData& _renderingData, SSubRenderContent& _renderContent) noexcept {}
+
 private:
 	std::wstring mRenderGraphName;
 	RRenderingData* mCurrentRenderingData = nullptr;
@@ -260,15 +301,15 @@ private:
 	std::vector<RRenderPass*> mRenderPassList;
 	std::vector<RRenderPackage> mRenderPackageList;
 	std::vector<IRDICommandList*> mRenderPackageCommandList;
-	std::vector<size_t> mSyncPoint;
+	std::vector<uint32_t> mSyncPoint;
 	SSubRenderContent mRenderContent;
 
 	std::vector<std::thread> mSubRenderThread;
 
 	bool mRequireExit = false;
 
-	std::atomic<size_t> mExecuatingRenderPackageCount = 0;
-	std::atomic<size_t> mExecuatedRenderPackageCount = 0;
+	std::atomic<uint32_t> mExecuatingRenderPackageCount = 0;
+	std::atomic<uint32_t> mExecuatedRenderPackageCount = 0;
 
 	std::atomic_bool mNewFrameFlag = false;
 };

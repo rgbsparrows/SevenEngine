@@ -4,9 +4,9 @@
 
 namespace GameFramework
 {
-	class SGameObject
+	class UGameObject
 	{
-		DECLARE_ANCESTOR_CLASSOBJECT_BODY(SGameObject)
+		DECLARE_ANCESTOR_CLASSOBJECT_BODY(UGameObject)
 
 	public:
 

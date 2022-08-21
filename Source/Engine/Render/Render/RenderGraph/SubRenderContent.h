@@ -7,9 +7,14 @@ public:
 	void Init(SRenderContent* _renderContent, uint32_t _threadCount) noexcept;
 	void Clear() noexcept;
 
-	IRDICommandList* AllocateCommandList() noexcept
+	IRDIDevice* GetDevice() noexcept
 	{
-		return mRenderContent->AllocateCommandList();
+		return mRenderContent->GetDevice();
+	}
+
+	IRDICommandList* AllocateCommandList(uint32_t _threadIndex = 0) noexcept
+	{
+		return mRenderContent->AllocateCommandList(_threadIndex);
 	}
 
 	IRDICommandAllocator* GetCommandAllocator(uint32_t _threadIndex = 0) noexcept
@@ -20,6 +25,11 @@ public:
 	void ExecuteCommandLists(uint32_t _commandListCount, IRDICommandList* const* _commandLists) noexcept
 	{
 		mRenderContent->ExecuteCommandLists(_commandListCount, _commandLists);
+	}
+
+	void SyncToGpuFrameEnd(bool _force = false) noexcept
+	{
+		mRenderContent->SyncToGpuFrameEnd(_force);
 	}
 
 private:

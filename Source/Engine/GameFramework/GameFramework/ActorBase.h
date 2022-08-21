@@ -8,24 +8,22 @@
 
 namespace GameFramework
 {
-	class SComponentBase;
+	class UComponentBase;
 
-	class SActorBase : public SGameObject
+	class UActorBase : public UGameObject
 	{
-		DECLARE_CLASSOBJECT_BODY(SActorBase, SGameObject)
+		DECLARE_CLASSOBJECT_BODY(UActorBase, UGameObject)
 
 	public:
 		void SetActorName(const std::wstring& _actorName) { mActorName = _actorName; }
 		const std::wstring& GetActorName()const { return mActorName; }
 
-		std::vector<SComponentBase*> GetComponents() const noexcept { return mComponents; }
+		std::vector<UComponentBase*> GetComponents() const noexcept { return mComponents; }
 
 	private:
 		std::wstring mActorName;
-		SActorBase* mParent = nullptr;
-		std::vector<SActorBase*> mChildren;
-		std::vector<SComponentBase*> mComponents;
+		std::vector<UComponentBase*> mComponents;
 
-		Transform mTransform;
+		STransform mTransform;
 	};
 }

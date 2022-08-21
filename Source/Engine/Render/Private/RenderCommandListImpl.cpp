@@ -88,47 +88,49 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 
 			texture.mTexture = _renderContent.GetDevice()->CreateTexture2D(&mTexture2DData.mDesc);
 
-			IRDIBuffer* uploadBuffer = nullptr;
-
+			if (mTexture2DData.mSubresourceData.empty() == false)
 			{
-				SRDIBufferResourceDesc desc;
-				desc.mHeapType = ERDIHeapType::Upload;
-				desc.mResourceUsage = ERDIResourceUsage::None;
-				desc.mBufferSize = SPixelFormatMeta::GetPixelFootprint(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, mTexture2DData.mDesc.mMipCount);
+				IRDIBuffer* uploadBuffer = nullptr;
+				{
+					SRDIBufferResourceDesc desc;
+					desc.mHeapType = ERDIHeapType::Upload;
+					desc.mResourceUsage = ERDIResourceUsage::None;
+					desc.mBufferSize = SPixelFormatMeta::GetPixelFootprint(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, mTexture2DData.mDesc.mMipCount);
 
-				uploadBuffer = _renderContent.GetDevice()->CreateBuffer(&desc);
+					uploadBuffer = _renderContent.GetDevice()->CreateBuffer(&desc);
 
-				void* dataPtr = nullptr;
-				uploadBuffer->Map(&dataPtr);
+					void* dataPtr = nullptr;
+					uploadBuffer->Map(&dataPtr);
 
 #if WITH_DEBUG_CODE
-				memset(dataPtr, 0, desc.mBufferSize);
+					memset(dataPtr, 0, desc.mBufferSize);
 #endif
 
-				for (uint32_t i = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
-				{
-					if (mTexture2DData.mSubresourceData[i].IsEmpty() == false)
-						memcpy_s(dataPtr, desc.mBufferSize, mTexture2DData.mSubresourceData[i].GetBuffer(mTexture2DData.mResourceData), mTexture2DData.mSubresourceData[i].GetSize());
+					for (uint32_t i = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
+					{
+						if (mTexture2DData.mSubresourceData[i].IsEmpty() == false)
+							memcpy_s(dataPtr, desc.mBufferSize, mTexture2DData.mSubresourceData[i].GetBuffer(mTexture2DData.mResourceData), mTexture2DData.mSubresourceData[i].GetSize());
 
-					dataPtr = reinterpret_cast<uint8_t*>(dataPtr) + SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
+						dataPtr = reinterpret_cast<uint8_t*>(dataPtr) + SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
+					}
+					uploadBuffer->Unmap();
 				}
-				uploadBuffer->Unmap();
+
+				IRDICommandList* commandList = _renderContent.AllocateCommandList();
+				for (uint32_t i = 0, offset = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
+				{
+					commandList->CopyTexture2D(texture.mTexture, i, uploadBuffer, offset);
+					offset += SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
+				}
+				commandList->TranstionResourceState(texture.mTexture, ERDIResourceState::CopyDest, ERDIResourceState::Common);
+				commandList->Close();
+
+				_renderContent.ExecuteCommandList(commandList);
+				_renderContent.SyncToGpuFrameEnd(true);
+
+				uploadBuffer->Release();
+				_renderContent.ReleaseCommandList(commandList);
 			}
-
-			IRDICommandList* commandList = _renderContent.AllocateCommandList();
-			for (uint32_t i = 0, offset = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
-			{
-				commandList->CopyTexture2D(texture.mTexture, i, uploadBuffer, offset);
-				offset += SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
-			}
-			commandList->TranstionResourceState(texture.mTexture, ERDIResourceState::CopyDest, ERDIResourceState::Common);
-			commandList->Close();
-
-			_renderContent.ExecuteCommandList(commandList);
-			_renderContent.SyncToGpuFrameEnd(true);
-
-			uploadBuffer->Release();
-			commandList->Release();
 		}
 	};
 
@@ -190,9 +192,24 @@ void SRenderCommandListImpl::RefrashSwapChain_I(RRenderProxy<RSwapChain>* _swapC
 	AddRenderCommand(SRefrashSwapChainCommand{ _swapChain, _swapChainData });
 }
 
-void SRenderCommandListImpl::RenderWorld(RRenderProxy<R3DWorldRenderData>* _3dWorldData, R3DWorldRenderGraph* _renderGraph) noexcept
+void SRenderCommandListImpl::ConstructRenderGraph(RRenderGraphBase* _renderGraph) noexcept
 {
-	GetFrameResource_GameThread().mRender3DWorldList.push_back(RRender3DWorldInfo{ _3dWorldData, _renderGraph });
+	struct SConstructRenderGraphCommand
+	{
+		RRenderGraphBase* mRenderGraph = nullptr;
+
+		void operator()(SRenderContent& _renderContent)
+		{
+			mRenderGraph->Init_RenderThread(&_renderContent);
+		}
+	};
+
+	AddRenderCommand(SConstructRenderGraphCommand{ _renderGraph });
+}
+
+void SRenderCommandListImpl::RenderWorld(RRenderProxy<R3DWorld>* _3dWorldData, RRenderProxy<RTexture2D>* _canvas, R3DWorldRenderGraph* _renderGraph) noexcept
+{
+	GetFrameResource_GameThread().mRender3DWorldList.push_back(RRender3DWorldInfo{ _3dWorldData, _canvas, _renderGraph });
 }
 
 void SRenderCommandListImpl::RenderWindow(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData) noexcept

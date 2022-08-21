@@ -17,11 +17,10 @@ public:
 	bool Init() noexcept override;
 	void Clear() noexcept override;
 
-	TODO("Imgui NewFrame调用，各个窗口的OnGui，窗口的渲染调用")
 	void OnGUI() noexcept override;
 
-	void AddWindow(const std::wstring& _windowTag, UWindowInterface* _window) noexcept override;
-	UWindowInterface* GetWindowByTag(const std::wstring& _windowTag) noexcept override;
+	void AddWindow(const std::wstring& _windowTag, IUIWindowInterface* _window) noexcept override;
+	IUIWindowInterface* GetWindowByTag(const std::wstring& _windowTag) noexcept override;
 
 private:
 	void InitImgui() noexcept;
@@ -49,8 +48,8 @@ private:
 	SUIInternalWindow* mMainWindow = nullptr;
 	std::vector<SUIInternalWindow*> mAdditionWindow;
 
-	std::map<std::wstring, UWindowInterface*> mUIWindows;
-	std::vector<UWindowInterface*> mAnonymousUIWindows;
+	std::map<std::wstring, IUIWindowInterface*> mUIWindows;
+	std::vector<IUIWindowInterface*> mAnonymousUIWindows;
 
 	RRenderProxy<RTexture2D>* mFontTexture = nullptr;
 	RRenderProxy<RImguiTexture2D>* mImFontTexture = nullptr;

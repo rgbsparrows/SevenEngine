@@ -102,8 +102,8 @@ __interface IRDICommandList
 	void DrawIndexedInstanced(uint32_t _indexCount, uint32_t _instanceCount, uint32_t _startIndexLocation, uint32_t _baseVertexLocation) noexcept;
 	void Dispatch(uint32_t _threadGroupX, uint32_t _threadGroupY, uint32_t _threadGroupZ) noexcept;
 
-	void ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag, float _depth, uint8_t _stencil) noexcept;
-	void ClearRenderTargetView(IRDIRenderTargetView* _rtv, Math::SFColor _color) noexcept;
+	void ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag) noexcept;
+	void ClearRenderTargetView(IRDIRenderTargetView* _rtv) noexcept;
 	
 	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUInt4 _value) noexcept;
 	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SUInt4 _value) noexcept;

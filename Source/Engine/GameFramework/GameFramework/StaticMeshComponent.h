@@ -4,9 +4,9 @@
 
 namespace GameFramework
 {
-	class SStaticMeshComponent : public SComponentBase
+	class UStaticMeshComponent : public UComponentBase
 	{
-		DECLARE_CLASSOBJECT_BODY(SStaticMeshComponent, SComponentBase)
+		DECLARE_CLASSOBJECT_BODY(UStaticMeshComponent, UComponentBase)
 		
 	public:
 

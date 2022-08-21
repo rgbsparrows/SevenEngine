@@ -3,6 +3,7 @@
 #include "RDI/Interface/RDIDevice.h"
 #include "RDI/Interface/RDICommandQueue.h"
 #include "RDI/Interface/RDICommandAllocator.h"
+#include "RDI/Interface/RDICommandList.h"
 
 void SRenderContent::Init(IRDIDevice* _device, IRDICommandQueue* _commandQueue) noexcept
 {
@@ -48,7 +49,19 @@ IRDIDevice* SRenderContent::GetDevice() noexcept
 
 IRDICommandList* SRenderContent::AllocateCommandList(uint32_t _threadIndex) noexcept
 {
-	return mRDIDevice->CreateCommandList(ERDICommandListType::Direct, GetCommandAllocator(_threadIndex));
+	if (mCommandListPool.empty())
+		return mRDIDevice->CreateCommandList(ERDICommandListType::Direct, GetCommandAllocator(_threadIndex));
+
+	IRDICommandList* commandList = mCommandListPool.back();
+	commandList->Reset(GetCommandAllocator(_threadIndex));
+	mCommandListPool.pop_back();
+
+	return commandList;
+}
+
+void SRenderContent::ReleaseCommandList(IRDICommandList* _commandList) noexcept
+{
+	mCommandListPool.push_back(_commandList);
 }
 
 IRDICommandAllocator* SRenderContent::GetCommandAllocator(uint32_t _threadIndex) noexcept

@@ -24,6 +24,7 @@ public:
 	IRDIDevice* GetDevice() noexcept;
 
 	IRDICommandList* AllocateCommandList(uint32_t _threadIndex = 0) noexcept;
+	void ReleaseCommandList(IRDICommandList* _commandList) noexcept;
 	IRDICommandAllocator* GetCommandAllocator(uint32_t _threadIndex = 0) noexcept;
 
 	void ExecuteCommandList(IRDICommandList* _commandList) noexcept;
@@ -34,9 +35,9 @@ public:
 private:
 	IRDIDevice* mRDIDevice = nullptr;
 	IRDICommandQueue* mRDICommandQueue = nullptr;
-	IRDICommandList* mRDICommandList = nullptr;
 
 	bool mIsSyncToGpuFrameEnd = false;
 
 	std::vector<IRDICommandAllocator*> mCommandAllocatorList[GRenderInfoCount];
+	std::vector<IRDICommandList*> mCommandListPool;
 };

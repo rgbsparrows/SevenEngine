@@ -43,7 +43,7 @@ file(GLOB_RECURSE configFile ${ENGINE_DIR}/Config/*)
 
 list(APPEND ENGINE_FILES ${srcFile} ${shaderFile} ${configFile})
 
-file(GLOB_RECURSE srcDir LIST_DIRECTORIES true ${ENGINE_DIR}/Source/Engine/*/)
+file(GLOB_RECURSE srcDir LIST_DIRECTORIES true ${ENGINE_DIR}/Source/*/)
 foreach(includeDir ${srcDir})
     get_filename_component(name ${includeDir} NAME)
 #将Private目录添加到include路径主要是不想在模块中的private实现中，出现include "../XXX"之类的情况，但不要在其他的模块中引用private目录，Include时应该始终Include以模块名称为路径头的路径

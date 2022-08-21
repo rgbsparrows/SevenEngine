@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Core/Math/Type.h"
-#include "Render/RenderPass/RenderGraph.h"
 #include "Render/RenderProxy/RenderProxy.h"
 #include "Render/RenderProxy/Resource/RenderResource.h"
 
@@ -27,18 +26,15 @@ struct RCamera
 	Math::SFloat3 mPosition;
 	Math::SFloat3 mRotation;
 	float mFov;
+	float mNearClip;
+	float mFarClip;
 
 	Math::SFloat4x4 mViewMatrix;
 };
 
-struct R3DWorldRenderData
+struct R3DWorld
 {
 	RCamera mCamera;
 	std::vector<RStaticMeshProxy> mStaticMeshComponent;
-
-	RRenderProxy<RTexture2D>* mRenderTarget;
-	Math::SFloatRect mCanvasRect;
 };
-template<> struct RRenderInfoTraits<R3DWorldRenderData> : RExclusiveMode {};
-
-using R3DWorldRenderGraph = TRenderGraph<R3DWorldRenderData>;
+template<> struct RRenderInfoTraits<R3DWorld> : RExclusiveMode {};

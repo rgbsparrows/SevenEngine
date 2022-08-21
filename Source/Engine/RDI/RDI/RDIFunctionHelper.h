@@ -214,6 +214,13 @@ struct SRDITexture1DResourceDesc
 	uint16_t mMipCount = 0;
 
 	uint32_t mSizeX = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture1DResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture1DResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITexture1DArrayResourceDesc
@@ -230,6 +237,13 @@ struct SRDITexture1DArrayResourceDesc
 	uint16_t mArraySize = 0;
 
 	uint32_t mSizeX = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture1DArrayResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture1DArrayResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITexture2DResourceDesc
@@ -247,8 +261,12 @@ struct SRDITexture2DResourceDesc
 	uint32_t mSizeX = 0;
 	uint32_t mSizeY = 0;
 
-	bool operator ==(const SRDITexture2DResourceDesc&) const = default;
-	bool operator !=(const SRDITexture2DResourceDesc&) const = default;
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture2DResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture2DResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITexture2DArrayResourceDesc
@@ -266,6 +284,13 @@ struct SRDITexture2DArrayResourceDesc
 
 	uint32_t mSizeX = 0;
 	uint32_t mSizeY = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture2DArrayResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture2DArrayResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITexture3DResourceDesc
@@ -283,6 +308,13 @@ struct SRDITexture3DResourceDesc
 	uint32_t mSizeX = 0;
 	uint32_t mSizeY = 0;
 	uint32_t mSizeZ = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture3DResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture3DResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITextureCubeResourceDesc
@@ -298,6 +330,13 @@ struct SRDITextureCubeResourceDesc
 	uint16_t mMipCount = 0;
 
 	uint32_t mSizeXY = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITextureCubeResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITextureCubeResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITextureCubeArrayResourceDesc
@@ -314,6 +353,13 @@ struct SRDITextureCubeArrayResourceDesc
 	uint16_t mArraySize = 0;
 
 	uint32_t mSizeXY = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITextureCubeArrayResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITextureCubeArrayResourceDesc&) const& noexcept = default;
 };
 
 struct SRDISamplerResourceDesc
@@ -328,6 +374,9 @@ struct SRDISamplerResourceDesc
 	Math::SFColor mBorderColor;
 	float mMinLod;
 	float mMaxLod;
+
+	bool operator ==(const SRDISamplerResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDISamplerResourceDesc&) const& noexcept = default;
 };
 
 #pragma endregion

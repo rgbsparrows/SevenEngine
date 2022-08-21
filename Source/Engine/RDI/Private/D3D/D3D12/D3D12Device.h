@@ -112,7 +112,9 @@ public:
 	IRDITexture2D* CreateTexture2DWithCreatedResource(const SRDITexture2DResourceDesc* _desc, ID3D12Resource* _resource) noexcept;
 
 public:
-	ID3D12Resource* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc) noexcept;
+	D3D12_RESOURCE_FLAGS MakeD3D12ResourceFlag(ERDIResourceUsage _resourceUsage) noexcept;
+	D3D12_CLEAR_VALUE MakeD3D12ClearValue(ERDIResourceUsage _resourceUsage, ERDIPixelFormat _pixelFormat, ERDIPixelFormat _rtvPixelFormat, ERDIPixelFormat _dsvPixelFormat, Math::SFColor _clearColor, float _clearDepth, uint8_t _clearStencil) noexcept;
+	ID3D12Resource* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, const D3D12_CLEAR_VALUE* _clearValue) noexcept;
 	bool CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept;
 	void GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _errorInfo);
 
