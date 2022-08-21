@@ -1,7 +1,7 @@
 #pragma once
 #include "Core/Modules/ModuleInterface.h"
 
-__interface UWindowInterface;
+__interface IUIWindowInterface;
 
 __interface IUIModuleInterface : IModuleInterface
 {
@@ -10,8 +10,8 @@ __interface IUIModuleInterface : IModuleInterface
 
 	void OnGUI() noexcept;
 
-	void AddWindow(const std::wstring& _windowTag, UWindowInterface* _window) noexcept;
-	UWindowInterface* GetWindowByTag(const std::wstring& _windowTag) noexcept;
+	void AddWindow(const std::wstring& _windowTag, IUIWindowInterface* _window) noexcept;
+	IUIWindowInterface* GetWindowByTag(const std::wstring& _windowTag) noexcept;
 };
 
 IUIModuleInterface* GetUIModule() noexcept;

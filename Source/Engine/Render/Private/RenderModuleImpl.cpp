@@ -1,5 +1,4 @@
 ﻿#include "RDI/RDIModule.h"
-#include "Render/RenderProxy/Resource/RenderResource.h"
 #include "RenderModuleImpl.h"
 #include "Core/Misc/Thread.h"
 #include "Core/Misc/windowsEx.h"
@@ -8,7 +7,11 @@
 #include "RDI/Interface/RDISwapChain.h"
 #include "RDI/Interface/RDICommandList.h"
 #include "RDI/Interface/RDICommandQueue.h"
+#include "Render/RenderGraph/RenderGraph.h"
+#include "RenderGraph/3DWorldRenderGraph.h"
+#include "RDI/Interface/RDICommandAllocator.h"
 #include "RDI/Interface/RDIDescriptorHeapRange.h"
+#include "Render/RenderProxy/Resource/RenderResource.h"
 
 #include <functional>
 
@@ -46,7 +49,8 @@ bool SRenderModuleImpl::Init() noexcept
 	}
 
 	{
-		mFrameResource->Init(nullptr);
+		mFrameResource->Init(mRdiDevice);
+		mMainRenderContent.Init(mRdiDevice, mRdiCommandQueue);
 		mRenderCommandList.SetFrameResource(mFrameResource);
 	}
 
@@ -99,22 +103,40 @@ void SRenderModuleImpl::Clear() noexcept
 
 void SRenderModuleImpl::BeginFrame_GameThread() noexcept
 {
-	YieldForSingleObject(mFrameResource->Get_GameThread().mGameThreadFrameResourceReadyEvent);
+	Thread::YieldUntilValue(mFrameResource->Get_GameThread().mGameThreadFrameResourceReadyFlag, true);
+	mFrameResource->Get_GameThread().mGameThreadFrameResourceReadyFlag = false;
 }
 
 void SRenderModuleImpl::EndFrame_GameThread() noexcept
 {
-	SetEvent(mFrameResource->Get_GameThread().mRenderThreadFrameResourceReadyEvent);
+	std::atomic_bool& renderThreadFrameResourceReadyFlag = mFrameResource->Get_GameThread().mRenderThreadFrameResourceReadyFlag;
+
 	++mFrameCount_GameThread;
 	mFrameInfoIndex_GameThread = mFrameCount_GameThread % GRenderInfoCount;
+
+	renderThreadFrameResourceReadyFlag = true;
 }
 
 void SRenderModuleImpl::BeginFrame_RenderThread() noexcept
 {
-	YieldForSingleObject(mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyEvent);
 	mRdiCommandQueue->YieldUntilCompletion(mFrameResource->Get_RenderThread().mGpuFence);
-	mRdiDevice->SetCurrentCommandListAllocator(GetFrameInfoIndex_RenderThread());
-	mRdiDevice->ResetCommandListAlocator(GetFrameInfoIndex_RenderThread());
+	mMainRenderContent.BeginFrame();
+
+	while (true)
+	{
+		Thread::YieldUntil(
+			[&]() {return mRenderCommandList.HasImmediatelyRenderCommand() || mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyFlag; }
+		);
+
+		if (mRenderCommandList.HasImmediatelyRenderCommand())
+			mRenderCommandList.ExecuateImmediatelyRenderCommand(mMainRenderContent);
+
+		if (mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyFlag == true)
+		{
+			mFrameResource->Get_RenderThread().mRenderThreadFrameResourceReadyFlag = false;
+			break;
+		}
+	}
 }
 
 void SRenderModuleImpl::FrameTick_RenderThread() noexcept
@@ -122,11 +144,9 @@ void SRenderModuleImpl::FrameTick_RenderThread() noexcept
 	for (RRenderProxyBase* _renderProxy : mFrameResource->Get_RenderThread().mNeedInitRenderProxy)
 		_renderProxy->Init(mRdiDevice);
 
+	TODO("RenderGraph");
 
-	RefrashSwapChain();
-	RefrashResources();
-
-	TODO("世界绘制");
+	RenderWorld();
 
 	RenderImgui();
 	PresentWindows();
@@ -139,11 +159,15 @@ void SRenderModuleImpl::FrameTick_RenderThread() noexcept
 
 void SRenderModuleImpl::EndFrame_RenderThread() noexcept
 {
-	SetEvent(mFrameResource->Get_RenderThread().mGameThreadFrameResourceReadyEvent);
+	mMainRenderContent.EndFrame();
+
+	std::atomic_bool& gameThreadFrameResourceReadyFlag = mFrameResource->Get_RenderThread().mGameThreadFrameResourceReadyFlag;
+
 	mFrameResource->Get_RenderThread().mGpuFence = mRdiCommandQueue->Signal();
-	mIsSyncToGpuFrameEnd = false;
 	++mFrameCount_RenderThread;
 	mFrameInfoIndex_RenderThread = mFrameCount_RenderThread % GRenderInfoCount;
+
+	gameThreadFrameResourceReadyFlag = true;
 }
 
 void SRenderModuleImpl::RenderThreadMain() noexcept
@@ -157,142 +181,15 @@ void SRenderModuleImpl::RenderThreadMain() noexcept
 	}
 }
 
-void SRenderModuleImpl::RefrashResources() noexcept
+void SRenderModuleImpl::RenderWorld() noexcept
 {
-	RefrashTextureResource();
-}
+	auto& render3DWorldList = mFrameResource->Get_RenderThread().mRender3DWorldList;
 
-void SRenderModuleImpl::RefrashTextureResource() noexcept
-{
+	for (size_t i = 0; i != render3DWorldList.size(); ++i)
 	{
-		auto& createStaticTexture2DList = mFrameResource->Get_RenderThread().mRefrashexture2DList;
+		RRender3DWorldInfo& render3DWorldInfo = render3DWorldList[i];
 
-		mRdiDevice->EnsureCommandListCount(1);
-
-		IRDICommandList* commandList = mRdiDevice->GetCommandList(0);
-		commandList->ResetCommandList();
-
-		std::vector<IRDIBuffer*> uploadBufferList;
-
-		for (auto& createStaticTexture2DInfo : createStaticTexture2DList)
-		{
-			RTexture2D& texture = createStaticTexture2DInfo.mTexture2D->Get_RenderThread();
-			RTexture2DData& texture2DData = createStaticTexture2DInfo.mStaticTexture2DDataProxy == nullptr ? createStaticTexture2DInfo.mStaticTexture2DData : createStaticTexture2DInfo.mStaticTexture2DDataProxy->Get_RenderThread();
-
-			bool needRecreate = false;
-
-			if (texture.mTexture != nullptr)
-			{
-				SRDITexture2DResourceDesc desc;
-				texture.mTexture->GetDesc(&desc);
-
-				needRecreate = desc != texture2DData.mDesc;
-			}
-
-			if (needRecreate)
-			{
-				SyncToGpuFrameEnd();
-				texture.mTexture->Release();
-			}
-
-			texture.mTexture = mRdiDevice->CreateTexture2D(&texture2DData.mDesc);
-
-			IRDIBuffer* uploadBuffer = nullptr;
-
-			{
-				SRDIBufferResourceDesc desc;
-				desc.mHeapType = ERDIHeapType::Upload;
-				desc.mResourceUsage = ERDIResourceUsage::None;
-				desc.mResourceState = ERDIResourceState::GenericRead;
-				desc.mBufferSize = SPixelFormatMeta::GetPixelFootprint(texture2DData.mDesc.mPixelFormat, texture2DData.mDesc.mSizeX, texture2DData.mDesc.mSizeY, texture2DData.mDesc.mMipCount);
-
-				uploadBuffer = mRdiDevice->CreateBuffer(&desc);
-				uploadBufferList.push_back(uploadBuffer);
-
-				void* dataPtr = nullptr;
-				uploadBuffer->Map(&dataPtr);
-
-#if WITH_DEBUG_CODE
-				memset(dataPtr, 0, desc.mBufferSize);
-#endif
-
-				for (uint32_t i = 0; i != texture2DData.mDesc.mMipCount; ++i)
-				{
-					if (texture2DData.mSubresourceData[i].IsEmpty() == false)
-						memcpy_s(dataPtr, desc.mBufferSize, texture2DData.mSubresourceData[i].GetBuffer(), texture2DData.mSubresourceData[i].GetBufferSize());
-					
-					dataPtr = reinterpret_cast<uint8_t*>(dataPtr) + SPixelFormatMeta::GetPixelSlicePitch(texture2DData.mDesc.mPixelFormat, texture2DData.mDesc.mSizeX, texture2DData.mDesc.mSizeY, i);
-				}
-				uploadBuffer->Unmap();
-			}
-
-			uint32_t offset = 0;
-			for(uint32_t i = 0; i != texture2DData.mDesc.mMipCount; ++i)
-			{
-				commandList->CopyTexture2D(texture.mTexture, i, uploadBuffer, offset);
-				commandList->TranstionResourceState(texture.mTexture, ERDIResourceState::CopyDest, ERDIResourceState::Common);
-				offset += SPixelFormatMeta::GetPixelSlicePitch(texture2DData.mDesc.mPixelFormat, texture2DData.mDesc.mSizeX, texture2DData.mDesc.mSizeY, i);
-			}
-		}
-
-		commandList->Close();
-		mRdiCommandQueue->ExecuteCommandLists(1, &commandList);
-
-		if (uploadBufferList.size() != 0)
-		{
-			SyncToGpuFrameEnd(true);
-
-			for (IRDIBuffer* buffer : uploadBufferList)
-			{
-				buffer->Release();
-			}
-		}
-	}
-
-	{
-		auto& createImTexture2dList = mFrameResource->Get_RenderThread().mRefrashImTexture2DList;
-
-		for (auto& createImTexture2DInfo : createImTexture2dList)
-		{
-			auto& imTextureInfo = createImTexture2DInfo.mImTexture->Get_RenderThread();
-			auto& texture2dInfo = createImTexture2DInfo.mTexture2D->Get_RenderThread();
-
-			imTextureInfo.mTexture2D = texture2dInfo.mTexture;
-			imTextureInfo.mDescriptorHeapRange = mRdiDevice->CreateDescriptorRange(1, 0);
-			imTextureInfo.mDescriptorHeapRange->SetSRV(0, imTextureInfo.mTexture2D->GetSRV());
-		}
-	}
-}
-
-void SRenderModuleImpl::RefrashSwapChain() noexcept
-{
-	auto& refrashSwapChainList = mFrameResource->Get_RenderThread().mRefrashSwapChainList;
-	if (refrashSwapChainList.size() != 0)
-	{
-		SyncToGpuFrameEnd();
-	}
-
-	for (auto& _refrashSwapChainInfo : refrashSwapChainList)
-	{
-		RSwapChain& swapChain = _refrashSwapChainInfo.mSwapChain->Get_RenderThread();
-		RSwapChainData& swapChainData = _refrashSwapChainInfo.mSwapChainData->Get_RenderThread();
-
-		bool needRefrashSwapChain = true;
-
-		if (swapChain.mSwapChain != nullptr)
-			swapChain.mSwapChain->Release();
-
-		SRDISwapChainDesc swapChainDesc;
-		swapChainDesc.mWidth = swapChainData.mWidth;
-		swapChainDesc.mHeight = swapChainData.mHeight;
-		swapChainDesc.mRefreshRate = swapChainData.mRefreshRate;
-		swapChainDesc.mPixelFormat = swapChainData.mPixelFormat;
-		swapChainDesc.mScalingMode = swapChainData.mScalingMode;
-		swapChainDesc.mBufferCount = GRenderInfoCount;
-		swapChainDesc.mOutputWindow = swapChainData.mOutputWindow;
-		swapChainDesc.mIsWindowed = swapChainData.mIsWindowed;
-
-		swapChain.mSwapChain = mRdiDevice->CreateSwapChain(&swapChainDesc);
+		render3DWorldInfo.mRenderGraph->Render(R3DWorldRawRenderingData{ &render3DWorldInfo.m3DWorld->Get_RenderThread(), &render3DWorldInfo.mCanvas->Get_RenderThread() });
 	}
 }
 
@@ -305,10 +202,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 	if (renderWindowList.empty())
 		return;
 
-	mRdiDevice->EnsureCommandListCount(1);
-
-	IRDICommandList* commandList = mRdiDevice->GetCommandList(0);
-	commandList->ResetCommandList();
+	IRDICommandList* commandList = mMainRenderContent.AllocateCommandList();
 
 	{
 		bool needRecreateUploadBuffer = frameRenderResource.mConstantUploadBuffer == nullptr;
@@ -326,12 +220,11 @@ void SRenderModuleImpl::RenderImgui() noexcept
 
 			SRDIBufferResourceDesc cbDesc;
 			cbDesc.mHeapType = ERDIHeapType::Upload;
-			cbDesc.mResourceState = ERDIResourceState::GenericRead;
-			cbDesc.mResourceUsage = ERDIResourceUsage::ConstantBuffer;
+			cbDesc.mResourceUsage = ERDIResourceUsage::None;
 			cbDesc.mBufferSize = 256 * renderWindowList.size() * 2;
 			frameRenderResource.mConstantUploadBuffer = mRdiDevice->CreateBuffer(&cbDesc);
 		}
-	
+
 		void* cbData = nullptr;
 		frameRenderResource.mConstantUploadBuffer->Map(&cbData);
 		for (size_t i = 0; i != renderWindowList.size(); ++i)
@@ -368,20 +261,19 @@ void SRenderModuleImpl::RenderImgui() noexcept
 		}
 		if (needRecreateConstantBuffer)
 		{
-			SyncToGpuFrameEnd();
+			mMainRenderContent.SyncToGpuFrameEnd();
 
 			if (staticRenderResource.mConstantBuffer)
 				staticRenderResource.mConstantBuffer->Release();
 
 			SRDIBufferResourceDesc cbDesc;
 			cbDesc.mHeapType = ERDIHeapType::Default;
-			cbDesc.mResourceState = ERDIResourceState::VertexAndConstantBuffer;
 			cbDesc.mResourceUsage = ERDIResourceUsage::ConstantBuffer;
 			cbDesc.mBufferSize = 256 * renderWindowList.size() * 2;
 			staticRenderResource.mConstantBuffer = mRdiDevice->CreateBuffer(&cbDesc);
 		}
 
-		commandList->TranstionResourceState(staticRenderResource.mConstantBuffer, ERDIResourceState::VertexAndConstantBuffer, ERDIResourceState::CopyDest);
+		commandList->TranstionResourceState(staticRenderResource.mConstantBuffer, ERDIResourceState::Common, ERDIResourceState::CopyDest);
 		commandList->CopyBuffer(staticRenderResource.mConstantBuffer, frameRenderResource.mConstantUploadBuffer);
 		commandList->TranstionResourceState(staticRenderResource.mConstantBuffer, ERDIResourceState::CopyDest, ERDIResourceState::VertexAndConstantBuffer);
 	}
@@ -415,7 +307,6 @@ void SRenderModuleImpl::RenderImgui() noexcept
 
 			SRDIBufferResourceDesc vbDesc;
 			vbDesc.mHeapType = ERDIHeapType::Upload;
-			vbDesc.mResourceState = ERDIResourceState::GenericRead;
 			vbDesc.mResourceUsage = ERDIResourceUsage::VertexBuffer;
 			vbDesc.mBufferSize = sizeof(RImguiVertex) * drawData.mVertexBuffer.size() * 2;
 			vbDesc.mElementStride = sizeof(RImguiVertex);
@@ -429,7 +320,6 @@ void SRenderModuleImpl::RenderImgui() noexcept
 
 			SRDIBufferResourceDesc ibDesc;
 			ibDesc.mHeapType = ERDIHeapType::Upload;
-			ibDesc.mResourceState = ERDIResourceState::GenericRead;
 			ibDesc.mResourceUsage = ERDIResourceUsage::IndexBuffer;
 			ibDesc.mBufferSize = sizeof(uint16_t) * drawData.mIndexBuffer.size() * 2;
 			ibDesc.mElementStride = sizeof(uint16_t);
@@ -447,11 +337,11 @@ void SRenderModuleImpl::RenderImgui() noexcept
 		drawData.mRDIVertexBuffer->Unmap();
 		drawData.mRDIIndexBuffer->Unmap();
 
-		commandList->TranstionResourceState(swapChain.mSwapChain->GetRenderTarget(), ERDIResourceState::Present, ERDIResourceState::RenderTarget);
+		commandList->TranstionResourceState(swapChain.mSwapChain->GetRenderTarget(), ERDIResourceState::Common, ERDIResourceState::RenderTarget);
 
 		IRDIRenderTargetView* renderTargetView[1] = { swapChain.mSwapChain->GetRenderTarget()->GetRTV(0) };
 		commandList->OMSetRenderTargets(1, renderTargetView, nullptr);
-		commandList->ClearRenderTargetView(swapChain.mSwapChain->GetRenderTarget()->GetRTV(0), Math::SFColor(0.f, 0.f, 0.f, 1.f));
+		commandList->ClearRenderTargetView(swapChain.mSwapChain->GetRenderTarget()->GetRTV(0));
 
 		SRDISwapChainDesc swapChainDesc;
 		swapChain.mSwapChain->GetDesc(&swapChainDesc);
@@ -494,6 +384,7 @@ void SRenderModuleImpl::RenderImgui() noexcept
 
 	commandList->Close();
 	mRdiCommandQueue->ExecuteCommandLists(1, &commandList);
+	mMainRenderContent.ReleaseCommandList(commandList);
 }
 
 void SRenderModuleImpl::PresentWindows() noexcept
@@ -506,15 +397,5 @@ void SRenderModuleImpl::PresentWindows() noexcept
 	{
 		RSwapChain& swapChain = _renderWindow.mSwapChain->Get_RenderThread();
 		swapChain.mSwapChain->Present(frameRenderResource.mEnableVSync);
-	}
-}
-
-void SRenderModuleImpl::SyncToGpuFrameEnd(bool _force) noexcept
-{
-	if (mIsSyncToGpuFrameEnd == false || _force == true)
-	{
-		uint64_t fence = mRdiCommandQueue->Signal();
-		mRdiCommandQueue->YieldUntilCompletion(fence);
-		mIsSyncToGpuFrameEnd = true;
 	}
 }

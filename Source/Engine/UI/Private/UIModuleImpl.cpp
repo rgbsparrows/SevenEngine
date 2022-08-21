@@ -15,6 +15,7 @@
 #include "Core/Misc/PreWindowsApi.h"
 #include <XInput.h>
 #include "Core/Misc/PostWindowsApi.h"
+#include "Render/RenderGraph/RenderGraph.h"
 
 static SUIModuleImpl* GUIModuleImpl = nullptr;
 
@@ -55,26 +56,25 @@ void SUIModuleImpl::OnGUI() noexcept
 {
 	ProcessWndMessage();
 
-	if (mImFontTextureDirtyFlag.IsDirty())
-	{
-		GetRenderModule()->GetRenderCommandList()->RefrashImTexture2D(mFontTexture, mImFontTexture);
-		mImFontTextureDirtyFlag.Update();
-	}
-
 	ImguiNewFrame();
 
-	ImGui::Begin("Seven Engine###MainWindow", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
-	ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
-	ImGui::End();
+	static bool isMainWindowOpen = true;
+	if (isMainWindowOpen)
+	{
+		std::string str = std::format("Seven Engine FPS : {0} ###MainWindow", 1.F / GClock.GetAbsoluteDeltaTime());
+		ImGui::Begin(str.c_str(), &isMainWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
+		ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
+		ImGui::End();
+	}
 
 	ImGui::ShowDemoWindow();
 
-	std::vector<UWindowInterface*> windows;
+	std::vector<IUIWindowInterface*> windows;
 
-	for (auto it = mUIWindows.begin(); it != mUIWindows.end(); void())
+	for (auto it = mUIWindows.begin(); it != mUIWindows.end(); ++it)
 		windows.push_back(it->second);
 
-	for (auto it = mAnonymousUIWindows.begin(); it != mAnonymousUIWindows.end(); void())
+	for (auto it = mAnonymousUIWindows.begin(); it != mAnonymousUIWindows.end(); ++it)
 		windows.push_back(*it);
 
 	for (auto _window : windows)
@@ -84,42 +84,34 @@ void SUIModuleImpl::OnGUI() noexcept
 
 	for (auto it = mUIWindows.begin(); it != mUIWindows.end(); void())
 	{
-		UWindowInterface* window = it->second;
+		IUIWindowInterface* window = it->second;
 
 		if (window->IsWindowOpen() == false)
 		{
-			window->OnClose();
 			window->Release();
-
 			it = mUIWindows.erase(it);
 		}
 		else
-		{
 			++it;
-		}
 	}
 
 	for (auto it = mAnonymousUIWindows.begin(); it != mAnonymousUIWindows.end(); void())
 	{
-		UWindowInterface* window = *it;
+		IUIWindowInterface* window = *it;
 
 		if (window->IsWindowOpen() == false)
 		{
-			window->OnClose();
 			window->Release();
-
 			it = mAnonymousUIWindows.erase(it);
 		}
 		else
-		{
 			++it;
-		}
 	}
 
 	ImguiEndFrame();
 }
 
-void SUIModuleImpl::AddWindow(const std::wstring& _windowTag, UWindowInterface* _window) noexcept
+void SUIModuleImpl::AddWindow(const std::wstring& _windowTag, IUIWindowInterface* _window) noexcept
 {
 	if (_windowTag.empty() == false)
 	{
@@ -132,7 +124,7 @@ void SUIModuleImpl::AddWindow(const std::wstring& _windowTag, UWindowInterface* 
 	}
 }
 
-UWindowInterface* SUIModuleImpl::GetWindowByTag(const std::wstring& _windowTag) noexcept
+IUIWindowInterface* SUIModuleImpl::GetWindowByTag(const std::wstring& _windowTag) noexcept
 {
 	auto it = mUIWindows.find(_windowTag);
 
@@ -247,14 +239,15 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 		desc.mSizeY = height;
 
 		SBlob resourceData = SBlob(pixels, 1ull * width * height * sizeof(uint32_t));
-		SBufferView subResourceData = SBufferView(resourceData);
+		SRange subResourceData = SRange(resourceData.GetBufferSize());
 
 		texture2dData.mDesc = desc;
 		texture2dData.mResourceData = std::move(resourceData);
 		texture2dData.mSubresourceData.push_back(subResourceData);
 
-		GetRenderModule()->GetRenderCommandList()->RefrashStaticTexture2D(mFontTexture, std::move(texture2dData));
-		mImFontTextureDirtyFlag.MarkDirty();
+
+		GetRenderModule()->GetRenderCommandList()->RefrashStaticTexture2D_I(mFontTexture, std::move(texture2dData));
+		GetRenderModule()->GetRenderCommandList()->RefrashImTexture2D_I(mFontTexture, mImFontTexture);
 
 		ImGui::GetIO().Fonts->TexID = mImFontTexture;
 	}
@@ -448,6 +441,9 @@ void SUIModuleImpl::ImguiEndFrame() noexcept
 		mMainWindow->SetWindowSize(Math::SFloat2(imMainWindowSize.x, imMainWindowSize.y));
 
 	mMainWindow->FlushImguiDrawData();
+
+	if (ImGui::IsWindowActive("Seven Engine###MainWindow") == false)
+		mMainWindow->Release();
 
 	ImGui::UpdatePlatformWindows();
 	ImGui::RenderPlatformWindowsDefault();

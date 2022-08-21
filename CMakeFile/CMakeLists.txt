@@ -24,6 +24,7 @@ set(CMAKE_WIN32_EXECUTABLE ON)
 
 add_compile_options("/std:c++latest")
 add_compile_options("/GR-")
+add_compile_options("/MP")
 add_compile_options("/WX")
 add_compile_options("/Zc:char8_t-")
 add_compile_definitions("$<$<CONFIG:Debug>:SE_BUILD_DEBUG>$<$<CONFIG:Shipping>:SE_BUILD_SHIPPING>$<$<CONFIG:Profile>:SE_BUILD_PROFILE>$<$<CONFIG:Test>:SE_BUILD_TEST>=1")
@@ -42,7 +43,7 @@ file(GLOB_RECURSE configFile ${ENGINE_DIR}/Config/*)
 
 list(APPEND ENGINE_FILES ${srcFile} ${shaderFile} ${configFile})
 
-file(GLOB_RECURSE srcDir LIST_DIRECTORIES true ${ENGINE_DIR}/Source/Engine/*/)
+file(GLOB_RECURSE srcDir LIST_DIRECTORIES true ${ENGINE_DIR}/Source/*/)
 foreach(includeDir ${srcDir})
     get_filename_component(name ${includeDir} NAME)
 #将Private目录添加到include路径主要是不想在模块中的private实现中，出现include "../XXX"之类的情况，但不要在其他的模块中引用private目录，Include时应该始终Include以模块名称为路径头的路径
@@ -74,7 +75,7 @@ SET_PROPERTY(TARGET SevenEngine PROPERTY FOLDER "Engine")
 file(WRITE ${ENGINE_DIR}/Intermediate/SevenEngine.vcxproj.user "<?xml version=\"1.0\" encoding=\"utf-8\"?>
 <Project ToolsVersion=\"Current\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">
   <PropertyGroup>
-    <LocalDebuggerCommandArguments>EnginePath="$(SolutionDir).."</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>EnginePath=\"$(SolutionDir)..\"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>")

@@ -91,7 +91,7 @@ SD3D12DescriptorHeapRange* SD3D12ShaderVisibleDescriptorHeap::AllocateDescriptor
 {
 	uint64_t srvUavStart = mSrvUavDescriptorAlloctorHelper.AllocateSlotArray(0ull + _srvDescriptorCount + _uavDescriptorCount);
 
-	CHECK(srvUavStart != std::numeric_limits<uint64_t>::max() && L"描述符堆中没有充足的空间以为新资源分配描述符");
+	CHECK(srvUavStart != SCircularSlotArrayAllocatorHelper::ErrorSlot && L"描述符堆中没有充足的空间以为新资源分配描述符");
 
 	SD3D12DescriptorHeapRange descriptorHeapRange;
 	descriptorHeapRange.Init(srvUavStart, _srvDescriptorCount, _uavDescriptorCount, this);
@@ -103,7 +103,7 @@ SD3D12SamplerHeapRange* SD3D12ShaderVisibleDescriptorHeap::AllocateSamplerHeapRa
 {
 	uint64_t samplerViewStart = mSamplerViewAlloctorHelper.AllocateSlotArray(_samplerViewDescriptorCount);
 
-	CHECK(samplerViewStart != std::numeric_limits<uint64_t>::max() && L"Sampler描述符堆中没有充足的空间以为新资源分配描述符");
+	CHECK(samplerViewStart != SCircularSlotArrayAllocatorHelper::ErrorSlot && L"Sampler描述符堆中没有充足的空间以为新资源分配描述符");
 
 	SD3D12SamplerHeapRange descriptorHeapRange;
 	descriptorHeapRange.Init(samplerViewStart, _samplerViewDescriptorCount, this);
@@ -185,12 +185,6 @@ void SD3D12DescriptorHeap::Init(ID3D12DescriptorHeap* _rtvDescriptorHeapNativePt
 	mUAVDescriptorHeapStartCPUDescriptorHandle = mUAVDescriptorHeapNativePtr->GetCPUDescriptorHandleForHeapStart();
 	mSamplerViewDescriptorHeapStartCPUDescriptorHandle = mSamplerViewDescriptorHeapNativePtr->GetCPUDescriptorHandleForHeapStart();
 
-	mRTVDescriptorHeapStartGPUDescriptorHandle = mRTVDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
-	mDSVDescriptorHeapStartGPUDescriptorHandle = mDSVDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
-	mSRVDescriptorHeapStartGPUDescriptorHandle = mSRVDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
-	mUAVDescriptorHeapStartGPUDescriptorHandle = mUAVDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
-	mSamplerViewDescriptorHeapStartGPUDescriptorHandle = mSamplerViewDescriptorHeapNativePtr->GetGPUDescriptorHandleForHeapStart();
-
 	mDevice = _device;
 }
 
@@ -209,7 +203,7 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture1D* _resource
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION::D3D12_RTV_DIMENSION_TEXTURE1D;
 	rtvDesc.Texture1D.MipSlice = _mipSlice;
 
-	return CreateRTV(texture1d->GetNativePtr(), &rtvDesc);
+	return CreateRTV(texture1d->GetNativePtr(), desc.mClearColor, &rtvDesc);
 }
 
 SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture2D* _resource, uint32_t _mipSlice) noexcept
@@ -228,7 +222,7 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture2D* _resource
 	rtvDesc.Texture2D.MipSlice = _mipSlice;
 	rtvDesc.Texture2D.PlaneSlice = 0;
 
-	return CreateRTV(texture2d->GetNativePtr(), &rtvDesc);
+	return CreateRTV(texture2d->GetNativePtr(), desc.mClearColor, &rtvDesc);
 }
 
 SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture3D* _resource, uint32_t _mipSlice) noexcept
@@ -248,7 +242,7 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITexture3D* _resource
 	rtvDesc.Texture3D.FirstWSlice = 0;
 	rtvDesc.Texture3D.WSize = desc.mSizeZ;
 
-	return CreateRTV(texture3d->GetNativePtr(), &rtvDesc);
+	return CreateRTV(texture3d->GetNativePtr(), desc.mClearColor, &rtvDesc);
 }
 
 SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITextureCube* _resource, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice) noexcept
@@ -269,7 +263,7 @@ SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(IRDITextureCube* _resour
 	rtvDesc.Texture2DArray.ArraySize = 1;
 	rtvDesc.Texture2DArray.PlaneSlice = 0;
 
-	return CreateRTV(textureCube->GetNativePtr(), &rtvDesc);
+	return CreateRTV(textureCube->GetNativePtr(), desc.mClearColor, &rtvDesc);
 }
 
 SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITexture1D* _resource, uint32_t _mipSlice) noexcept
@@ -288,7 +282,7 @@ SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITexture1D* _resource
 	dsvDesc.Flags = D3D12_DSV_FLAGS::D3D12_DSV_FLAG_NONE;
 	dsvDesc.Texture1D.MipSlice = _mipSlice;
 
-	return CreateDSV(texture1d->GetNativePtr(), &dsvDesc);
+	return CreateDSV(texture1d->GetNativePtr(), desc.mClearDepth, desc.mClearStencil, &dsvDesc);
 }
 
 SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITexture2D* _resource, uint32_t _mipSlice) noexcept
@@ -307,7 +301,7 @@ SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITexture2D* _resource
 	dsvDesc.Flags = D3D12_DSV_FLAGS::D3D12_DSV_FLAG_NONE;
 	dsvDesc.Texture2D.MipSlice = _mipSlice;
 
-	return CreateDSV(texture2d->GetNativePtr(), &dsvDesc);
+	return CreateDSV(texture2d->GetNativePtr(), desc.mClearDepth, desc.mClearStencil, &dsvDesc);
 }
 
 SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITextureCube* _resource, ERDITextureCubeFace _cubeFace, uint32_t _mipSlice) noexcept
@@ -328,7 +322,7 @@ SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(IRDITextureCube* _resour
 	dsvDesc.Texture2DArray.FirstArraySlice = EnumToInt(_cubeFace);
 	dsvDesc.Texture2DArray.ArraySize = 1;
 
-	return CreateDSV(textureCube->GetNativePtr(), &dsvDesc);
+	return CreateDSV(textureCube->GetNativePtr(), desc.mClearDepth, desc.mClearStencil, &dsvDesc);
 }
 
 SD3D12ShaderResourceView* SD3D12DescriptorHeap::CreateSRV(IRDIBuffer* _resource) noexcept
@@ -686,10 +680,10 @@ SD3D12SamplerView* SD3D12DescriptorHeap::CreateSamplerView(IRDISampler* _sampler
 	samplerDesc.MipLODBias = desc.mMipLODBias;
 	samplerDesc.MaxAnisotropy = desc.mMaxAnisotropy;
 	samplerDesc.ComparisonFunc = ConvertComparisonFuncToD3D12(desc.mComparisonFunc);
-	samplerDesc.BorderColor[0] = desc.mBorderColor.R;
-	samplerDesc.BorderColor[1] = desc.mBorderColor.G;
-	samplerDesc.BorderColor[2] = desc.mBorderColor.B;
-	samplerDesc.BorderColor[3] = desc.mBorderColor.A;
+	samplerDesc.BorderColor[0] = desc.mBorderColor[0];
+	samplerDesc.BorderColor[1] = desc.mBorderColor[1];
+	samplerDesc.BorderColor[2] = desc.mBorderColor[2];
+	samplerDesc.BorderColor[3] = desc.mBorderColor[3];
 	samplerDesc.MinLOD = desc.mMinLod;
 	samplerDesc.MaxLOD = desc.mMaxLod;
 
@@ -736,82 +730,72 @@ void SD3D12DescriptorHeap::ReleaseSamplerView(SD3D12SamplerView* _samplerView) n
 	mSamplerViewPool.DeallocateElement(_samplerView);
 }
 
-SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(ID3D12Resource* _resourceNativePtr, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept
+SD3D12RenderTargetView* SD3D12DescriptorHeap::CreateRTV(ID3D12Resource* _resourceNativePtr, Math::SFColor _clearValue, const D3D12_RENDER_TARGET_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mRTVAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mRTVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-	gpuHandle.ptr = mRTVDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 	mDevice->GetNativePtr()->CreateRenderTargetView(_resourceNativePtr, _desc, cpuHandle);
 
-	return mRenderTargetViewPool.AllocateElement(cpuHandle, gpuHandle);
+	return mRenderTargetViewPool.AllocateElement(cpuHandle, _clearValue);
 }
 
-SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(ID3D12Resource* _resourceNativePtr, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept
+SD3D12DepthStencilView* SD3D12DescriptorHeap::CreateDSV(ID3D12Resource* _resourceNativePtr, float _clearDepth, uint8_t _clearStencil, const D3D12_DEPTH_STENCIL_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mDSVAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mDSVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-	gpuHandle.ptr = mDSVDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
 	mDevice->GetNativePtr()->CreateDepthStencilView(_resourceNativePtr, _desc, cpuHandle);
 
-	return mDepthStencilViewPool.AllocateElement(cpuHandle, gpuHandle);
+	return mDepthStencilViewPool.AllocateElement(cpuHandle, _clearDepth, _clearStencil);
 }
 
 SD3D12ShaderResourceView* SD3D12DescriptorHeap::CreateSRV(ID3D12Resource* _resourceNativePtr, const D3D12_SHADER_RESOURCE_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mSRVAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mSRVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-	gpuHandle.ptr = mSRVDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	mDevice->GetNativePtr()->CreateShaderResourceView(_resourceNativePtr, _desc, cpuHandle);
 
-	return mShaderResourceViewPool.AllocateElement(cpuHandle, gpuHandle);
+	return mShaderResourceViewPool.AllocateElement(cpuHandle);
 }
 
 SD3D12UnorderedAccessView* SD3D12DescriptorHeap::CreateUAV(ID3D12Resource* _resourceNativePtr, const D3D12_UNORDERED_ACCESS_VIEW_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mUAVAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mUAVDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-	gpuHandle.ptr = mUAVDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	mDevice->GetNativePtr()->CreateUnorderedAccessView(_resourceNativePtr, nullptr, _desc, cpuHandle);
 
-	return mUnorderedAccessViewPool.AllocateElement(cpuHandle, gpuHandle);
+	return mUnorderedAccessViewPool.AllocateElement(cpuHandle);
 }
 
 SD3D12SamplerView* SD3D12DescriptorHeap::CreateSamplerView(const D3D12_SAMPLER_DESC* _desc) noexcept
 {
 	uint64_t slotIndex = mSamplerViewAllocatorHelper.AllocateSlot();
 
-	CHECK(slotIndex != std::numeric_limits<uint64_t>::max());
+	CHECK(slotIndex != SCircularSlotAllocatorHelper::ErrorSlot);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE cpuHandle;
 	cpuHandle.ptr = mSamplerViewDescriptorHeapStartCPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
-	D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle;
-	gpuHandle.ptr = mSamplerViewDescriptorHeapStartGPUDescriptorHandle.ptr + slotIndex * mDevice->GetDescriptorHandleIncrement(D3D12_DESCRIPTOR_HEAP_TYPE::D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
 	mDevice->GetNativePtr()->CreateSampler(_desc, cpuHandle);
 
-	return mSamplerViewPool.AllocateElement(cpuHandle, gpuHandle);
+	return mSamplerViewPool.AllocateElement(cpuHandle);
 }

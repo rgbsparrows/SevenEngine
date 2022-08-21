@@ -8,7 +8,9 @@ enum class ERDIResourceState;
 enum class ERDIPrimitiveTopology;
 enum class ERDITextureCubeFace;
 
+
 __interface IRDIRootSignature;
+__interface IRDICommandAllocator;
 __interface IRDIDescriptorHeapRange;
 __interface IRDISamplerHeapRange;
 __interface IRDIGraphicsPipelineState;
@@ -36,7 +38,7 @@ enum class ERDIClearFlag;
 
 __interface IRDICommandList
 {
-	void ResetCommandList() noexcept;
+	void Reset(IRDICommandAllocator* _commandAllocator) noexcept;
 	void Close() noexcept;
 
 	void CopyBufferRegion(IRDIBuffer* _destBuffer, uint64_t _destOffset, IRDIBuffer* _srcBuffer, uint64_t _srcOffset, uint64_t _numByte) noexcept;
@@ -100,8 +102,8 @@ __interface IRDICommandList
 	void DrawIndexedInstanced(uint32_t _indexCount, uint32_t _instanceCount, uint32_t _startIndexLocation, uint32_t _baseVertexLocation) noexcept;
 	void Dispatch(uint32_t _threadGroupX, uint32_t _threadGroupY, uint32_t _threadGroupZ) noexcept;
 
-	void ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag, float _depth, uint8_t _stencil) noexcept;
-	void ClearRenderTargetView(IRDIRenderTargetView* _rtv, Math::SFColor _color) noexcept;
+	void ClearDepthStencilView(IRDIDepthStencilView* _dsv, ERDIClearFlag _clearFlag) noexcept;
+	void ClearRenderTargetView(IRDIRenderTargetView* _rtv) noexcept;
 	
 	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDIBuffer* _resource, Math::SUInt4 _value) noexcept;
 	void ClearUnorderAccessViewUINT(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture1D* _resource, Math::SUInt4 _value) noexcept;
@@ -120,4 +122,6 @@ __interface IRDICommandList
 	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITexture3D* _resource, Math::SFloat4 _value) noexcept;
 	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCube* _resource, Math::SFloat4 _value) noexcept;
 	void ClearUnorderAccessViewFloat(IRDIDescriptorHeapRange* _shaderVisibleUav, IRDIUnorderedAccessView* _uav, IRDITextureCubeArray* _resource, Math::SFloat4 _value) noexcept;
+
+	void Release() noexcept;
 };

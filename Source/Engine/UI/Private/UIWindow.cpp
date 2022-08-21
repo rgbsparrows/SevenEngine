@@ -86,28 +86,25 @@ void SUIInternalWindow::Init(ImGuiViewport* _viewport)
 	mImguiViewport = _viewport;
 
 	mSwapChain = new RRenderProxy<RSwapChain>;
-	mSwapChainData = new RRenderProxy<RSwapChainData>;
 	mDrawData = new RRenderProxy<RImguiDrawData>;
 
-	mCurrentSwapChainData.mWidth = rect.right - rect.left;
-	mCurrentSwapChainData.mHeight = rect.bottom - rect.top;
-	mCurrentSwapChainData.mRefreshRate = Math::SUIntFraction(1, 60);
-	mCurrentSwapChainData.mPixelFormat = ERDIPixelFormat::R8G8B8A8_UNORM;
-	mCurrentSwapChainData.mOutputWindow = mHwnd;
-	mCurrentSwapChainData.mIsWindowed = true;
-	mCurrentSwapChainData.mNeedResize = true;
+	mSwapChainData.mWidth = rect.right - rect.left;
+	mSwapChainData.mHeight = rect.bottom - rect.top;
+	mSwapChainData.mRefreshRate = Math::SUIntFraction(1, 60);
+	mSwapChainData.mPixelFormat = ERDIPixelFormat::R8G8B8A8_UNORM;
+	mSwapChainData.mOutputWindow = mHwnd;
+	mSwapChainData.mIsWindowed = true;
+	mSwapChainData.mNeedResize = true;
 
 	mIsSwapChainDiry = true;
-	mDirtyFlag.MarkDirty();
 }
 
 void SUIInternalWindow::Release()
 {
-	GetRenderModule()->GetRenderCommandList()->AddExpiringRenderProxy({ mSwapChain, mSwapChainData, mDrawData });
+	GetRenderModule()->GetRenderCommandList()->AddExpiringRenderProxy({ mSwapChain, mDrawData });
 	DestroyWindow(mHwnd);
 
 	mSwapChain = nullptr;
-	mSwapChainData = nullptr;
 	mDrawData = nullptr;
 	mHwnd = nullptr;
 	delete this;
@@ -156,10 +153,9 @@ void SUIInternalWindow::SetWindowSize(Math::SFloat2 _size) noexcept
 	::AdjustWindowRectEx(&rect, mWndStyle, FALSE, mWndExStyle); // Client to Screen
 	::SetWindowPos(mHwnd, NULL, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
 
-	mCurrentSwapChainData.mWidth = rect.right - rect.left;
-	mCurrentSwapChainData.mHeight = rect.bottom - rect.top;
+	mSwapChainData.mWidth = rect.right - rect.left;
+	mSwapChainData.mHeight = rect.bottom - rect.top;
 	mIsSwapChainDiry = true;
-	mDirtyFlag.MarkDirty();
 }
 
 Math::SFloat2 SUIInternalWindow::GetWindowSize() noexcept
@@ -215,14 +211,8 @@ void SUIInternalWindow::FlushImguiDrawData() noexcept
 	if (IsWindow(mHwnd) == false)
 		return;
 
-	if (mDirtyFlag.IsDirty())
-		mSwapChainData->Get_GameThread() = mCurrentSwapChainData;
-
-	mSwapChainData->Get_GameThread().mNeedResize = mIsSwapChainDiry;
-
-
 	if (mIsSwapChainDiry)
-		GetRenderModule()->GetRenderCommandList()->RefrashSwapChain(mSwapChain, mSwapChainData);
+		GetRenderModule()->GetRenderCommandList()->RefrashSwapChain_I(mSwapChain, mSwapChainData);
 
 	ImDrawData* imDrawDataRaw = mImguiViewport->DrawData;
 	RImguiDrawData& drawData = mDrawData->Get_GameThread();
@@ -291,5 +281,4 @@ void SUIInternalWindow::FlushImguiDrawData() noexcept
 	}
 
 	mIsSwapChainDiry = false;
-	mDirtyFlag.Update();
 }

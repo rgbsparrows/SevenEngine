@@ -37,6 +37,17 @@ struct SRDIErrorInfo
 
 #pragma endregion
 
+#pragma region RDICommandList
+
+enum class ERDICommandListType
+{
+	Direct,
+	Compute,
+
+	Num,
+};
+
+#pragma endregion
 
 #pragma region RDIAdapter
 
@@ -95,6 +106,7 @@ enum class ERDIHeapType
 	ReadBack,
 	Custom,
 
+	Num,
 	Error = TErrorEnumValue<ERDIHeapType>
 };
 
@@ -184,7 +196,6 @@ struct SRDIBufferResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	uint64_t mBufferSize = 0;
 	//只在Buffer用作IndexBuffer/VertexBuffer时有意义
 	uint32_t mElementStride = 0;
@@ -194,7 +205,6 @@ struct SRDITexture1DResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -204,13 +214,19 @@ struct SRDITexture1DResourceDesc
 	uint16_t mMipCount = 0;
 
 	uint32_t mSizeX = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture1DResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture1DResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITexture1DArrayResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -221,13 +237,19 @@ struct SRDITexture1DArrayResourceDesc
 	uint16_t mArraySize = 0;
 
 	uint32_t mSizeX = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture1DArrayResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture1DArrayResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITexture2DResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -239,15 +261,18 @@ struct SRDITexture2DResourceDesc
 	uint32_t mSizeX = 0;
 	uint32_t mSizeY = 0;
 
-	bool operator ==(const SRDITexture2DResourceDesc&) const = default;
-	bool operator !=(const SRDITexture2DResourceDesc&) const = default;
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture2DResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture2DResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITexture2DArrayResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -259,13 +284,19 @@ struct SRDITexture2DArrayResourceDesc
 
 	uint32_t mSizeX = 0;
 	uint32_t mSizeY = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture2DArrayResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture2DArrayResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITexture3DResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -277,13 +308,19 @@ struct SRDITexture3DResourceDesc
 	uint32_t mSizeX = 0;
 	uint32_t mSizeY = 0;
 	uint32_t mSizeZ = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITexture3DResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITexture3DResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITextureCubeResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -293,13 +330,19 @@ struct SRDITextureCubeResourceDesc
 	uint16_t mMipCount = 0;
 
 	uint32_t mSizeXY = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITextureCubeResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITextureCubeResourceDesc&) const& noexcept = default;
 };
 
 struct SRDITextureCubeArrayResourceDesc
 {
 	ERDIHeapType mHeapType = ERDIHeapType::Default;
 	ERDIResourceUsage mResourceUsage = ERDIResourceUsage::None;
-	ERDIResourceState mResourceState = ERDIResourceState::Common;
 	ERDIPixelFormat mPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mRtvPixelFormat = ERDIPixelFormat::UNKNOWN;
 	ERDIPixelFormat mDsvPixelFormat = ERDIPixelFormat::UNKNOWN;
@@ -310,6 +353,13 @@ struct SRDITextureCubeArrayResourceDesc
 	uint16_t mArraySize = 0;
 
 	uint32_t mSizeXY = 0;
+
+	Math::SFColor mClearColor;
+	float mClearDepth = 1.0f;
+	uint8_t mClearStencil = 0;
+
+	bool operator ==(const SRDITextureCubeArrayResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDITextureCubeArrayResourceDesc&) const& noexcept = default;
 };
 
 struct SRDISamplerResourceDesc
@@ -324,6 +374,9 @@ struct SRDISamplerResourceDesc
 	Math::SFColor mBorderColor;
 	float mMinLod;
 	float mMaxLod;
+
+	bool operator ==(const SRDISamplerResourceDesc&) const& noexcept = default;
+	bool operator !=(const SRDISamplerResourceDesc&) const& noexcept = default;
 };
 
 #pragma endregion

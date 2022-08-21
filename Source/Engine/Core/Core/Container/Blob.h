@@ -4,7 +4,7 @@
 #include <vector>
 
 template<typename ..._elementTypes>
-using PackageVector = std::vector<std::tuple<_elementTypes...> >;
+using PackageVector = std::vector<std::tuple<_elementTypes...>>;
 
 class SBlob
 {
@@ -71,7 +71,7 @@ public:
 	}
 
 	SBufferView(const void* _buffer, size_t _offset, size_t _bufferSize) noexcept
-		: mBuffer((uint8_t*)_buffer + _offset), mBufferSize(_bufferSize)
+		: mBuffer(static_cast<const uint8_t*>(_buffer) + _offset), mBufferSize(_bufferSize)
 	{
 	}
 
@@ -95,14 +95,58 @@ public:
 	{
 	}
 
-	void RemoveFrontBuffer(size_t _count) noexcept { mBuffer = (char*)mBuffer + _count; }
-	void RemoveBackBuffer(size_t _count) noexcept { mBufferSize -= _count; }
+	void RemoveFromFront(size_t _count) noexcept { mBuffer = (char*)mBuffer + _count; }
+	void RemoveFromBack(size_t _count) noexcept { mBufferSize -= _count; }
 
 	const void* GetBuffer() const noexcept { return mBuffer; }
-	bool IsEmpty() const noexcept { return mBufferSize == 0; }
 	size_t GetBufferSize() const noexcept { return mBufferSize; }
+	bool IsEmpty() const noexcept { return mBufferSize == 0; }
 
 private:
 	const void* mBuffer = nullptr;
 	size_t mBufferSize = 0;
+};
+
+class SRange
+{
+public:
+	SRange() noexcept = default;
+	SRange(const SRange&) noexcept = default;
+	SRange(SRange&&) noexcept = default;
+
+	SRange(size_t _rangeSize) noexcept
+		: mRangeSize(_rangeSize)
+	{
+	}
+
+	SRange(size_t _offset, size_t _rangeSize) noexcept
+		: mBegin(_offset), mRangeSize(_rangeSize)
+	{
+	}
+
+	SRange(SRange _range, size_t _bufferSize) noexcept
+		: SRange(_range.GetBegin(), _bufferSize)
+	{
+	}
+
+	SRange(SRange _range, size_t _offset, size_t _bufferSize) noexcept
+		: SRange(_range.GetBegin() + _offset, _bufferSize)
+	{
+	}
+
+	void RemoveFromFront(size_t _count) noexcept { mBegin += _count; }
+	void RemoveFromBack(size_t _count) noexcept { mRangeSize -= _count; }
+
+	size_t GetBegin() const noexcept { return mBegin; }
+	const void* GetBuffer(const void* _buffer) const noexcept { return static_cast<const uint8_t*>(_buffer) + mBegin; }
+	const void* GetBuffer(const SBlob& _blob) const noexcept { return GetBuffer(_blob.GetBuffer()); }
+	void* GetBuffer(void* _buffer) const noexcept { return static_cast<uint8_t*>(_buffer) + mBegin; }
+	void* GetBuffer(SBlob& _blob) const noexcept { return GetBuffer(_blob.GetBuffer()); }
+
+	size_t GetSize() const noexcept { return mRangeSize; }
+	bool IsEmpty() const noexcept { return mRangeSize == 0; }
+
+private:
+	size_t mBegin = 0;
+	size_t mRangeSize = 0;
 };

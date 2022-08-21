@@ -1,5 +1,6 @@
 #include "D3D/D3DUtil.h"
 #include "Core/Util/Assert.h"
+#include "Core/Misc/Thread.h"
 #include "D3D/D3D12/D3D12CommandList.h"
 #include "D3D/D3D12/D3D12CommandQueue.h"
 #include "D3D/D3D12/Helper/D3D12Helper.h"
@@ -19,7 +20,7 @@ void SD3D12CommandQueue::ExecuteCommandLists(uint32_t _commandListCount, IRDICom
 
 	ID3D12CommandList* commandList[D3D12_EXECUTE_COMMAND_LIST_COUNT];
 	for (uint32_t i = 0; i != _commandListCount; ++i)
-		commandList[i] = static_cast<SD3D12CommandList*>(_commandLists[i])->GetCommandListNativePtr();
+		commandList[i] = static_cast<SD3D12CommandList*>(_commandLists[i])->GetNativePtr();
 
 	GetCommandQueueNativePtr()->ExecuteCommandLists(_commandListCount, commandList);
 }
@@ -37,8 +38,9 @@ uint64_t SD3D12CommandQueue::GetCompletedValue() noexcept
 
 void SD3D12CommandQueue::YieldUntilCompletion(uint64_t _fenceValue) noexcept
 {
-	while (GetCompletedValue() < _fenceValue)
-		std::this_thread::yield();
+	Thread::YieldUntil(
+		[&]() { return GetCompletedValue() >= _fenceValue; }
+	);
 }
 
 void SD3D12CommandQueue::WaitForCompletion(uint64_t _fenceValue) noexcept

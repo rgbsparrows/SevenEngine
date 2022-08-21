@@ -30,6 +30,22 @@ void SD3D12Device::Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D1
 		mCommandQueue.Init(commandQueueNativePtr, fenceNativePtr);
 	}
 
+	//ComputeCommandQuue
+	{
+		ID3D12CommandQueue* computeCommandQueueNativePtr = nullptr;
+
+		D3D12_COMMAND_QUEUE_DESC queueDesc;
+		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+		queueDesc.Priority = 0;
+		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+		queueDesc.NodeMask = 0;
+		VERIFY_D3D_RETURN(GetNativePtr()->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&computeCommandQueueNativePtr)));
+
+		ID3D12Fence* fenceNativePtr = nullptr;
+		VERIFY_D3D_RETURN(GetNativePtr()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fenceNativePtr)));
+		mComputeCommandQueue.Init(computeCommandQueueNativePtr, fenceNativePtr);
+	}
+
 	//DescriptorHeaps
 	{
 		ID3D12DescriptorHeap* shaderVisibleCbvSrvUavDescriptorHeap = nullptr;
@@ -102,26 +118,44 @@ void SD3D12Device::Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D1
 
 		mD3DInclude.Init(
 			[](const std::filesystem::path& _includeFile)
-		{
-			auto filePath = SBasicPath::GetEngineShaderPath() / _includeFile;
-			if (std::filesystem::exists(filePath))
-				return filePath;
+			{
+				auto filePath = SBasicPath::GetEngineShaderPath() / _includeFile;
+				if (std::filesystem::exists(filePath))
+					return filePath;
 
-			filePath = SBasicPath::GetProjectShaderPath() / _includeFile;
-			if (std::filesystem::exists(filePath))
-				return filePath;
+				filePath = SBasicPath::GetProjectShaderPath() / _includeFile;
+				if (std::filesystem::exists(filePath))
+					return filePath;
 
-			return std::filesystem::path();
-		}
+				return std::filesystem::path();
+			}
 		);
 	}
 }
 
-IRDICommandList* SD3D12Device::GetCommandList(uint16_t _commandListIndex) noexcept
+IRDICommandAllocator* SD3D12Device::CreateCommandAllocator(ERDICommandListType _commandListType) noexcept
 {
-	CHECK(_commandListIndex < mCommandList.size());
+	ID3D12CommandAllocator* commandAllocatorNativePtr = nullptr;
+	GetNativePtr()->CreateCommandAllocator(ConvertCommandListTypeToD3D12(_commandListType), IID_PPV_ARGS(&commandAllocatorNativePtr));
 
-	return &mCommandList[_commandListIndex];
+	SD3D12CommandAllocator* commandAllcoator = mCommandAllocatorPool.AllocateElement();
+	commandAllcoator->Init(commandAllocatorNativePtr, this);
+
+	return commandAllcoator;
+}
+
+IRDICommandList* SD3D12Device::CreateCommandList(ERDICommandListType _commandListType, IRDICommandAllocator* _commandAllocator) noexcept
+{
+	SD3D12CommandAllocator* commandAllocator = static_cast<SD3D12CommandAllocator*>(_commandAllocator);
+
+	ID3D12GraphicsCommandList* commandListNativePtr = nullptr;
+	GetNativePtr()->CreateCommandList(0, ConvertCommandListTypeToD3D12(_commandListType), commandAllocator->GetNativePtr(), nullptr, IID_PPV_ARGS(&commandListNativePtr));
+
+	SD3D12CommandList* commandList = mCommandListPool.AllocateElement();
+	commandList->Init(commandListNativePtr, this);
+	commandList->SetDescriptorHeap();
+
+	return commandList;
 }
 
 IRDISwapChain* SD3D12Device::CreateSwapChain(const SRDISwapChainDesc* _swapChainDesc) noexcept
@@ -152,36 +186,6 @@ IRDISwapChain* SD3D12Device::CreateSwapChain(const SRDISwapChainDesc* _swapChain
 	SD3D12SwapChain* swapChain = mSwapChainPool.AllocateElement();
 	swapChain->Init(swapchainNativePtr, _swapChainDesc, this, mAdapter);
 	return swapChain;
-}
-
-void SD3D12Device::EnsureCommandListCount(size_t _commandListCount) noexcept
-{
-	if (mCommandList.size() >= _commandListCount)
-		return;
-
-	for (size_t i = mCommandList.size(); i != _commandListCount; ++i)
-	{
-		ID3D12GraphicsCommandList* commandListNativePtr = nullptr;
-		ID3D12CommandAllocator* commandAllcatorNativePtr = nullptr;
-
-		VERIFY_D3D_RETURN(GetNativePtr()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllcatorNativePtr)));
-		VERIFY_D3D_RETURN(GetNativePtr()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllcatorNativePtr, nullptr, IID_PPV_ARGS(&commandListNativePtr)));
-
-		mCommandList.push_back(SD3D12CommandList());
-		mCommandList.back().Init(commandAllcatorNativePtr, commandListNativePtr, this);
-	}
-}
-
-void SD3D12Device::ResetCommandListAlocator(size_t _commandAllocatorIndex) noexcept
-{
-	for (SD3D12CommandList& commandList : mCommandList)
-		commandList.ResetCommandAllocator(_commandAllocatorIndex);
-}
-
-void SD3D12Device::SetCurrentCommandListAllocator(size_t _commandAllocatorIndex) noexcept
-{
-	for (SD3D12CommandList& commandList : mCommandList)
-		commandList.SetCurrentCommandAllocator(_commandAllocatorIndex);
 }
 
 IRDIInputLayout* SD3D12Device::CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept
@@ -437,8 +441,6 @@ IRDIComputePipelineState* SD3D12Device::CreateComputePipelineState(const SRDICom
 
 IRDIBuffer* SD3D12Device::CreateBuffer(const SRDIBufferResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_BUFFER;
 	desc.Alignment = 0;
@@ -450,9 +452,9 @@ IRDIBuffer* SD3D12Device::CreateBuffer(const SRDIBufferResourceDesc* _desc) noex
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, nullptr);
 
 	SD3D12Buffer* buffer = mBufferPool.AllocateElement();
 	buffer->Init(nativeResourcePtr, _desc, this);
@@ -461,8 +463,6 @@ IRDIBuffer* SD3D12Device::CreateBuffer(const SRDIBufferResourceDesc* _desc) noex
 
 IRDITexture1D* SD3D12Device::CreateTexture1D(const SRDITexture1DResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
-	
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 	desc.Alignment = 0;
@@ -474,9 +474,12 @@ IRDITexture1D* SD3D12Device::CreateTexture1D(const SRDITexture1DResourceDesc* _d
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
+	
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture1D* texture1D = mTexture1DPool.AllocateElement();
 	texture1D->Init(nativeResourcePtr, _desc, this);
@@ -485,8 +488,6 @@ IRDITexture1D* SD3D12Device::CreateTexture1D(const SRDITexture1DResourceDesc* _d
 
 IRDITexture1DArray* SD3D12Device::CreateTexture1DArray(const SRDITexture1DArrayResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE1D;
 	desc.Alignment = 0;
@@ -498,9 +499,12 @@ IRDITexture1DArray* SD3D12Device::CreateTexture1DArray(const SRDITexture1DArrayR
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture1DArray* texture1DArray = mTexture1DArrayPool.AllocateElement();
 	texture1DArray->Init(nativeResourcePtr, _desc, this);
@@ -509,8 +513,6 @@ IRDITexture1DArray* SD3D12Device::CreateTexture1DArray(const SRDITexture1DArrayR
 
 IRDITexture2D* SD3D12Device::CreateTexture2D(const SRDITexture2DResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -522,9 +524,12 @@ IRDITexture2D* SD3D12Device::CreateTexture2D(const SRDITexture2DResourceDesc* _d
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture2D* texture2D = mTexture2DPool.AllocateElement();
 	texture2D->Init(nativeResourcePtr, _desc, this);
@@ -533,8 +538,6 @@ IRDITexture2D* SD3D12Device::CreateTexture2D(const SRDITexture2DResourceDesc* _d
 
 IRDITexture2DArray* SD3D12Device::CreateTexture2DArray(const SRDITexture2DArrayResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -546,9 +549,12 @@ IRDITexture2DArray* SD3D12Device::CreateTexture2DArray(const SRDITexture2DArrayR
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture2DArray* texture2DArray = mTexture2DArrayPool.AllocateElement();
 	texture2DArray->Init(nativeResourcePtr, _desc, this);
@@ -557,8 +563,6 @@ IRDITexture2DArray* SD3D12Device::CreateTexture2DArray(const SRDITexture2DArrayR
 
 IRDITexture3D* SD3D12Device::CreateTexture3D(const SRDITexture3DResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 	desc.Alignment = 0;
@@ -570,9 +574,12 @@ IRDITexture3D* SD3D12Device::CreateTexture3D(const SRDITexture3DResourceDesc* _d
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12Texture3D* texture3D = mTexture3DPool.AllocateElement();
 	texture3D->Init(nativeResourcePtr, _desc, this);
@@ -581,8 +588,6 @@ IRDITexture3D* SD3D12Device::CreateTexture3D(const SRDITexture3DResourceDesc* _d
 
 IRDITextureCube* SD3D12Device::CreateTextureCube(const SRDITextureCubeResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -594,9 +599,12 @@ IRDITextureCube* SD3D12Device::CreateTextureCube(const SRDITextureCubeResourceDe
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12TextureCube* textureCube = mTextureCubePool.AllocateElement();
 	textureCube->Init(nativeResourcePtr, _desc, this);
@@ -605,8 +613,6 @@ IRDITextureCube* SD3D12Device::CreateTextureCube(const SRDITextureCubeResourceDe
 
 IRDITextureCubeArray* SD3D12Device::CreateTextureCubeArray(const SRDITextureCubeArrayResourceDesc* _desc) noexcept
 {
-	CHECK(_desc->mHeapType != ERDIHeapType::Upload || _desc->mResourceState == ERDIResourceState::GenericRead);
-
 	D3D12_RESOURCE_DESC desc = {};
 	desc.Dimension = D3D12_RESOURCE_DIMENSION::D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 	desc.Alignment = 0;
@@ -618,9 +624,12 @@ IRDITextureCubeArray* SD3D12Device::CreateTextureCubeArray(const SRDITextureCube
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Layout = D3D12_TEXTURE_LAYOUT::D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	desc.Flags = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+	desc.Flags = MakeD3D12ResourceFlag(_desc->mResourceUsage);
 
-	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, ConvertResourceStateToD3D12(_desc->mResourceState));
+	D3D12_CLEAR_VALUE clearValue = MakeD3D12ClearValue(_desc->mResourceUsage, _desc->mPixelFormat, _desc->mRtvPixelFormat, _desc->mDsvPixelFormat, _desc->mClearColor, _desc->mClearDepth, _desc->mClearStencil);
+	const D3D12_CLEAR_VALUE* pClearValue = ((_desc->mResourceUsage & (ERDIResourceUsage::RenderTarget | ERDIResourceUsage::DepthStencil)) != ERDIResourceUsage::None) ? &clearValue : nullptr;
+
+	ID3D12Resource* nativeResourcePtr = CreateCommittedResource(_desc->mHeapType, &desc, pClearValue);
 
 	SD3D12TextureCubeArray* textureCubeArray = mTextureCubeArrayPool.AllocateElement();
 	textureCubeArray->Init(nativeResourcePtr, _desc, this);
@@ -764,6 +773,18 @@ IRDIComputeShader* SD3D12Device::CreateComputeShader(SBufferView _compiledShader
 	return computeShader;
 }
 
+void SD3D12Device::ReleaseCommandAllocator(SD3D12CommandAllocator* _commandAllocator) noexcept
+{
+	_commandAllocator->GetNativePtr()->Release();
+	mCommandAllocatorPool.DeallocateElement(_commandAllocator);
+}
+
+void SD3D12Device::ReleaseCommandList(SD3D12CommandList* _commandList) noexcept
+{
+	_commandList->GetNativePtr()->Release();
+	mCommandListPool.DeallocateElement(_commandList);
+}
+
 void SD3D12Device::ReleaseSwapChain(SD3D12SwapChain* _swapChain) noexcept
 {
 	_swapChain->GetNativePtr()->Release();
@@ -853,7 +874,46 @@ IRDITexture2D* SD3D12Device::CreateTexture2DWithCreatedResource(const SRDITextur
 	return texture2D;
 }
 
-ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, D3D12_RESOURCE_STATES _state) noexcept
+D3D12_RESOURCE_FLAGS SD3D12Device::MakeD3D12ResourceFlag(ERDIResourceUsage _resourceUsage) noexcept
+{
+	D3D12_RESOURCE_FLAGS resourceFlag = D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_NONE;
+
+	if ((_resourceUsage & ERDIResourceUsage::RenderTarget) == ERDIResourceUsage::RenderTarget)
+		resourceFlag |= D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	if ((_resourceUsage & ERDIResourceUsage::DepthStencil) == ERDIResourceUsage::DepthStencil)
+		resourceFlag |= D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	if ((_resourceUsage & ERDIResourceUsage::UnorderAccess) == ERDIResourceUsage::UnorderAccess)
+		resourceFlag |= D3D12_RESOURCE_FLAGS::D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+	return resourceFlag;
+}
+
+D3D12_CLEAR_VALUE SD3D12Device::MakeD3D12ClearValue(ERDIResourceUsage _resourceUsage, ERDIPixelFormat _pixelFormat, ERDIPixelFormat _rtvPixelFormat, ERDIPixelFormat _dsvPixelFormat, Math::SFColor _clearColor, float _clearDepth, uint8_t _clearStencil) noexcept
+{
+	D3D12_CLEAR_VALUE clearValue = {};
+
+	_rtvPixelFormat = _rtvPixelFormat == ERDIPixelFormat::UNKNOWN ? _pixelFormat : _rtvPixelFormat;
+	_dsvPixelFormat = _dsvPixelFormat == ERDIPixelFormat::UNKNOWN ? _pixelFormat : _dsvPixelFormat;
+
+	if ((_resourceUsage & ERDIResourceUsage::RenderTarget) == ERDIResourceUsage::RenderTarget)
+	{
+		clearValue.Format = ConvertPixelFormatToD3D(_rtvPixelFormat);
+		clearValue.Color[0] = _clearColor[0];
+		clearValue.Color[1] = _clearColor[1];
+		clearValue.Color[2] = _clearColor[2];
+		clearValue.Color[3] = _clearColor[3];
+	}
+	else if ((_resourceUsage & ERDIResourceUsage::DepthStencil) == ERDIResourceUsage::DepthStencil)
+	{
+		clearValue.Format = ConvertPixelFormatToD3D(_dsvPixelFormat);
+		clearValue.DepthStencil.Depth = _clearDepth;
+		clearValue.DepthStencil.Stencil = _clearStencil;
+	}
+
+	return clearValue;
+}
+
+ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, const D3D12_CLEAR_VALUE* _clearValue) noexcept
 {
 	if (_desc->Dimension != D3D12_RESOURCE_DIMENSION_BUFFER)
 	{
@@ -863,6 +923,14 @@ ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, co
 		CHECK(_desc->MipLevels <= D3D12_MIPMAPCOUNT);
 	}
 
+	static constexpr D3D12_RESOURCE_STATES resourceStateMap[EnumToInt(ERDIHeapType::Num)] =
+	{
+		D3D12_RESOURCE_STATE_COMMON,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		D3D12_RESOURCE_STATE_COMMON,
+	};
+
 	D3D12_HEAP_PROPERTIES heapProperties = {};
 	heapProperties.Type = ConvertHeapTypeToD3D12(_heapType);
 	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY::D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -871,7 +939,7 @@ ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, co
 	heapProperties.VisibleNodeMask = 0;
 
 	ID3D12Resource* nativeResourcePtr = nullptr;
-	VERIFY_D3D_RETURN(GetNativePtr()->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, _desc, _state, nullptr, IID_PPV_ARGS(&nativeResourcePtr)));
+	VERIFY_D3D_RETURN(GetNativePtr()->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, _desc, resourceStateMap[EnumToInt(_heapType)], _clearValue, IID_PPV_ARGS(&nativeResourcePtr)));
 
 	return nativeResourcePtr;
 }

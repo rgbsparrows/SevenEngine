@@ -29,9 +29,6 @@ public:
 	using AdditionElementPoolType = TElementPool<ElementType, EElementPoolFlag::None>;
 	using AdditionElementPoolListType = TTypeSwitch<IsStaticCapacity, EmptyType, std::vector<AdditionElementPoolType>>;
 
-	static constexpr size_t xxx = sizeof(UnconstructElement);
-	static constexpr size_t xxxd = alignof(UnconstructElement);
-
 	TElementPool() noexcept = default;
 	TElementPool(uint64_t _newcapacity) noexcept
 	{

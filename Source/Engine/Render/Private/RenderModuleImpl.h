@@ -4,6 +4,7 @@
 #include "RenderResource.h"
 #include "Core/Misc/windowsEx.h"
 #include "Render/RenderModule.h"
+#include "Render/RenderContent.h"
 #include "RenderCommandListImpl.h"
 #include "RDI/Interface/RDIFactory.h"
 #include "Render/RenderProxy/RenderProxy.h"
@@ -32,24 +33,17 @@ public:
 private:
 	void RenderThreadMain() noexcept;
 
-	void RefrashResources() noexcept;
-	void RefrashTextureResource() noexcept;
-
-	void RefrashSwapChain() noexcept;
+	void RenderWorld() noexcept;
 	void RenderImgui() noexcept;
 	void PresentWindows() noexcept;
 
 private:
-	void SyncToGpuFrameEnd(bool _force = false) noexcept;
-
-private:
 	std::thread mRenderThread;
-
-	bool mIsSyncToGpuFrameEnd = false;
 
 	IRDIFactory* mRdiFactory = nullptr;
 	IRDIDevice* mRdiDevice = nullptr;
 	IRDICommandQueue* mRdiCommandQueue = nullptr;
+	SRenderContent mMainRenderContent;
 
 	size_t mFrameInfoIndex_GameThread = 0;
 	size_t mFrameInfoIndex_RenderThread = 0;
@@ -57,9 +51,9 @@ private:
 	size_t mFrameCount_GameThread = 0;
 	size_t mFrameCount_RenderThread = 0;
 
-	RRenderProxy<RFrameResource>* mFrameResource;
-	RRenderProxy<RStaticRenderResource>* mStaticRenderResource;
-	RRenderProxy<RFrameRenderResource>* mFrameRenderResource;
+	RRenderProxy<RFrameResource>* mFrameResource = nullptr;
+	RRenderProxy<RStaticRenderResource>* mStaticRenderResource = nullptr;
+	RRenderProxy<RFrameRenderResource>* mFrameRenderResource = nullptr;
 	SRenderCommandListImpl mRenderCommandList;
 };
 

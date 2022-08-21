@@ -11,8 +11,8 @@ __interface IRDIRootSignature;
 struct RStaticRenderResource
 {
 public:
-	void Init(IRDIDevice* _device);
-	void Clear();
+	void Init(IRDIDevice* _device) noexcept;
+	void Clear() noexcept;
 
 public:
 	IRDIGraphicsPipelineState* mImguiSDRPipelineState = nullptr;
@@ -26,7 +26,7 @@ template<> struct RRenderInfoTraits<RStaticRenderResource> : RShareMode {};
 struct RFrameRenderResource
 {
 public:
-	void Clear();
+	void Clear() noexcept;
 
 public:
 	bool mEnableVSync = false;

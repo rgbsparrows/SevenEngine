@@ -64,16 +64,6 @@
 #define REWRITE_WHEN_SE_GAME_PROJECT_RELATED_AVILABLE(...)
 #endif
 
-//UI渲染相关操作
-#ifdef SE_UIMODULE_RENDER
-#define DEPRECATED_WHEN_SE_UIMODULE_RENDER_AVAILABLE(message) DEPRECATED("This should be rewritten when SE_UIMODULE_RENDER is available" message)
-#define REWRITE_WHEN_SE_UIMODULE_RENDER_AVAILABLE(message) COMPILE_MESSAGE("This should be rewritten when SE_UIMODULE_RENDER is available" message)
-#pragma message(FILE_LOC "This should be removed after the rewrite is finished")
-#else
-#define DEPRECATED_WHEN_SE_UIMODULE_RENDER_AVAILABLE(...)
-#define REWRITE_WHEN_SE_UIMODULE_RENDER_AVAILABLE(...)
-#endif
-
 //UI控件事件相关操作
 #ifdef SE_UIMODULE_EVENT
 #define DEPRECATED_WHEN_SE_UIMODULE_EVENT_AVAILABLE(message) DEPRECATED("This should be rewritten when SE_UIMODULE_EVENT is available" message)

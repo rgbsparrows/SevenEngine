@@ -2,14 +2,21 @@
 
 #include "Core/Class/ClassObject.h"
 #include "GameFramework/GameObject.h"
+#include "GameFramework/Transform.h"
 
 namespace GameFramework
 {
-	class SComponentBase : public SGameObject
+	class UActorBase;
+
+	class UComponentBase : public UGameObject
 	{
-		DECLARE_CLASSOBJECT_BODY(SComponentBase, SGameObject)
+		DECLARE_CLASSOBJECT_BODY(UComponentBase, UGameObject)
 
 	public:
 
+	private:
+		UActorBase* mActor = nullptr;
+
+		STransform mTransform;
 	};
 }

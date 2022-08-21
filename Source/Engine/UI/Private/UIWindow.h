@@ -34,11 +34,9 @@ private:
 	ImGuiViewport* mImguiViewport = nullptr;
 
 	RRenderProxy<RSwapChain>* mSwapChain = nullptr;
-	RRenderProxy<RSwapChainData>* mSwapChainData = nullptr;
 	RRenderProxy<RImguiDrawData>* mDrawData = nullptr;
 
-	RSwapChainData mCurrentSwapChainData;
-	RDirtyFlag mDirtyFlag;
+	RSwapChainData mSwapChainData;
 
 	bool mIsSwapChainDiry = false;
 };

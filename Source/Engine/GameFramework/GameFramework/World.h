@@ -3,22 +3,29 @@
 #include "GameFramework/GameObject.h"
 
 #include <vector>
+#include "Render/RenderProxy/World/WorldProxy.h"
 
 namespace GameFramework
 {
-	class SActorBase;
+	class UActorBase;
 
-	class SWorldBase : public SGameObject
+	class UWorldBase : public UGameObject
 	{
-		DECLARE_CLASSOBJECT_BODY(SWorldBase, SGameObject)
+		DECLARE_CLASSOBJECT_BODY(UWorldBase, UGameObject)
 
 	public:
-		const std::vector<SActorBase*>& GetActorList() const noexcept { return mActorList; }
+		void Init() noexcept;
+		void Tick() noexcept;
 
-	private:
+	public:
+		const std::vector<UActorBase*>& GetActorList() const noexcept { return mActorList; }
+		RRenderProxy<R3DWorld>* GetWorldRenderProxy() noexcept { return mWorldRenderProxy; }
+
+	public:
 		void RefrashRenderProxy() noexcept;
 
 	private:
-		std::vector<SActorBase*> mActorList;
+		std::vector<UActorBase*> mActorList;
+		RRenderProxy<R3DWorld>* mWorldRenderProxy = nullptr;
 	};
 }
