@@ -8,6 +8,48 @@
 
 namespace Math
 {
+	constexpr float PI = 3.1415926f;
+
+	inline float Cos(float _angel) noexcept
+	{
+		return ::cosf(_angel);
+	}
+
+	inline double Cos(double _angle) noexcept
+	{
+		return ::cosl(_angle);
+	}
+
+	inline float Sin(float _angle) noexcept
+	{
+		return ::sinf(_angle);
+	}
+
+	inline double Sin(double _angle) noexcept
+	{
+		return ::sinl(_angle);
+	}
+
+	inline float Cot(float _angle) noexcept
+	{
+		return 1.f / ::tanf(_angle);
+	}
+
+	inline double Cot(double _angle) noexcept
+	{
+		return 1.0 / ::tanl(_angle);
+	}
+
+	inline float Tan(float _angle) noexcept
+	{
+		return ::tanf(_angle);
+	}
+
+	inline double Tan(double _angle) noexcept
+	{
+		return ::tanl(_angle);
+	}
+
 	template<std::unsigned_integral _underlyingType> constexpr inline auto CalcBlockCount(_underlyingType _elementCount, _underlyingType _elementPerBlock) noexcept
 	{
 		return (_elementCount + _elementPerBlock - 1) / _elementPerBlock;
@@ -21,23 +63,5 @@ namespace Math
 	template<std::unsigned_integral _underlyingType> constexpr inline auto CalcAlignedPos(_underlyingType _rawPos, _underlyingType _aligned) noexcept
 	{
 		return _rawPos + _aligned - 1 - (_rawPos + _aligned - 1) % _aligned;
-	}
-
-	template<typename _underlyingType, size_t _dimension>
-	constexpr inline auto operator += (TTypeArray<_underlyingType, _dimension>& _left, TTypeArray<_underlyingType, _dimension> _right)
-	{
-		for (size_t i = 0; i != _dimension; ++i)
-			_left[i] += _right[i];
-
-		return _left;
-	}
-
-	template<typename _underlyingType, size_t _dimension>
-	constexpr inline auto operator -= (TTypeArray<_underlyingType, _dimension>& _left, TTypeArray<_underlyingType, _dimension> _right)
-	{
-		for (size_t i = 0; i != _dimension; ++i)
-			_left[i] -= _right[i];
-
-		return _left;
 	}
 }

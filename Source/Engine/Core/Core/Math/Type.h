@@ -144,7 +144,7 @@ namespace Math
 	struct TTypeMatrix
 	{
 		static constexpr size_t RowCount = _row;
-		static constexpr size_t ColCount = _row;
+		static constexpr size_t ColCount = _col;
 
 		using UnderlyingType = _underlyingType;
 		using UnderlyingRowType = UnderlyingType[ColCount];
@@ -166,6 +166,19 @@ namespace Math
 		}
 
 		constexpr TTypeMatrix(const TTypeMatrix&) noexcept = default;
+
+		template<typename _underlyingType2, size_t _row2, size_t _col2>
+			requires(_row2 <= _row && _col2 <= _col)
+		explicit operator TTypeMatrix<_underlyingType2, _row2, _col2>() noexcept
+		{
+			TTypeMatrix<_underlyingType2, _row2, _col2> matrix;
+
+			for (size_t i = 0; i != _row2; ++i)
+				for (size_t j = 0; j != _col2; ++j)
+					matrix[i][j] = (*this)[i][j];
+
+			return matrix;
+		}
 
 		constexpr const UnderlyingRowType& operator[](size_t _rowIndex) const noexcept { return mValue[_rowIndex]; }
 		constexpr UnderlyingRowType& operator[](size_t _rowIndex) noexcept { return mValue[_rowIndex]; }
@@ -324,6 +337,15 @@ namespace Math
 	using SFloat3 = TTypeArray<float, 3>;
 	using SFloat4 = TTypeArray<float, 4>;
 
+	using SDouble1 = TTypeArray<double, 1>;
+	using SDouble2 = TTypeArray<double, 2>;
+	using SDouble3 = TTypeArray<double, 3>;
+	using SDouble4 = TTypeArray<double, 4>;
+
+	using SFloat3x3 = TTypeMatrix<float, 3, 3>;
+	using SFloat3x3Raw = TTypeMatrixRaw<float, 3, 3>;
+	using SFloat3x4 = TTypeMatrix<float, 3, 4>;
+	using SFloat3x4Raw = TTypeMatrixRaw<float, 3, 4>;
 	using SFloat4x4 = TTypeMatrix<float, 4, 4>;
 	using SFloat4x4Raw = TTypeMatrixRaw<float, 4, 4>;
 
