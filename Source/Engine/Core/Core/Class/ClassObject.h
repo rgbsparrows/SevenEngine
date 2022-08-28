@@ -39,15 +39,6 @@ struct TClassObjectInterface : IClassObjectInterface
 	virtual AncestorClass* ConstructObject(void* _objectBuffer)const noexcept = 0;
 };
 
-REWRITE_WHEN_CONCEPT_AVAILABLE(
-	"借助concept完成对type和baseclass模板参数的约束，其中应该包含如下约束\n"
-	"	* _type, _baseClass是否均继承自UObject\n"
-	"	* _type是否继承自_baseClass(除非_baseClass是void，这时表示没有基类(UObject))\n"
-	"	* _type继承自_interface\n"
-	"	* _interface是否都是抽象的，且没有数据成员(is_abstract_v<_interface> && sizeof(_interface) == sizeof(void*))\n"
-	"	* _type是否具有默认构造函数\n"
-	"	* _type能访问到ClassObjectInterfaceType类型(在祖先类中被定义)\n"
-)
 template<typename _type, typename _baseClass, typename... _interface>
 struct TClassObject final : _type::ClassObjectInterfaceType
 {
@@ -120,3 +111,33 @@ public:																											\
 	using BaseClass = typename ClassObjectType::BaseClass;														\
 private:																										\
 	inline static ClassObjectType ClassObject;																	
+
+template<typename _baseType, typename _type>
+inline bool IsInstanceOf(const _type* _object)
+{
+	return _object->GetClassObject()->IsInstanceOf(_baseType::StaticGetClassObject()->GetClassHash());
+}
+
+template<typename _type>
+inline bool IsInstanceOf(const _type* _object, uint64_t _baseClassHash)
+{
+	return _object->GetClassObject()->IsInstanceOf(_baseClassHash);
+}
+
+template<typename _interfaceType, typename _type>
+inline bool IsImplementedFrom(const _type* _object)
+{
+	return _object->GetClassObject()->IsImplementedFrom(TTypeHash<_interfaceType>);
+}
+
+template<typename _baseType, typename _type> requires (_baseType::StaticGetClassObject())
+inline bool IsDrivedFrom(const _type* _object)
+{
+	return _object->GetClassObject()->IsDrivedFrom(_baseType::StaticGetClassObject()->GetClassHash());
+}
+
+template<typename _type>
+inline bool IsDrivedFrom(const _type* _object, uint64_t _baseClassHash)
+{
+	return _object->GetClassObject()->IsDrivedFrom(_baseClassHash);
+}

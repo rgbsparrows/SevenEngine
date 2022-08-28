@@ -144,8 +144,6 @@ void SRenderModuleImpl::FrameTick_RenderThread() noexcept
 	for (RRenderProxyBase* _renderProxy : mFrameResource->Get_RenderThread().mNeedInitRenderProxy)
 		_renderProxy->Init(mRdiDevice);
 
-	TODO("RenderGraph");
-
 	RenderWorld();
 
 	RenderImgui();

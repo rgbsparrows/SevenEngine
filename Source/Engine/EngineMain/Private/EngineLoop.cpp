@@ -36,6 +36,7 @@ void SEngineLoop::Run() noexcept
 
 void SEngineLoop::Clear() noexcept
 {
+	SModuleManager::Get().UnloadModule(L"EditorModule");
 	SModuleManager::Get().UnloadModule(L"UIModule");
 	SModuleManager::Get().UnloadModule(L"RenderModule");
 }

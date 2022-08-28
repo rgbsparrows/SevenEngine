@@ -67,8 +67,6 @@ void SUIModuleImpl::OnGUI() noexcept
 		ImGui::End();
 	}
 
-	ImGui::ShowDemoWindow();
-
 	std::vector<IUIWindowInterface*> windows;
 
 	for (auto it = mUIWindows.begin(); it != mUIWindows.end(); ++it)

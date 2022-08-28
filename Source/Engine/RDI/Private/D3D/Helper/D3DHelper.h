@@ -89,5 +89,5 @@ public:
 		return S_OK;
 	}
 
-	std::function<std::filesystem::path(std::filesystem::path)> mSearchIncludeFileFunc;
+	std::function<std::filesystem::path(const std::filesystem::path&)> mSearchIncludeFileFunc;
 };

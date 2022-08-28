@@ -43,9 +43,7 @@ bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList,
 	if (Has(_renderPassList, nullptr))
 		return false;
 
-	std::wstring_view a111 = _renderPassList[0]->GetClassObject()->GetClassFullName();
-
-	if (HasIf(_renderPassList, [&](RRenderPassBase* _renderPass) { return _renderPass->GetClassObject()->IsDrivedFrom(_renderPassBaseClassHash) == false; }))
+	if (HasIf(_renderPassList, [&](RRenderPassBase* _renderPass) { return IsInstanceOf(_renderPass, _renderPassBaseClassHash) == false; }))
 		return false;
 
 	//检查前继RenderPass是否都在列表内

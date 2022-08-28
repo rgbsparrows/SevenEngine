@@ -9,16 +9,6 @@
  * 同时这里也包含一些还没有正式实现的cpp新特性，以便于未来用新的cpp特性生成更优质的代码
  */
 
-//vs IntelliSense 对concept的支持还有一些问题，所以暂时先关闭concept的使用，虽然现在concept在vs中的确可用
-#if 0 && defined(__cpp_concepts) && defined(__cpp_lib_concepts)
-#define DEPRECATED_WHEN_CONCEPT_AVAILABLE(message) DEPRECATED("This should be rewritten when concept is available" message)
-#define REWRITE_WHEN_CONCEPT_AVAILABLE(message) COMPILE_MESSAGE("This should be rewritten when concept is available" message)
-#pragma message(FILE_LOC "This should be removed after the rewrite is finished")
-#else
-#define DEPRECATED_WHEN_CONCEPT_AVAILABLE(...)
-#define REWRITE_WHEN_CONCEPT_AVAILABLE(...)
-#endif
-
 #ifdef SE_LOG_AVILABLE
 #define DEPRECATED_WHEN_SE_LOG_AVAILABLE(message) DEPRECATED("This should be rewritten when SE_LOG is available" message)
 #define REWRITE_WHEN_SE_LOG_AVAILABLE(message) COMPILE_MESSAGE("This should be rewritten when SE_LOG is available" message)
