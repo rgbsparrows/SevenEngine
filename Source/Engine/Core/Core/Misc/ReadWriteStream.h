@@ -1,8 +1,11 @@
-#pragma once
+﻿#pragma once
 
 #include "Core/Math/Math.h"
+#include "Core/Util/Assert.h"
 #include "Core/Container/Blob.h"
+
 #include <string>
+#include <filesystem>
 
 class SReadStream
 {
@@ -43,8 +46,7 @@ public:
 
 	SBufferView ReadBuffer(size_t _size) noexcept
 	{
-		if (mCurrentPos + _size >= mBufferView.GetBufferSize())
-			return SBufferView();
+		CHECK(mCurrentPos + _size >= mBufferView.GetBufferSize());
 
 		SBufferView buffer = SBufferView(mBufferView, mCurrentPos, _size);
 		mCurrentPos += _size;
@@ -61,15 +63,21 @@ public:
 	template<typename _type, typename... _serializeFlags>
 	void Read(_type& _value) noexcept
 	{
-		TSerialize<_type, _serializeFlags...>().Deserialize(SBufferView(mBufferView, mCurrentPos), _value);
+		TSerialize<_type, _serializeFlags...>().Deserialize(*this, _value);
 	}
 
 	template<typename _type, typename... _serializeFlags>
 	_type Read() noexcept
 	{
 		_type value;
-		TSerialize<_type, _serializeFlags...>().Deserialize(SBufferView(mBufferView, mCurrentPos), value);
+		TSerialize<_type, _serializeFlags...>().Deserialize(*this, value);
 		return value;
+	}
+
+	SReadStream MakeSubReadStream(size_t _size) noexcept
+	{
+		CHECK(_size + mCurrentPos <= mBufferView.GetBufferSize());
+		return SReadStream(SBufferView(mBufferView, mCurrentPos, _size));
 	}
 
 private:
@@ -95,9 +103,14 @@ public:
 		return mCurrentPos;
 	}
 
-	size_t Seek(size_t _pos = SIZE_MAX) noexcept
+	void Seek(size_t _pos = SIZE_MAX) noexcept
 	{
 		mCurrentPos = std::min(_pos, mContentSize);
+	}
+
+	size_t GetContentSize() const noexcept
+	{
+		return mContentSize;
 	}
 
 	SBufferView GetContentBuffer() const noexcept
@@ -138,36 +151,76 @@ private:
 	size_t mContentSize = 0;
 };
 
+struct SReadStreamStat
+{
+	SReadStreamStat() noexcept = delete;
+	SReadStreamStat(const SReadStreamStat&) noexcept = delete;
+	SReadStreamStat(SReadStreamStat&&) noexcept = delete;
+
+	SReadStreamStat(size_t& _writeByteCount, SReadStream& _readStream) noexcept
+		:mReadByteCount(_writeByteCount), mReadStream(_readStream)
+	{
+		mBeginPos = mReadStream.GetCurrentPos();
+	}
+
+	~SReadStreamStat() noexcept
+	{
+		mReadByteCount = mReadStream.GetCurrentPos() - mBeginPos;
+	}
+
+	size_t& mReadByteCount;
+	SReadStream& mReadStream;
+	size_t mBeginPos = 0;
+};
+
+struct SWriteStreamStat
+{
+	SWriteStreamStat(size_t& _writeByteCount, SWriteStream& _writeStream) noexcept
+		:mWriteByteCount(_writeByteCount), mWriteStream(_writeStream)
+	{
+		mBeginPos = mWriteStream.GetCurrentPos();
+	}
+
+	~SWriteStreamStat() noexcept
+	{
+		mWriteByteCount = mWriteStream.GetCurrentPos() - mBeginPos;
+	}
+
+	size_t& mWriteByteCount;
+	SWriteStream& mWriteStream;
+	size_t mBeginPos = 0;
+};
+
+//允许类型重载时仅实现Serialize或Deserialize，或是二者均不实现，屏蔽序列化功能
 template<typename _type, typename... _serializeFlags>
 struct TSerialize
 {
-	using SValueType = _type;
+	using ValueType = _type;
 
-	void Serialize(SWriteStream& _writeStream, const SValueType& _value) noexcept
+	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
 	{
-		_writeStream.WriteBuffer(SBufferView(&_value, sizeof(SValueType)));
+		_writeStream.WriteBuffer(SBufferView(&_value, sizeof(ValueType)));
 	}
 
-	void Deserialize(SReadStream& _readStream, SValueType& _value) noexcept
+	void Deserialize(SReadStream& _readStream, ValueType& _value) noexcept
 	{
-		SBufferView buffer = _readStream.ReadBuffer();
-		memcpy_s(&_value, sizeof(SValueType), _bufferView.GetBuffer(), _bufferView.GetBufferSize());
+		_readStream.ReadBuffer(&_value, sizeof(ValueType));
 	}
 };
 
 template<>
 struct TSerialize<std::string>
 {
-	using SValueType = std::string;
+	using ValueType = std::string;
 
-	void Serialize(SWriteStream& _writeStream, const SValueType& _value) noexcept
+	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
 	{
 		uint16_t strLen = static_cast<uint16_t>(_value.size());
 		_writeStream.WriteBuffer(SBufferView(&strLen, sizeof(uint16_t)));
 		_writeStream.WriteBuffer(SBufferView(_value.data(), strLen));
 	}
 
-	void Deserialize(SReadStream& _readStream, SValueType& _value) noexcept
+	void Deserialize(SReadStream& _readStream, ValueType& _value) noexcept
 	{
 		uint16_t strLen = _readStream.Read<uint16_t>();
 		_value.resize(strLen);
@@ -175,12 +228,103 @@ struct TSerialize<std::string>
 	}
 };
 
+template<>
+struct TSerialize<std::string_view>
+{
+	using ValueType = std::string_view;
+
+	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
+	{
+		uint16_t strLen = static_cast<uint16_t>(_value.size());
+		_writeStream.WriteBuffer(SBufferView(&strLen, sizeof(uint16_t)));
+		_writeStream.WriteBuffer(SBufferView(_value.data(), strLen));
+	}
+};
+
+template<>
+struct TSerialize<std::wstring>
+{
+	using ValueType = std::wstring;
+
+	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
+	{
+		uint16_t strLen = static_cast<uint16_t>(_value.size());
+		_writeStream.WriteBuffer(SBufferView(&strLen, sizeof(uint16_t)));
+		_writeStream.WriteBuffer(SBufferView(_value.data(), strLen * 2));
+	}
+
+	void Deserialize(SReadStream& _readStream, ValueType& _value) noexcept
+	{
+		uint16_t strLen = _readStream.Read<uint16_t>();
+		_value.resize(strLen);
+		_readStream.ReadBuffer(&_value[0], strLen * 2);
+	}
+};
+
+template<>
+struct TSerialize<std::wstring_view>
+{
+	using ValueType = std::wstring_view;
+
+	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
+	{
+		uint16_t strLen = static_cast<uint16_t>(_value.size());
+		_writeStream.WriteBuffer(SBufferView(&strLen, sizeof(uint16_t)));
+		_writeStream.WriteBuffer(SBufferView(_value.data(), strLen * 2));
+	}
+};
+
+template<>
+struct TSerialize<std::filesystem::path>
+{
+	using ValueType = std::filesystem::path;
+
+	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
+	{
+		_writeStream.Write<std::wstring>(_value.native());
+	}
+
+	void Deserialize(SReadStream& _readStream, ValueType& _value) noexcept
+	{
+		std::wstring path = _readStream.Read<std::wstring>();
+		_value = path;
+	}
+};
+
+template<>
+struct TSerialize<SBlob>
+{
+	using ValueType = SBlob;
+
+	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
+	{
+		_writeStream.WriteBuffer(_value);
+	}
+
+	void Deserialize(SReadStream& _readStream, ValueType& _value) noexcept
+	{
+		_value.ResizeBlob(_readStream.GetContentSize());
+		_readStream.ReadBuffer(_value.GetBuffer(), _value.GetBufferSize());
+	}
+};
+
+template<>
+struct TSerialize<SBufferView>
+{
+	using ValueType = SBufferView;
+
+	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
+	{
+		_writeStream.WriteBuffer(_value);
+	}
+};
+
 template<typename _type, typename... _serializeFlags>
 struct TSerialize<std::vector<_type>, _serializeFlags...>
 {
-	using SValueType = std::vector<_type>;
+	using ValueType = std::vector<_type>;
 
-	void Serialize(SWriteStream& _writeStream, const SValueType& _value) noexcept
+	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
 	{
 		uint16_t strLen = static_cast<uint16_t>(_value.size());
 		_writeStream.WriteBuffer(SBufferView(&strLen, sizeof(uint16_t)));
@@ -188,7 +332,7 @@ struct TSerialize<std::vector<_type>, _serializeFlags...>
 			_writeStream.Write<_type, _serializeFlags...>(_value[i]);
 	}
 
-	void Deserialize(SReadStream& _readStream, SValueType& _value) noexcept
+	void Deserialize(SReadStream& _readStream, ValueType& _value) noexcept
 	{
 		uint16_t vecSize = _readStream.Read<uint16_t>();
 		_value.resize(vecSize);

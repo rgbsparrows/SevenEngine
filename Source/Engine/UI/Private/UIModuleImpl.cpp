@@ -61,7 +61,7 @@ void SUIModuleImpl::OnGUI() noexcept
 	static bool isMainWindowOpen = true;
 	if (isMainWindowOpen)
 	{
-		std::string str = std::format("Seven Engine FPS : {0} ###MainWindow", 1.F / GClock.GetAbsoluteDeltaTime());
+		std::string str = std::format("Seven Engine FPS : {0} ###MainWindow", 1.F / SClock::Get().GetAbsoluteDeltaTime());
 		ImGui::Begin(str.c_str(), &isMainWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
 		ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
 		ImGui::End();
@@ -359,7 +359,7 @@ void SUIModuleImpl::ImguiNewFrame() noexcept
 	Math::SFloat2 mainWindowSize = mMainWindow->GetWindowSize();
 
 	ImGui::GetIO().DisplaySize = ImVec2(mainWindowSize[0], mainWindowSize[1]);
-	ImGui::GetIO().DeltaTime = GClock.GetAbsoluteDeltaTime();
+	ImGui::GetIO().DeltaTime = SClock::Get().GetAbsoluteDeltaTime();
 
 	// Read keyboard modifiers inputs
 	ImGui::GetIO().KeyCtrl = (::GetKeyState(VK_CONTROL) & 0x8000) != 0;

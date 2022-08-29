@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "Core/Util/NameOf.h"
-#include "Core/ProgramConfiguation/ConditionDeprecated.h"
 
 #include <string>
 #include <stdint.h>
@@ -36,7 +35,7 @@ struct TClassObjectInterface : IClassObjectInterface
 	static constexpr bool StaticIsDrivedFromAncestor(uint64_t _ancestorHash)noexcept { return TTypeHash<AncestorClass> == _ancestorHash; }
 
 	bool IsDrivedFromAncestor(uint64_t _ancestorHash)const noexcept override { return StaticIsDrivedFromAncestor(_ancestorHash); }
-	virtual AncestorClass* ConstructObject(void* _objectBuffer)const noexcept = 0;
+	virtual AncestorClass* ConstructObject()const noexcept = 0;
 };
 
 template<typename _type, typename _baseClass, typename... _interface>
@@ -70,10 +69,10 @@ public:
 		if constexpr (std::is_void_v<BaseClass>) return false;
 		else return TTypeHash<BaseClass> == _classHash || BaseClass::ClassObjectType::StaticIsDrivedFrom(_classHash);
 	}
-	template<typename... _argts> static Type* StaticConstructObject(void* _objectBuffer, _argts... _argvs) noexcept
+	template<typename... _argts> static Type* StaticConstructObject(_argts... _argvs) noexcept
 	{
 		if constexpr (std::is_abstract_v<Type>) return nullptr;
-		else return new(_objectBuffer) Type(_argvs...);
+		else return new Type(_argvs...);
 	}
 
 	TClassObject() { ClassObjectDetail::RegistClassObject(StaticGetClassHash(), this); }
@@ -88,7 +87,7 @@ public:
 	bool IsInstanceOf(uint64_t _classHash)const noexcept override { return StaticIsInstanceOf(_classHash); }
 	bool IsImplementedFrom(uint64_t _interfaceHash)const noexcept override { return StaticIsImplementedFrom(_interfaceHash); }
 	bool IsDrivedFrom(uint64_t _classHash)const noexcept override { return StaticIsDrivedFrom(_classHash); }
-	Type* ConstructObject(void* _objectBuffer)const noexcept override { return StaticConstructObject(_objectBuffer); }
+	Type* ConstructObject()const noexcept override { return StaticConstructObject(); }
 };
 
 //DECLARE_ANCESTOR_CLASSOBJECT_BODY(_ancestorClass)
@@ -98,7 +97,8 @@ public:																											\
 	using ClassObjectType = TClassObject<_class, void>;															\
 	static const ClassObjectType* StaticGetClassObject() noexcept { return &ClassObject; }						\
 	virtual const ClassObjectInterfaceType* GetClassObject()const noexcept { return StaticGetClassObject(); }	\
-private:																										\
+	using AncestorClass = typename ClassObjectType::AncestorClass;												\
+private:																											\
 	inline static ClassObjectType ClassObject;																	
 
 //DECLARE_CLASSOBJECT_BODY(_class, _baseClass, _interface)
@@ -109,8 +109,14 @@ public:																											\
 	const ClassObjectInterfaceType* GetClassObject()const noexcept override { return StaticGetClassObject(); }	\
 	using AncestorClass = typename ClassObjectType::AncestorClass;												\
 	using BaseClass = typename ClassObjectType::BaseClass;														\
-private:																										\
+private:																											\
 	inline static ClassObjectType ClassObject;																	
+
+template<typename _type>
+inline bool GetClassHash(const _type* _object)
+{
+	return _object->GetClassObject()->GetClassHash();
+}
 
 template<typename _baseType, typename _type>
 inline bool IsInstanceOf(const _type* _object)

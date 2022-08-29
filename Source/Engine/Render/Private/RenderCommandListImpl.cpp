@@ -4,6 +4,7 @@
 #include "RDI/Interface/RDISwapChain.h"
 #include "RDI/Interface/RDICommandList.h"
 #include "Render/RenderGraph/RenderGraph.h"
+#include "Core/ProgramConfiguation/BuildConfiguation.h"
 
 bool SRenderCommandListImpl::HasImmediatelyRenderCommand() const noexcept
 {
@@ -103,9 +104,8 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 					void* dataPtr = nullptr;
 					uploadBuffer->Map(&dataPtr);
 
-#if WITH_DEBUG_CODE
-					memset(dataPtr, 0, desc.mBufferSize);
-#endif
+					if constexpr (SBuildConfiguation::GIsDebugMode)
+						memset(dataPtr, 0, desc.mBufferSize);
 
 					for (uint32_t i = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
 					{

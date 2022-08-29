@@ -1,6 +1,7 @@
 #pragma once
+#include "Core/Util/TemplateUtil.h"
 
-struct SClock
+struct SClock : TAsSingleton<SClock>
 {
 	float GetAbsoluteTotalTime()const noexcept { return mAbsoluteTotalTime; }
 	float GetAbsoluteDeltaTime()const noexcept { return mAbsoluteDeltaTime; }
@@ -21,5 +22,3 @@ private:
 
 	float mGameClockRatio = 1.f;
 };
-
-extern SClock GClock;

@@ -90,6 +90,11 @@ public:
 	{
 	}
 
+	SBufferView(SBufferView _bufferView, size_t _bufferSize) noexcept
+		: SBufferView(_bufferView.GetBuffer(), _bufferSize)
+	{
+	}
+
 	SBufferView(SBufferView _bufferView, size_t _offset, size_t _bufferSize) noexcept
 		: SBufferView(_bufferView.GetBuffer(), _offset, _bufferSize)
 	{

@@ -8,14 +8,15 @@ bool SD3D12Factory::Init() noexcept
 {
 	//DebugLayer
 	{
-#if WITH_DEBUG_CODE
-		VERIFY_D3D_RETURN(D3D12GetDebugInterface(IID_PPV_ARGS(&mD3D12DebugNativePtr)));
-		GetD3D12DebugNativePtr()->EnableDebugLayer();
-		GetD3D12DebugNativePtr()->SetEnableGPUBasedValidation(true);
-		GetD3D12DebugNativePtr()->SetEnableSynchronizedCommandQueueValidation(true);
-		GetD3D12DebugNativePtr()->SetGPUBasedValidationFlags(D3D12_GPU_BASED_VALIDATION_FLAGS_NONE);
-		VERIFY_D3D_RETURN(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIDebugNativePtr)));
-#endif
+		if constexpr (SBuildConfiguation::GIsDebugMode)
+		{
+			VERIFY_D3D_RETURN(D3D12GetDebugInterface(IID_PPV_ARGS(&mD3D12DebugNativePtr)));
+			GetD3D12DebugNativePtr()->EnableDebugLayer();
+			GetD3D12DebugNativePtr()->SetEnableGPUBasedValidation(true);
+			GetD3D12DebugNativePtr()->SetEnableSynchronizedCommandQueueValidation(true);
+			GetD3D12DebugNativePtr()->SetGPUBasedValidationFlags(D3D12_GPU_BASED_VALIDATION_FLAGS_NONE);
+			VERIFY_D3D_RETURN(DXGIGetDebugInterface1(0, IID_PPV_ARGS(&mDXGIDebugNativePtr)));
+		}
 	}
 
 	//DXGIFactory

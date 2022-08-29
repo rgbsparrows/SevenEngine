@@ -9,10 +9,11 @@
 
 void SModuleManager::Clear() noexcept
 {
-#if WITH_DEBUG_CODE
-	for (auto& _ele : mModuleInfoMap)
-		ASSERT(_ele.second.mRefCount == 0);
-#endif
+	if constexpr (SBuildConfiguation::GIsDebugMode)
+	{
+		for (auto& _ele : mModuleInfoMap)
+			ASSERT(_ele.second.mRefCount == 0);
+	}
 }
 
 bool SModuleManager::LoadModule(std::wstring_view _moduleName) noexcept

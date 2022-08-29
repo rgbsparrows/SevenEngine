@@ -2,8 +2,6 @@
 
 #include <chrono>
 
-SClock GClock;
-
 void SClock::Tick() noexcept
 {
 	static std::chrono::time_point<std::chrono::steady_clock> lastTickTimePoint = std::chrono::steady_clock::now();

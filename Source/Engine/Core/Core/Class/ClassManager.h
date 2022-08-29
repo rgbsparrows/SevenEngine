@@ -2,6 +2,7 @@
 
 #include "Core/Util/Assert.h"
 #include "Core/Util/TemplateUtil.h"
+#include "Core/Class/ClassObject.h"
 
 #include <map>
 
@@ -27,6 +28,20 @@ public:
 
 		if (it == mClassObjectMap.end()) return nullptr;
 		else return it->second;
+	}
+
+	template<typename _classType>
+	_classType* ConstructObject(std::uint64_t _classHash)
+	{
+		using AncestorClassType = _classType::AncestorClass;
+		using ClassType = _classType;
+
+		const IClassObjectInterface* classObject = GetClassObject(_classHash);
+		if (classObject->IsInstanceOf(TTypeHash<ClassType>) == false)
+			return nullptr;
+
+		AncestorClassType* object = static_cast<const TClassObjectInterface<AncestorClassType>*>(classObject)->ConstructObject();
+		return static_cast<ClassType*>(object);
 	}
 
 private:

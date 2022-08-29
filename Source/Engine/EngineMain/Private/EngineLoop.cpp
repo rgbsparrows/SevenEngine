@@ -23,7 +23,7 @@ void SEngineLoop::Run() noexcept
 {
 	while (!mShouldExit)
 	{
-		GClock.Tick();
+		SClock::Get().Tick();
 
 		GetRenderModule()->BeginFrame_GameThread();
 		GetUIModule()->OnGUI();
