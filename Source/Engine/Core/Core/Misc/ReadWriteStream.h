@@ -46,7 +46,7 @@ public:
 
 	SBufferView ReadBuffer(size_t _size) noexcept
 	{
-		CHECK(mCurrentPos + _size >= mBufferView.GetBufferSize());
+		CHECK(mCurrentPos + _size < mBufferView.GetBufferSize());
 
 		SBufferView buffer = SBufferView(mBufferView, mCurrentPos, _size);
 		mCurrentPos += _size;
@@ -76,7 +76,7 @@ public:
 
 	SReadStream MakeSubReadStream(size_t _size) noexcept
 	{
-		CHECK(_size + mCurrentPos <= mBufferView.GetBufferSize());
+		CHECK(_size + mCurrentPos < mBufferView.GetBufferSize());
 		return SReadStream(SBufferView(mBufferView, mCurrentPos, _size));
 	}
 

@@ -2,6 +2,7 @@
 
 #include "RenderProxy/World/WorldProxy.h"
 #include "Render/RenderProxy/WindowInfo.h"
+#include "RenderProxy/Resource/RenderResource.h"
 
 #include <functional>
 
@@ -18,10 +19,11 @@ __interface IRenderCommandList
 
 	void RefrashImmediatelyRenderCommand() noexcept;
 
+	void ConstructRenderGraph(RRenderGraphBase* _renderGraph) noexcept;
 	void RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* _texture2D, RTexture2DData&& _textureData) noexcept;
 	void RefrashImTexture2D_I(RRenderProxy<RTexture2D>* _texture2D, RRenderProxy<RImguiTexture2D>* _imTexture2D) noexcept;
 	void RefrashSwapChain_I(RRenderProxy<RSwapChain>* _swapChain, const RSwapChainData& _swapChainData) noexcept;
-	void ConstructRenderGraph(RRenderGraphBase* _renderGraph) noexcept;
+	void RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData _meshData) noexcept;
 
 	void RenderWorld(RRenderProxy<R3DWorld>* _3dWorldData, RRenderProxy<RTexture2D>* _canvas, R3DWorldRenderGraph* _renderGraph) noexcept;
 	void RenderWindow(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData) noexcept;

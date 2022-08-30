@@ -322,6 +322,11 @@ namespace Math
 
 #pragma region type declear
 
+	using SUShort1 = TTypeArray<uint16_t, 1>;
+	using SUShort2 = TTypeArray<uint16_t, 2>;
+	using SUShort3 = TTypeArray<uint16_t, 3>;
+	using SUShort4 = TTypeArray<uint16_t, 4>;
+
 	using SInt1 = TTypeArray<int32_t, 1>;
 	using SInt2 = TTypeArray<int32_t, 2>;
 	using SInt3 = TTypeArray<int32_t, 3>;

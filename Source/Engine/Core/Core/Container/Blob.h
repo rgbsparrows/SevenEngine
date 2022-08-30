@@ -117,7 +117,6 @@ class SRange
 public:
 	SRange() noexcept = default;
 	SRange(const SRange&) noexcept = default;
-	SRange(SRange&&) noexcept = default;
 
 	SRange(size_t _rangeSize) noexcept
 		: mRangeSize(_rangeSize)
