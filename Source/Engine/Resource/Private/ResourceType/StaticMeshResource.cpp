@@ -1,5 +1,5 @@
-#include "StaticMeshResource.h"
 #include "Render/RenderCommandList.h"
+#include "Resource/ResourceType/StaticMeshResource.h"
 
 void SStaticMeshResource::Serialize(SWriteStream& _writeStream) const noexcept
 {
@@ -93,6 +93,8 @@ void SStaticMeshResource::RefrashContent() noexcept
 
 void SStaticMeshResource::SetVertexSemantic(EVertexSemanticFlag _vertexSemanticFlag) noexcept
 {
+	mVertexSemantic = _vertexSemanticFlag;
+
 	size_t vertexCount = mPositionBuffer.size();
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Position)) != EVertexSemanticFlag::None)
@@ -197,7 +199,7 @@ void SStaticMeshResource::ResizeVertexCount(size_t _vertexCount) noexcept
 		mUvBuffer[7].resize(_vertexCount);
 }
 
-void SStaticMeshResource::ResizeIndexCount(size_t _triangleCount) noexcept
+void SStaticMeshResource::ResizeTriangleCount(size_t _triangleCount) noexcept
 {
 	mIndexBuffer.resize(_triangleCount * 3);
 }

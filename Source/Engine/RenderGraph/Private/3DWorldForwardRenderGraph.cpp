@@ -1,5 +1,5 @@
-#include "3DWorldForwardRenderGraph.h"
-#include "RenderPass/3DWorldForwardRenderPass.h"
+#include "RenderGraph/3DWorldForwardRenderGraph.h"
+#include "RenderGraph/RenderPass/3DWorldForwardRenderPass.h"
 
 void R3DWorldForwardRenderGraph::Init() noexcept
 {

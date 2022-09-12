@@ -40,7 +40,7 @@ struct RMesh
 {
 	EVertexSemanticFlag mVertexSemantic;
 
-	IRDIBuffer* mIndexBuffer;
+	IRDIBuffer* mIndexBuffer = nullptr;
 	IRDIBuffer* mVertexBuffer[EnumToInt(EVertexSemantic::Num)] = {};
 
 	std::vector<SRange> mSubMeshRange;

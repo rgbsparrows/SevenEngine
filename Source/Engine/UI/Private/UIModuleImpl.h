@@ -46,6 +46,7 @@ private:
 
 private:
 	SUIInternalWindow* mMainWindow = nullptr;
+	bool mIsMainWindowOpen = true;
 	std::vector<SUIInternalWindow*> mAdditionWindow;
 
 	std::map<std::wstring, IUIWindowInterface*> mUIWindows;

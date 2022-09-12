@@ -4,6 +4,8 @@
 
 class SRawResource : public SResourceBase
 {
+	DECLARE_CLASSOBJECT_BODY(SRawResource, SResourceBase)
+
 public:
 	virtual void Serialize(SWriteStream& _writeStream)const noexcept
 	{

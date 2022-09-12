@@ -113,7 +113,7 @@ private:																											\
 	inline static ClassObjectType ClassObject;																	
 
 template<typename _type>
-inline bool GetClassHash(const _type* _object)
+inline uint64_t GetClassHash(const _type* _object)
 {
 	return _object->GetClassObject()->GetClassHash();
 }

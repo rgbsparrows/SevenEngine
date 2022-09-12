@@ -21,8 +21,11 @@ SResourceModuleImpl* GetResourceModuleImpl() noexcept
 	return GResourceModuleImpl;
 }
 
+REGIST_MODULE(L"ResourceModule", SResourceModuleImpl)
+
 bool SResourceModuleImpl::Init() noexcept
 {
+	GResourceModuleImpl = this;
 	return true;
 }
 
@@ -98,7 +101,7 @@ SResourceBase* SResourceModuleImpl::LoadResource(const std::filesystem::path& _p
 	}
 	else
 	{
-		readStream.Read<uint64_t>();
+		CHECK(readStream.Read<uint64_t>() == GResourceMagicNumber);
 		SResourceDataHeader resourceDataHeader = readStream.Read<SResourceDataHeader>();
 		resource = SClassManager::Get().ConstructObject<SResourceBase>(resourceDataHeader.mResourceTypeHash);
 		if (resource != nullptr)
@@ -142,8 +145,8 @@ SBlob SResourceModuleImpl::MakeFileContent(SResourceBase* _resource) noexcept
 
 	if (IsInstanceOf<SRawResource>(_resource) == false)
 	{
-		writeStream.Write<uint64_t>(GResourceMagicNumber);
-		writeStream.Write<SResourceDataHeader>(SResourceDataHeader());
+		writeStream.Write(GResourceMagicNumber);
+		writeStream.Write(SResourceDataHeader());
 	}
 
 	size_t resourceByteCount = 0;
@@ -159,6 +162,7 @@ SBlob SResourceModuleImpl::MakeFileContent(SResourceBase* _resource) noexcept
 		SResourceDataHeader resourceHeader;
 		resourceHeader.mResourceTypeHash = GetClassHash(_resource);
 		resourceHeader.mContentSize = resourceByteCount;
+		writeStream.Write(resourceHeader);
 	}
 
 	return SBlob(writeStream.GetContentBuffer().GetBuffer(), writeStream.GetContentBuffer().GetBufferSize());
@@ -177,7 +181,7 @@ bool SResourceModuleImpl::LoadFile(const std::filesystem::path& _path, SBlob& _b
 
 	std::ifstream ifs(ConvertPath(_path), std::ios_base::binary);
 
-	if (ifs.bad())
+	if (ifs.is_open() == false)
 		return false;
 
 	ifs.seekg(0, std::ios_base::end);
@@ -185,7 +189,7 @@ bool SResourceModuleImpl::LoadFile(const std::filesystem::path& _path, SBlob& _b
 	ifs.seekg(0, std::ios_base::beg);
 
 	_blob = SBlob(fileLen);
-	ifs.readsome(reinterpret_cast<char*>(_blob.GetBuffer()), _blob.GetBufferSize());
+	ifs.read(reinterpret_cast<char*>(_blob.GetBuffer()), _blob.GetBufferSize());
 
 	ifs.close();
 
@@ -199,9 +203,12 @@ bool SResourceModuleImpl::SaveFile(SBufferView _content, const std::filesystem::
 	if (!_overwrite && std::filesystem::exists(path))
 		return false;
 
-	std::ofstream ofs(ConvertPath(_path), std::ios_base::binary | std::ios_base::trunc);
+	if (std::filesystem::exists(path.parent_path()) == false)
+		std::filesystem::create_directories(path.parent_path());
 
-	if (ofs.bad())
+	std::ofstream ofs(path, std::ios_base::binary | std::ios_base::trunc);
+
+	if (ofs.is_open() == false)
 		return false;
 
 	ofs.write(reinterpret_cast<const char*>(_content.GetBuffer()), _content.GetBufferSize());
@@ -217,17 +224,17 @@ std::filesystem::path SResourceModuleImpl::ConvertPath(const std::filesystem::pa
 
 	std::filesystem::path path;
 
-	auto it = path.begin();
+	auto it = _path.begin();
 
 	if ((*it) == "Engine")
 		path = SBasicPath::GetEnginePath();
-	else if ((*it) == "Project")
+	else if ((*it) == "Game")
 		path = SBasicPath::GetProjectPath();
 	else
 		path = *it;
 
-	for (++it; it != path.end(); ++it)
-		path += *it;
+	for (++it; it != _path.end(); ++it)
+		path /= *it;
 
 	return path;
 }
@@ -239,5 +246,5 @@ bool SResourceModuleImpl::IsRawResource(SBufferView _content) noexcept
 	if (readStream.GetContentSize() < sizeof(uint64_t) + sizeof(SResourceDataHeader))
 		return false;
 
-	return GResourceMagicNumber == readStream.Read<uint64_t>();
+	return GResourceMagicNumber != readStream.Read<uint64_t>();
 }

@@ -53,6 +53,8 @@ struct TSerialize<SSubMesh>
 
 class SStaticMeshResource : public SResourceBase
 {
+	DECLARE_CLASSOBJECT_BODY(SStaticMeshResource, SResourceBase)
+
 public:
 	void Serialize(SWriteStream& _writeStream)const noexcept override;
 	bool Deserialize(SReadStream& _readStream) override;
@@ -62,7 +64,7 @@ public:
 	void SetVertexSemantic(EVertexSemanticFlag _vertexSemanticFlag) noexcept;
 
 	void ResizeVertexCount(size_t _vertexCount) noexcept;
-	void ResizeIndexCount(size_t _triangleCount) noexcept;
+	void ResizeTriangleCount(size_t _triangleCount) noexcept;
 
 	void SetVertex(const SFullVertex& _vertex, size_t _vertexIndex) noexcept;
 	SFullVertex GetVertex(size_t _vertexIndex)const noexcept;
@@ -91,7 +93,13 @@ protected:
 	virtual void OnRelease() noexcept;
 
 public:
-	EVertexSemanticFlag mVertexSemantic;
+	EVertexSemanticFlag mVertexSemantic = ConvertToEnumFlag({
+						EVertexSemantic::Position,
+						EVertexSemantic::Color,
+						EVertexSemantic::Normal,
+						EVertexSemantic::Tangent,
+						EVertexSemantic::Uv0 }
+	);
 
 	std::vector<uint32_t> mIndexBuffer;
 
