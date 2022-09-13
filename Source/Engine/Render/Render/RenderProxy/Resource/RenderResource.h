@@ -54,7 +54,7 @@ struct RMeshData
 	const std::vector<uint32_t>* mIndexBuffer = nullptr;
 
 	const std::vector<Math::SFloat3>* mPositionBuffer = nullptr;
-	const std::vector<Math::SFloat4>* mColorBuffer = nullptr;
+	const std::vector<Math::SFColor>* mColorBuffer = nullptr;
 	const std::vector<Math::SFloat3>* mNormalBuffer = nullptr;
 	const std::vector<Math::SFloat4>* mTangentBuffer = nullptr;
 	const std::vector<Math::SUShort4>* mBlendIndicesBuffer = nullptr;

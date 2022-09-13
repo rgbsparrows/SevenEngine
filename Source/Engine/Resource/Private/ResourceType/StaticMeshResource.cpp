@@ -331,7 +331,7 @@ Math::SFloat3* SStaticMeshResource::GetPositionBuffer() noexcept
 	return nullptr;
 }
 
-Math::SFloat4* SStaticMeshResource::GetColorBuffer() noexcept
+Math::SFColor* SStaticMeshResource::GetColorBuffer() noexcept
 {
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Color)) != EVertexSemanticFlag::None)
 		return &mColorBuffer[0];
@@ -399,4 +399,6 @@ void SStaticMeshResource::OnRelease() noexcept
 		GetRenderModule()->GetRenderCommandList()->AddExpiringRenderProxy(mMeshProxy);
 		mMeshProxy = nullptr;
 	}
+
+	BaseClass::OnRelease();
 }

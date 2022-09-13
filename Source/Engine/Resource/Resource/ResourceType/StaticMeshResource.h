@@ -11,7 +11,7 @@
 struct SFullVertex 
 {
 	Math::SFloat3 mPosition;
-	Math::SFloat4 mColor;
+	Math::SFColor mColor;
 	Math::SFloat3 mNormal;
 	Math::SFloat4 mTangent;
 	Math::SUShort4 mBlendIndices;
@@ -21,6 +21,14 @@ struct SFullVertex
 
 struct SMeshTriangle
 {
+	SMeshTriangle() noexcept = default;
+	SMeshTriangle(uint32_t _i0, uint32_t _i1, uint32_t _i2) noexcept
+	{
+		mVertexIndex[0] = _i0;
+		mVertexIndex[1] = _i1;
+		mVertexIndex[2] = _i2;
+	}
+
 	uint32_t mVertexIndex[3] = {};
 
 	uint32_t operator[] (size_t _index) const noexcept { return mVertexIndex[_index]; }
@@ -73,7 +81,7 @@ public:
 
 	uint32_t* GetIndexBuffer() noexcept { return &mIndexBuffer[0]; }
 	Math::SFloat3* GetPositionBuffer() noexcept;
-	Math::SFloat4* GetColorBuffer() noexcept;
+	Math::SFColor* GetColorBuffer() noexcept;
 	Math::SFloat3* GetNormalBuffer() noexcept;
 	Math::SFloat4* GetTangentBuffer() noexcept;
 	Math::SUShort4* GetBlendIndicesBuffer() noexcept;
@@ -82,7 +90,7 @@ public:
 
 	const std::vector<uint32_t>& GetIndexBuffer()const noexcept { return mIndexBuffer; }
 	const std::vector<Math::SFloat3>& GetPositionBuffer()const noexcept { return mPositionBuffer; }
-	const std::vector<Math::SFloat4>& GetColorBuffer()const noexcept { return mColorBuffer; }
+	const std::vector<Math::SFColor>& GetColorBuffer()const noexcept { return mColorBuffer; }
 	const std::vector<Math::SFloat3>& GetNormalBuffer()const noexcept { return mNormalBuffer; }
 	const std::vector<Math::SFloat4>& GetTangentBuffer()const noexcept { return mTangentBuffer; }
 	const std::vector<Math::SUShort4>& GetBlendIndicesBuffer()const noexcept { return mBlendIndicesBuffer; }
@@ -104,7 +112,7 @@ public:
 	std::vector<uint32_t> mIndexBuffer;
 
 	std::vector<Math::SFloat3> mPositionBuffer;
-	std::vector<Math::SFloat4> mColorBuffer;
+	std::vector<Math::SFColor> mColorBuffer;
 	std::vector<Math::SFloat3> mNormalBuffer;
 	std::vector<Math::SFloat4> mTangentBuffer;
 	std::vector<Math::SUShort4> mBlendIndicesBuffer;

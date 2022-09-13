@@ -280,14 +280,6 @@ namespace Math
 	{
 		using UnderlyingType = _underlyingType;
 
-		TColor(UnderlyingType _r, UnderlyingType _g, UnderlyingType _b, UnderlyingType _a)
-		{
-			r = _r;
-			g = _g;
-			b = _b;
-			a = _a;
-		}
-
 		TColor()
 			:TColor(0, 0, 0, 1)
 		{
@@ -296,6 +288,14 @@ namespace Math
 		TColor(const UnderlyingType* _data)
 			:TColor(_data[0], _data[1], _data[2], _data[3])
 		{
+		}
+
+		TColor(UnderlyingType _r, UnderlyingType _g, UnderlyingType _b, UnderlyingType _a)
+		{
+			r = _r;
+			g = _g;
+			b = _b;
+			a = _a;
 		}
 
 		constexpr UnderlyingType operator[](size_t _index) const noexcept { return Color[_index]; }
