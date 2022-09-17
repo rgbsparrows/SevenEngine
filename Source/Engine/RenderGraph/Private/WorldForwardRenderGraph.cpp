@@ -3,9 +3,9 @@
 
 void RWorldForwardRenderGraph::Init() noexcept
 {
-	mForwardRenderPass = new R3DWorldForwardRenderPass;
+	mForwardRenderPass = new RWorldForwardRenderPass;
 
-	std::vector<R3DWorldRenderPass*> renderPassList = { mForwardRenderPass };
+	std::vector<RWorldRenderPass*> renderPassList = { mForwardRenderPass };
 	Setup(renderPassList);
 }
 

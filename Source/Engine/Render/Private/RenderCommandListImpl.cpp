@@ -382,7 +382,7 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 
 void SRenderCommandListImpl::RenderWorld(RRenderProxy<RWorld>* _3dWorldData, RRenderProxy<RTexture2D>* _canvas, RWorldRenderGraph* _renderGraph) noexcept
 {
-	GetFrameResource_GameThread().mRender3DWorldList.push_back(RRenderWorldInfo{ _3dWorldData, _canvas, _renderGraph });
+	GetFrameResource_GameThread().mRenderWorldList.push_back(RRenderWorldInfo{ _3dWorldData, _canvas, _renderGraph });
 }
 
 void SRenderCommandListImpl::RenderWindow(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData) noexcept

@@ -9,9 +9,9 @@
 
 class RWorldRenderGraph;
 
-struct RRender3DWorldInfo
+struct RRenderWorldInfo
 {
-	RRenderProxy<RWorld>* m3DWorld = nullptr;
+	RRenderProxy<RWorld>* mWorld = nullptr;
 	RRenderProxy<RTexture2D>* mCanvas = nullptr;
 	RWorldRenderGraph* mRenderGraph = nullptr;
 };
@@ -29,7 +29,7 @@ public:
 	{
 		mNeedInitRenderProxy.resize(0);
 		mExpiringRenderProxy.resize(0);
-		mRender3DWorldList.resize(0);
+		mRenderWorldList.resize(0);
 		mRenderWindowList.resize(0);
 	}
 
@@ -42,7 +42,7 @@ public:
 	std::vector<RRenderProxyBase*> mNeedInitRenderProxy;
 	std::vector<RRenderProxyBase*> mExpiringRenderProxy;
 
-	std::vector<RRender3DWorldInfo> mRender3DWorldList;
+	std::vector<RRenderWorldInfo> mRenderWorldList;
 	std::vector<RRenderWindowInfo> mRenderWindowList;
 };
 template<> struct RRenderInfoTraits<RFrameResource> : RExclusiveMode {};

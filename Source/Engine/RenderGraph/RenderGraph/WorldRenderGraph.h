@@ -2,23 +2,23 @@
 #include "Render/RenderGraph/RenderGraph.h"
 #include "Render/RenderProxy/World/WorldProxy.h"
 
-struct R3DWorldRawRenderingData
+struct RWorldRawRenderingData
 {
-	R3DWorld* mWorld = nullptr;
+	RWorld* mWorld = nullptr;
 	RTexture2D* mRenderTarget = nullptr;
 };
 
-struct R3DWorldRenderingData
+struct RWorldRenderingData
 {
-	R3DWorld* mWorld = nullptr;
+	RWorld* mWorld = nullptr;
 	IRDITexture2D* mRenderTarget = nullptr;
 };
 
-using R3DWorldRenderPass = TRenderPass<R3DWorldRenderingData>;
+using RWorldRenderPass = TRenderPass<RWorldRenderingData>;
 
-class R3DWorldRenderGraph : public TRenderGraph<R3DWorldRawRenderingData, R3DWorldRenderingData>
+class RWorldRenderGraph : public TRenderGraph<RWorldRawRenderingData, RWorldRenderingData>
 {
-	DECLARE_CLASSOBJECT_BODY(R3DWorldRenderGraph, TRenderGraph<R3DWorldRawRenderingData, R3DWorldRenderingData>)
+	DECLARE_CLASSOBJECT_BODY(RWorldRenderGraph, TRenderGraph<RWorldRawRenderingData, RWorldRenderingData>)
 
 protected:
 	RRenderingData ProcessRawRenedrData(RRawRenderingData&& _renderingData) noexcept override

@@ -1,11 +1,11 @@
 #pragma once
-#include "RenderGraph/3DWorldRenderGraph.h"
+#include "RenderGraph/WorldRenderGraph.h"
 
 __interface IRDITexture2D;
 
-class R3DWorldForwardRenderPass : public R3DWorldRenderPass
+class RWorldForwardRenderPass : public RWorldRenderPass
 {
-	DECLARE_CLASSOBJECT_BODY(R3DWorldForwardRenderPass, R3DWorldRenderPass)
+	DECLARE_CLASSOBJECT_BODY(RWorldForwardRenderPass, RWorldRenderPass)
 
 public:
 	void PreRender(RRenderingData& _renderSource, SSubRenderContent& _renderContent) noexcept override {}

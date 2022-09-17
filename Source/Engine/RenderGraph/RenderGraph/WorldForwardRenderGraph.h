@@ -1,9 +1,9 @@
 #pragma once
-#include "3DWorldRenderGraph.h"
+#include "WorldRenderGraph.h"
 
 class RWorldForwardRenderPass;
 
-class RWorldForwardRenderGraph : public R3DWorldRenderGraph
+class RWorldForwardRenderGraph : public RWorldRenderGraph
 {
 public:
 	void Init() noexcept;
@@ -13,5 +13,5 @@ protected:
 	virtual void PostRender(RRenderingData& _renderingData, SSubRenderContent& _renderContent) noexcept {}
 
 private:
-	R3DWorldForwardRenderPass* mForwardRenderPass;
+	RWorldForwardRenderPass* mForwardRenderPass;
 };
