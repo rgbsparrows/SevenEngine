@@ -8,7 +8,7 @@
 #include "RDI/Interface/RDICommandList.h"
 #include "RDI/Interface/RDICommandQueue.h"
 #include "Render/RenderGraph/RenderGraph.h"
-#include "RenderGraph/3DWorldRenderGraph.h"
+#include "RenderGraph/WorldRenderGraph.h"
 #include "RDI/Interface/RDICommandAllocator.h"
 #include "RDI/Interface/RDIDescriptorHeapRange.h"
 #include "Render/RenderProxy/Resource/RenderResource.h"
@@ -25,6 +25,11 @@ IRenderModule* GetRenderModule() noexcept
 SRenderModuleImpl* GetRenderModuleImpl() noexcept
 {
 	return GRenderModuleImpl;
+}
+
+IRenderCommandList* GetRenderCommandList() noexcept
+{
+	return GetRenderModule()->GetRenderCommandList();
 }
 
 REGIST_MODULE(L"RenderModule", SRenderModuleImpl)
@@ -181,13 +186,13 @@ void SRenderModuleImpl::RenderThreadMain() noexcept
 
 void SRenderModuleImpl::RenderWorld() noexcept
 {
-	auto& render3DWorldList = mFrameResource->Get_RenderThread().mRender3DWorldList;
+	auto& renderWorldList = mFrameResource->Get_RenderThread().mRenderWorldList;
 
-	for (size_t i = 0; i != render3DWorldList.size(); ++i)
+	for (size_t i = 0; i != renderWorldList.size(); ++i)
 	{
-		RRender3DWorldInfo& render3DWorldInfo = render3DWorldList[i];
+		RRenderWorldInfo& renderWorldInfo = renderWorldList[i];
 
-		render3DWorldInfo.mRenderGraph->Render(R3DWorldRawRenderingData{ &render3DWorldInfo.m3DWorld->Get_RenderThread(), &render3DWorldInfo.mCanvas->Get_RenderThread() });
+		renderWorldInfo.mRenderGraph->Render(RWorldRawRenderingData{ &renderWorldInfo.mWorld->Get_RenderThread(), &renderWorldInfo.mCanvas->Get_RenderThread() });
 	}
 }
 

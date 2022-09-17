@@ -6,10 +6,8 @@
 #include <filesystem>
 
 class SResourceBase;
-
-class IResourceModule : public IModuleInterface
+struct IResourceModule : public IModuleInterface
 {
-public:
 	virtual bool CreateResource(SResourceBase* _resource, const std::filesystem::path& _path) noexcept = 0;
 	virtual bool RenameResource(SResourceBase* _resource, const std::filesystem::path& _newPath) noexcept = 0;
 	virtual SResourceBase* LoadResource(const std::filesystem::path& _path) noexcept = 0;

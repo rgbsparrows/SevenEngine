@@ -206,7 +206,7 @@ namespace Math
 		return result;
 	}
 
-	constexpr inline SFloat4x4 Calc3DTranslationMatrix(const SFloat3& _position) noexcept
+	constexpr inline SFloat4x4 CalcTranslationMatrix(const SFloat3& _position) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -219,7 +219,7 @@ namespace Math
 	}
 
 	//旋转正方向为，当相应轴正方向竖直向上时，从上向下看的顺时针方向
-	constexpr inline SFloat4x4 Calc3DRotationMatrixX(float _angel) noexcept
+	constexpr inline SFloat4x4 CalcRotationMatrixX(float _angel) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -231,7 +231,7 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 Calc3DRotationMatrixY(float _angel) noexcept
+	constexpr inline SFloat4x4 CalcRotationMatrixY(float _angel) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -243,7 +243,7 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 Calc3DRotationMatrixZ(float _angel) noexcept
+	constexpr inline SFloat4x4 CalcRotationMatrixZ(float _angel) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -255,7 +255,7 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 Calc3DRotationMatrix(const SFloat3& _rotation) noexcept
+	constexpr inline SFloat4x4 CalcRotationMatrix(const SFloat3& _rotation) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -285,7 +285,7 @@ namespace Math
 		return SFloat3(-Cos(_rotation[0]) * Sin(_rotation[1]) * Cos(_rotation[2]) + Sin(_rotation[0]) * Sin(_rotation[2]), Cos(_rotation[0]) * Sin(_rotation[1]) * Sin(_rotation[2]) + Sin(_rotation[0]) * Cos(_rotation[2]), Cos(_rotation[0]) * Cos(_rotation[1]));
 	}
 
-	constexpr inline SFloat4x4 Calc3DScaleMatrix(const SFloat3& _scale) noexcept
+	constexpr inline SFloat4x4 CalcScaleMatrix(const SFloat3& _scale) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -297,12 +297,12 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 Calc3DTransformMatrix(const SFloat3& _position, const SFloat3& _rotation, const SFloat3& _scale) noexcept
+	constexpr inline SFloat4x4 CalcTransformMatrix(const SFloat3& _position, const SFloat3& _rotation, const SFloat3& _scale) noexcept
 	{
-		return Calc3DScaleMatrix(_scale) * Calc3DRotationMatrix(_rotation) * Calc3DTranslationMatrix(_position);
+		return CalcScaleMatrix(_scale) * CalcRotationMatrix(_rotation) * CalcTranslationMatrix(_position);
 	}
 
-	constexpr inline SFloat4x4 Calc3DTransformViewMatrix(const SFloat3& _position, const SFloat3& _rotation) noexcept
+	constexpr inline SFloat4x4 CalcTransformViewMatrix(const SFloat3& _position, const SFloat3& _rotation) noexcept
 	{
 		SFloat3 forward = CalcForwardDirection(_rotation);
 		SFloat3 right = CalcForwardDirection(_rotation);
@@ -318,7 +318,7 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 Calc3DPerspectiveProjectMatrix(float _fov, float _near, float _far, float _width, float _height) noexcept
+	constexpr inline SFloat4x4 CalcPerspectiveProjectMatrix(float _fov, float _near, float _far, float _width, float _height) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -330,7 +330,7 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 Calc3DParallelProjectMatrix(float _near, float _far, float _width, float _height) noexcept
+	constexpr inline SFloat4x4 CalcParallelProjectMatrix(float _near, float _far, float _width, float _height) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{

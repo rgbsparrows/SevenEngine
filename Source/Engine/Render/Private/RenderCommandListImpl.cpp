@@ -380,9 +380,9 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 	AddRenderCommand(SRefrashMeshCommand{ _mesh, _meshData });
 }
 
-void SRenderCommandListImpl::RenderWorld(RRenderProxy<R3DWorld>* _3dWorldData, RRenderProxy<RTexture2D>* _canvas, R3DWorldRenderGraph* _renderGraph) noexcept
+void SRenderCommandListImpl::RenderWorld(RRenderProxy<RWorld>* _3dWorldData, RRenderProxy<RTexture2D>* _canvas, RWorldRenderGraph* _renderGraph) noexcept
 {
-	GetFrameResource_GameThread().mRender3DWorldList.push_back(RRender3DWorldInfo{ _3dWorldData, _canvas, _renderGraph });
+	GetFrameResource_GameThread().mRender3DWorldList.push_back(RRenderWorldInfo{ _3dWorldData, _canvas, _renderGraph });
 }
 
 void SRenderCommandListImpl::RenderWindow(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData) noexcept

@@ -29,7 +29,7 @@ public:
 	void RefrashSwapChain_I(RRenderProxy<RSwapChain>* _swapChain, const RSwapChainData& _swapChainData) noexcept override;
 	void RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData _meshData) noexcept;
 
-	void RenderWorld(RRenderProxy<R3DWorld>* _3dWorldData, RRenderProxy<RTexture2D>* _canvas, R3DWorldRenderGraph* _renderGraph) noexcept;
+	void RenderWorld(RRenderProxy<RWorld>* _3dWorldData, RRenderProxy<RTexture2D>* _canvas, RWorldRenderGraph* _renderGraph) noexcept;
 	void RenderWindow(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData) noexcept;
 
 private:

@@ -1,9 +1,9 @@
 #pragma once
 #include "3DWorldRenderGraph.h"
 
-class R3DWorldForwardRenderPass;
+class RWorldForwardRenderPass;
 
-class R3DWorldForwardRenderGraph : public R3DWorldRenderGraph
+class RWorldForwardRenderGraph : public R3DWorldRenderGraph
 {
 public:
 	void Init() noexcept;

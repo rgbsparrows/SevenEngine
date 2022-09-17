@@ -88,7 +88,7 @@ void SStaticMeshResource::RefrashContent() noexcept
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv7)) != EVertexSemanticFlag::None)
 		meshData.mUvBuffer[7] = &mUvBuffer[7];
 
-	GetRenderModule()->GetRenderCommandList()->RefrashMesh_I(mMeshProxy, meshData);
+	GetRenderCommandList()->RefrashMesh_I(mMeshProxy, meshData);
 }
 
 void SStaticMeshResource::SetVertexSemantic(EVertexSemanticFlag _vertexSemanticFlag) noexcept
@@ -396,7 +396,7 @@ void SStaticMeshResource::OnRelease() noexcept
 {
 	if (mMeshProxy)
 	{
-		GetRenderModule()->GetRenderCommandList()->AddExpiringRenderProxy(mMeshProxy);
+		GetRenderCommandList()->AddExpiringRenderProxy(mMeshProxy);
 		mMeshProxy = nullptr;
 	}
 

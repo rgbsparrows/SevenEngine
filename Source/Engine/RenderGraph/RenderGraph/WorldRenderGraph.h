@@ -4,13 +4,13 @@
 
 struct R3DWorldRawRenderingData
 {
-	R3DWorld* m3DWorld = nullptr;
+	R3DWorld* mWorld = nullptr;
 	RTexture2D* mRenderTarget = nullptr;
 };
 
 struct R3DWorldRenderingData
 {
-	R3DWorld* m3DWorld = nullptr;
+	R3DWorld* mWorld = nullptr;
 	IRDITexture2D* mRenderTarget = nullptr;
 };
 
@@ -24,7 +24,7 @@ protected:
 	RRenderingData ProcessRawRenedrData(RRawRenderingData&& _renderingData) noexcept override
 	{
 		RRenderingData renderingData;
-		renderingData.m3DWorld = _renderingData.m3DWorld;
+		renderingData.mWorld = _renderingData.mWorld;
 		renderingData.mRenderTarget = _renderingData.mRenderTarget->mTexture;
 
 		return renderingData;

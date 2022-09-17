@@ -7,13 +7,13 @@
 
 #include <functional>
 
-class R3DWorldRenderGraph;
+class RWorldRenderGraph;
 
 struct RRender3DWorldInfo
 {
-	RRenderProxy<R3DWorld>* m3DWorld = nullptr;
+	RRenderProxy<RWorld>* m3DWorld = nullptr;
 	RRenderProxy<RTexture2D>* mCanvas = nullptr;
-	R3DWorldRenderGraph* mRenderGraph = nullptr;
+	RWorldRenderGraph* mRenderGraph = nullptr;
 };
 
 struct RRenderWindowInfo

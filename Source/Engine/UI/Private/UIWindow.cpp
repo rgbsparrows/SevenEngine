@@ -101,7 +101,7 @@ void SUIInternalWindow::Init(ImGuiViewport* _viewport)
 
 void SUIInternalWindow::Release()
 {
-	GetRenderModule()->GetRenderCommandList()->AddExpiringRenderProxy({ mSwapChain, mDrawData });
+	GetRenderCommandList()->AddExpiringRenderProxy({ mSwapChain, mDrawData });
 	DestroyWindow(mHwnd);
 
 	mSwapChain = nullptr;
@@ -212,7 +212,7 @@ void SUIInternalWindow::FlushImguiDrawData() noexcept
 		return;
 
 	if (mIsSwapChainDiry)
-		GetRenderModule()->GetRenderCommandList()->RefrashSwapChain_I(mSwapChain, mSwapChainData);
+		GetRenderCommandList()->RefrashSwapChain_I(mSwapChain, mSwapChainData);
 
 	ImDrawData* imDrawDataRaw = mImguiViewport->DrawData;
 	RImguiDrawData& drawData = mDrawData->Get_GameThread();
@@ -277,7 +277,7 @@ void SUIInternalWindow::FlushImguiDrawData() noexcept
 		drawData.mDisplayPos = Math::SFloat2(imDrawDataRaw->DisplayPos.x, imDrawDataRaw->DisplayPos.y);
 		drawData.mDisplaySize = Math::SFloat2(imDrawDataRaw->DisplaySize.x, imDrawDataRaw->DisplaySize.y);
 
-		GetRenderModule()->GetRenderCommandList()->RenderWindow(mSwapChain, mDrawData);
+		GetRenderCommandList()->RenderWindow(mSwapChain, mDrawData);
 	}
 
 	mIsSwapChainDiry = false;

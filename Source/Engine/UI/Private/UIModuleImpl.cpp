@@ -108,7 +108,7 @@ void SUIModuleImpl::OnGUI() noexcept
 	ImguiEndFrame();
 }
 
-void SUIModuleImpl::AddWindow(const std::wstring& _windowTag, IUIWindowInterface* _window) noexcept
+void SUIModuleImpl::AddWindow(IUIWindowInterface* _window, const std::wstring& _windowTag) noexcept
 {
 	if (_windowTag.empty() == false)
 	{
@@ -243,8 +243,8 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 		texture2dData.mSubresourceData.push_back(subResourceData);
 
 
-		GetRenderModule()->GetRenderCommandList()->RefrashStaticTexture2D_I(mFontTexture, std::move(texture2dData));
-		GetRenderModule()->GetRenderCommandList()->RefrashImTexture2D_I(mFontTexture, mImFontTexture);
+		GetRenderCommandList()->RefrashStaticTexture2D_I(mFontTexture, std::move(texture2dData));
+		GetRenderCommandList()->RefrashImTexture2D_I(mFontTexture, mImFontTexture);
 
 		ImGui::GetIO().Fonts->TexID = mImFontTexture;
 	}

@@ -32,9 +32,9 @@ struct RCamera
 	Math::SFloat4x4 mViewMatrix;
 };
 
-struct R3DWorld
+struct RWorld
 {
 	RCamera mCamera;
 	std::vector<RStaticMeshProxy> mStaticMeshComponent;
 };
-template<> struct RRenderInfoTraits<R3DWorld> : RExclusiveMode {};
+template<> struct RRenderInfoTraits<RWorld> : RExclusiveMode {};

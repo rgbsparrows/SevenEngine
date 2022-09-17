@@ -19,7 +19,7 @@ public:
 
 	void OnGUI() noexcept override;
 
-	void AddWindow(const std::wstring& _windowTag, IUIWindowInterface* _window) noexcept override;
+	void AddWindow(IUIWindowInterface* _window, const std::wstring& _windowTag) noexcept override;
 	IUIWindowInterface* GetWindowByTag(const std::wstring& _windowTag) noexcept override;
 
 private:

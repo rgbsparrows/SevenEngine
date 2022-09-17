@@ -8,7 +8,7 @@ public:
 	bool Init() noexcept override
 	{
 		SUIWorldContentWindow* worldContentWindow = new SUIWorldContentWindow;
-		GetUIModule()->AddWindow(L"", worldContentWindow);
+		GetUIModule()->AddWindow(worldContentWindow);
 		return true;
 	}
 

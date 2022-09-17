@@ -2,7 +2,7 @@
 
 #include "Core/Modules/ModuleInterface.h"
 
-__interface IRenderCommandList;
+struct IRenderCommandList;
 
 constexpr size_t GRenderInfoCount = 3;
 
@@ -22,3 +22,6 @@ public:
 };
 
 IRenderModule* GetRenderModule() noexcept;
+
+IRenderCommandList* GetRenderCommandList() noexcept;
+
