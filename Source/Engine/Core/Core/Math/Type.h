@@ -320,6 +320,17 @@ namespace Math
 
 #pragma endregion
 
+#pragma region transform
+
+	struct STransform
+	{
+		TTypeArray<double, 3> mPosition;
+		TTypeArray<float, 3> mRotation;
+		TTypeArray<float, 3> mScale = TTypeArray<float, 3>(1.f, 1.f, 1.f);
+	};
+
+#pragma endregion
+
 #pragma region type declear
 
 	using SUShort1 = TTypeArray<uint16_t, 1>;

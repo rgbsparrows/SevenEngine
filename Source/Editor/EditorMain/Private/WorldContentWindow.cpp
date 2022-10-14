@@ -46,7 +46,8 @@ void SUIWorldContentWindow::OnGui() noexcept
 		{
 			if (ImGui::Button(u8"Ìí¼ÓCubeMesh"))
 			{
-				SStaticMeshResource* smr = new SStaticMeshResource;
+				SStaticMeshResourceProxy smr = SStaticMeshResourceProxy::New();
+
 				smr->SetVertexSemantic(
 					ConvertToEnumFlag({
 						EVertexSemantic::Position,

@@ -3,6 +3,7 @@
 #include "Detail/TemplateUtilDetail.inl"
 
 #include <limits>
+#include <concepts>
 
 template<typename _classType>
 struct TAsSingleton
@@ -50,5 +51,8 @@ using TTypeSequenceItem = TemplateUtilDetail::TypeSequenceItem<_index, _typeSequ
 
 template<bool _switch, typename _first, typename _second>
 using TTypeSwitch = TemplateUtilDetail::TypeSwitch<_switch, _first, _second>::Type;
+
+template<typename _base, typename _drived>
+concept CBaseOf = std::derived_from<_drived, _base>;
 
 using EmptyType = struct {};

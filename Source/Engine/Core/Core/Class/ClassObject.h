@@ -113,6 +113,12 @@ private:																											\
 	inline static ClassObjectType ClassObject;																	
 
 template<typename _type>
+constexpr inline uint64_t GetClassHash()
+{
+	return _type::StaticGetClassObject()->StaticGetClassHash();
+}
+
+template<typename _type>
 inline uint64_t GetClassHash(const _type* _object)
 {
 	return _object->GetClassObject()->GetClassHash();

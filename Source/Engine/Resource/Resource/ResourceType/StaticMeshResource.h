@@ -3,6 +3,7 @@
 #include "Core/Math/Type.h"
 #include "Core/Container/Blob.h"
 #include "Resource/ResourceBase.h"
+#include "Resource/ResourceProxy.h"
 #include "Core/Util/TemplateUtil.h"
 #include "Render/RenderProxy/Resource/RenderResource.h"
 
@@ -123,3 +124,5 @@ public:
 
 	RRenderProxy<RMesh>* mMeshProxy = nullptr;
 };
+
+using SStaticMeshResourceProxy = TResourceProxy<SStaticMeshResource>;

@@ -23,7 +23,7 @@ public:
 	virtual bool Deserialize(SReadStream& _readStream) { return true; }
 
 	virtual void RefrashContent() noexcept {}
-	
+
 	bool IsDirty() const noexcept { return mIsDirty; }
 	void MarkDirty() noexcept { mIsDirty = true; }
 	void Save() noexcept;

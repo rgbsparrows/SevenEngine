@@ -21,3 +21,5 @@ public:
 private:
 	SBlob mContent;
 };
+
+using SRawResourceProxy = TResourceProxy<SRawResource>;

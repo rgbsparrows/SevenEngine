@@ -34,41 +34,41 @@ void SResourceModuleImpl::Clear() noexcept
 	CHECK(mResourceMap.size() == 0);
 }
 
-bool SResourceModuleImpl::CreateResource(SResourceBase* _resource, const std::filesystem::path& _path) noexcept
+bool SResourceModuleImpl::CreateResource(SResourceProxyBase _resourceProxy, const std::filesystem::path& _path) noexcept
 {
-	CHECK(_resource);
+	CHECK(!!_resourceProxy);
 	CHECK(_path.empty() == false);
-	CHECK(_resource->GetResourcePath().empty());
+	CHECK(_resourceProxy->GetResourcePath().empty());
 
 	std::filesystem::path path = _path.lexically_normal();
 
-	bool res = SaveFile(MakeFileContent(_resource), path, false);
+	bool res = SaveFile(MakeFileContent(_resourceProxy.Get()), path, false);
 
 	if (res)
 	{
-		AddResource(path, _resource);
-		_resource->Internal_SetResourcePath(path);
+		AddResource(path, _resourceProxy.Get());
+		_resourceProxy->Internal_SetResourcePath(path);
 	}
 
 	return res;
 }
 
-bool SResourceModuleImpl::RenameResource(SResourceBase* _resource, const std::filesystem::path& _newPath) noexcept
+bool SResourceModuleImpl::RenameResource(SResourceProxyBase _resourceProxy, const std::filesystem::path& _newPath) noexcept
 {
-	CHECK(_resource);
+	CHECK(!!_resourceProxy);
 	CHECK(_newPath.empty() == false);
-	CHECK(_resource->GetResourcePath().empty() == false);
+	CHECK(_resourceProxy->GetResourcePath().empty() == false);
 
 	std::filesystem::path newPath = _newPath.lexically_normal();
 
-	RemoveResource(_resource->GetResourcePath());
-	AddResource(newPath, _resource);
-	_resource->Internal_SetResourcePath(newPath);
+	RemoveResource(_resourceProxy->GetResourcePath());
+	AddResource(newPath, _resourceProxy.Get());
+	_resourceProxy->Internal_SetResourcePath(newPath);
 
 	return true;
 }
 
-SResourceBase* SResourceModuleImpl::LoadResource(const std::filesystem::path& _path) noexcept
+SResourceProxyBase SResourceModuleImpl::LoadResource(const std::filesystem::path& _path) noexcept
 {
 	CHECK(_path.empty() == false);
 
@@ -79,14 +79,14 @@ SResourceBase* SResourceModuleImpl::LoadResource(const std::filesystem::path& _p
 	if (resourceIt != mResourceMap.end())
 	{
 		resourceIt->second->Internal_AddRef();
-		return resourceIt->second;
+		return SResourceProxyBase(resourceIt->second);
 	}
 
 	SBlob fileContent;
 	bool res = LoadFile(path, fileContent);
 
 	if (res == false)
-		return nullptr;
+		return SResourceProxyBase();
 
 	SReadStream readStream(fileContent);
 
@@ -116,7 +116,7 @@ SResourceBase* SResourceModuleImpl::LoadResource(const std::filesystem::path& _p
 	if (resource != nullptr)
 		AddResource(path, resource);
 
-	return resource;
+	return SResourceProxyBase(resource);
 }
 
 void SResourceModuleImpl::CreateDirectory(const std::filesystem::path& _path) noexcept
@@ -139,7 +139,7 @@ void SResourceModuleImpl::RemoveResource(const std::filesystem::path& _path) noe
 
 SBlob SResourceModuleImpl::MakeFileContent(SResourceBase* _resource) noexcept
 {
-	CHECK(_resource);
+	CHECK(!!_resource);
 
 	SWriteStream writeStream;
 
