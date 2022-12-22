@@ -51,6 +51,16 @@ namespace Math
 		return ::tanl(_angle);
 	}
 
+	inline float ATan2(float _x, float _y) noexcept
+	{
+		return ::atan2f(_y, _x);
+	}
+
+	inline double ATan2(double _x, double _y) noexcept
+	{
+		return ::atan2l(_y, _x);
+	}
+
 	template<std::unsigned_integral _underlyingType> constexpr inline auto CalcBlockCount(_underlyingType _elementCount, _underlyingType _elementPerBlock) noexcept
 	{
 		return (_elementCount + _elementPerBlock - 1) / _elementPerBlock;
@@ -125,7 +135,7 @@ namespace Math
 				{-Cos(_rotation[0]) * Sin(_rotation[1]) * Cos(_rotation[2]) + Sin(_rotation[0]) * Sin(_rotation[2]),	Cos(_rotation[0]) * Sin(_rotation[1]) * Sin(_rotation[2]) + Sin(_rotation[0]) * Cos(_rotation[2]),	Cos(_rotation[0]) * Cos(_rotation[1]),	0 },
 				{0,																										0,																									0,										1 },
 			}
-		);
+		);	
 	}
 
 	//Y轴正方向为方向前
@@ -161,6 +171,11 @@ namespace Math
 	constexpr inline SFloat4x4 CalcTransformMatrix(const SFloat3& _position, const SFloat3& _rotation, const SFloat3& _scale) noexcept
 	{
 		return CalcScaleMatrix(_scale) * CalcRotationMatrix(_rotation) * CalcTranslationMatrix(_position);
+	}
+
+	constexpr inline SFloat4x4 CalcTransformMatrix(const STransform& _transform) noexcept
+	{
+		return CalcTransformMatrix(static_cast<SFloat3>(_transform.mPosition), _transform.mRotation, _transform.mScale);
 	}
 
 	constexpr inline SFloat4x4 CalcTransformViewMatrix(const SFloat3& _position, const SFloat3& _rotation) noexcept
@@ -202,4 +217,20 @@ namespace Math
 			}
 		);
 	}
+
+	//inline STransform ApplyTransform(const STransform& _parentTransform, const STransform& _transform) noexcept
+	//{
+	//	SFloat4x4 parentTransformMatrix = CalcRotationMatrix(_parentTransform.mRotation);
+	//	SFloat4x4 localTransformMatrix = CalcTransformMatrix(_transform.mPosition, _transform.mRotation, SFloat3(1, 1, 1));
+
+	//	SFloat4x4 transformMatrix = localTransformMatrix * parentTransformMatrix;
+
+	//	SFloat4x4Raw{
+	//{Cos(_rotation[1]) * Cos(_rotation[2]),																	Cos(_rotation[1]) * Sin(_rotation[2]),																-Sin(_rotation[1]),						0 },
+	//{Sin(_rotation[0]) * Sin(_rotation[1]) * Cos(_rotation[2]) - Cos(_rotation[0]) * Sin(_rotation[2]),		Sin(_rotation[0]) * Sin(_rotation[1]) * Sin(_rotation[2]) + Cos(_rotation[0]) * Cos(_rotation[2]),	Sin(_rotation[0]) * Cos(_rotation[1]), 0 },
+	//{Cos(_rotation[0]) * Sin(_rotation[1]) * Cos(_rotation[2]) + Sin(_rotation[0]) * Sin(_rotation[2]),		Cos(_rotation[0]) * Sin(_rotation[1]) * Sin(_rotation[2]) - Sin(_rotation[0]) * Cos(_rotation[2]),	Cos(_rotation[0]) * Cos(_rotation[1]),	0 },
+	//{0,																										0,																									0,										1 },
+	//	}
+
+	//}
 }

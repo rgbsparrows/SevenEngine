@@ -22,6 +22,16 @@ namespace Math
 
 		constexpr TTypeArrayBase(const TTypeArrayBase&) noexcept = default;
 
+		template<typename _underlyingType2, size_t _dimension2>
+		explicit constexpr TTypeArrayBase(const TTypeArrayBase<_underlyingType2, _dimension2>& _other) noexcept
+		{
+			for (size_t i = 0; i < _dimension2 && i < Dimension; ++i)
+				mValue[i] = static_cast<UnderlyingType>(_other[i]);
+
+			for (size_t i = _dimension2; i < Dimension; ++i)
+				mValue[i] = UnderlyingType();
+		}
+
 		constexpr UnderlyingType operator[](size_t _index) const noexcept { return mValue[_index]; }
 		constexpr UnderlyingType& operator[](size_t _index) noexcept { return mValue[_index]; }
 
@@ -35,13 +45,20 @@ namespace Math
 	struct TTypeArray : TTypeArrayBase<_underlyingType, _dimension>
 	{
 		using UnderlyingType = _underlyingType;
+		using BaseType = TTypeArrayBase<_underlyingType, _dimension>;
 		static constexpr size_t Dimension = _dimension;
 
 		constexpr TTypeArray() noexcept = default;
 		constexpr TTypeArray(const TTypeArray&) noexcept = default;
 
 		constexpr TTypeArray(const UnderlyingType* _data) noexcept
-			: TTypeArrayBase(_data)
+			: BaseType(_data)
+		{
+		}
+
+		template<typename _underlyingType2, size_t _dimension2>
+		explicit constexpr TTypeArray(const TTypeArray<_underlyingType2, _dimension2>& _other) noexcept
+			: BaseType(_other)
 		{
 		}
 	};
@@ -57,7 +74,13 @@ namespace Math
 		constexpr TTypeArray(const TTypeArray&) noexcept = default;
 
 		constexpr TTypeArray(const UnderlyingType* _data) noexcept
-			: TTypeArrayBase(_data)
+			: BaseType(_data)
+		{
+		}
+
+		template<typename _underlyingType2, size_t _dimension2>
+		explicit constexpr TTypeArray(const TTypeArray<_underlyingType2, _dimension2>& _other) noexcept
+			: BaseType(_other)
 		{
 		}
 
@@ -78,7 +101,13 @@ namespace Math
 		constexpr TTypeArray(const TTypeArray&) noexcept = default;
 
 		constexpr TTypeArray(const UnderlyingType* _data) noexcept
-			: TTypeArrayBase(_data)
+			: BaseType(_data)
+		{
+		}
+
+		template<typename _underlyingType2, size_t _dimension2>
+		explicit constexpr TTypeArray(const TTypeArray<_underlyingType2, _dimension2>& _other) noexcept
+			: BaseType(_other)
 		{
 		}
 
@@ -100,7 +129,13 @@ namespace Math
 		constexpr TTypeArray(const TTypeArray&) noexcept = default;
 
 		constexpr TTypeArray(const UnderlyingType* _data) noexcept
-			: TTypeArrayBase(_data)
+			: BaseType(_data)
+		{
+		}
+
+		template<typename _underlyingType2, size_t _dimension2>
+		explicit constexpr TTypeArray(const TTypeArray<_underlyingType2, _dimension2>& _other) noexcept
+			: BaseType(_other)
 		{
 		}
 
@@ -123,7 +158,13 @@ namespace Math
 		constexpr TTypeArray(const TTypeArray&) noexcept = default;
 
 		constexpr TTypeArray(const UnderlyingType* _data) noexcept
-			: TTypeArrayBase(_data)
+			: BaseType(_data)
+		{
+		}
+
+		template<typename _underlyingType2, size_t _dimension2>
+		explicit constexpr TTypeArray(const TTypeArray<_underlyingType2, _dimension2>& _other) noexcept
+			: BaseType(_other)
 		{
 		}
 
@@ -168,14 +209,17 @@ namespace Math
 		constexpr TTypeMatrix(const TTypeMatrix&) noexcept = default;
 
 		template<typename _underlyingType2, size_t _row2, size_t _col2>
-			requires(_row2 <= _row && _col2 <= _col)
 		explicit operator TTypeMatrix<_underlyingType2, _row2, _col2>() noexcept
 		{
 			TTypeMatrix<_underlyingType2, _row2, _col2> matrix;
 
-			for (size_t i = 0; i != _row2; ++i)
-				for (size_t j = 0; j != _col2; ++j)
+			for (size_t i = 0; i < RowCount && i < _row2; ++i)
+				for (size_t j = 0; j < ColCount && j < _col2; ++j)
 					matrix[i][j] = (*this)[i][j];
+
+			for (size_t i = _row2; i < RowCount; ++i)
+				for (size_t j = _col2; j < ColCount; ++j)
+					matrix[i][j] = UnderlyingType();
 
 			return matrix;
 		}
