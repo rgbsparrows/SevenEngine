@@ -61,6 +61,11 @@ namespace Math
 		return ::atan2l(_y, _x);
 	}
 
+	inline float Sqrt(float _v) noexcept
+	{
+		return ::sqrtf(_v);
+	}
+
 	template<std::unsigned_integral _underlyingType> constexpr inline auto CalcBlockCount(_underlyingType _elementCount, _underlyingType _elementPerBlock) noexcept
 	{
 		return (_elementCount + _elementPerBlock - 1) / _elementPerBlock;
@@ -160,9 +165,9 @@ namespace Math
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
-				{_scale[0], 0,			0,			1},
-				{0,			_scale[1],	0,			1},
-				{0,			0,			_scale[2],	1},
+				{_scale[0], 0,			0,			0},
+				{0,			_scale[1],	0,			0},
+				{0,			0,			_scale[2],	0},
 				{0,			0,			0,			1},
 			}
 		);
@@ -218,19 +223,39 @@ namespace Math
 		);
 	}
 
-	//inline STransform ApplyTransform(const STransform& _parentTransform, const STransform& _transform) noexcept
-	//{
-	//	SFloat4x4 parentTransformMatrix = CalcRotationMatrix(_parentTransform.mRotation);
-	//	SFloat4x4 localTransformMatrix = CalcTransformMatrix(_transform.mPosition, _transform.mRotation, SFloat3(1, 1, 1));
+	inline STransform ApplyTransform(const STransform& _parentTransform, const STransform& _localTransform) noexcept
+	{
+		SFloat4x4 parentTransformMatrix = CalcRotationMatrix(_parentTransform.mRotation);
+		SFloat4x4 localTransformMatrix = CalcTransformMatrix(static_cast<SFloat3>(_localTransform.mPosition), _localTransform.mRotation, SFloat3(1, 1, 1));
 
-	//	SFloat4x4 transformMatrix = localTransformMatrix * parentTransformMatrix;
+		SFloat4x4 transformMatrix = localTransformMatrix * parentTransformMatrix;
 
-	//	SFloat4x4Raw{
-	//{Cos(_rotation[1]) * Cos(_rotation[2]),																	Cos(_rotation[1]) * Sin(_rotation[2]),																-Sin(_rotation[1]),						0 },
-	//{Sin(_rotation[0]) * Sin(_rotation[1]) * Cos(_rotation[2]) - Cos(_rotation[0]) * Sin(_rotation[2]),		Sin(_rotation[0]) * Sin(_rotation[1]) * Sin(_rotation[2]) + Cos(_rotation[0]) * Cos(_rotation[2]),	Sin(_rotation[0]) * Cos(_rotation[1]), 0 },
-	//{Cos(_rotation[0]) * Sin(_rotation[1]) * Cos(_rotation[2]) + Sin(_rotation[0]) * Sin(_rotation[2]),		Cos(_rotation[0]) * Sin(_rotation[1]) * Sin(_rotation[2]) - Sin(_rotation[0]) * Cos(_rotation[2]),	Cos(_rotation[0]) * Cos(_rotation[1]),	0 },
-	//{0,																										0,																									0,										1 },
-	//	}
+		SFloat3 cosList;
+		SFloat3 sinList;
 
-	//}
+		sinList[1] = transformMatrix[0][2];
+		cosList[1] = Sqrt(1 - sinList[1] * sinList[1]);
+
+		if (cosList[1] == 0)
+		{
+			cosList[0] = 1;
+			sinList[0] = 0;
+			cosList[2] = transformMatrix[1][2];
+			sinList[2] = transformMatrix[1][0];
+		}
+		else
+		{
+			cosList[0] = transformMatrix[2][2] / cosList[1];
+			sinList[0] = -transformMatrix[1][2] / cosList[1];
+			cosList[2] = transformMatrix[0][0] / cosList[1];
+			sinList[2] = -transformMatrix[0][1] / cosList[1];
+		}
+
+		STransform transform;
+		transform.mPosition = _parentTransform.mPosition + Math::SDouble3(transformMatrix[3][0], transformMatrix[3][1], transformMatrix[3][2]);
+		transform.mRotation = SFloat3(ATan2(cosList[0], sinList[0]), ATan2(cosList[1], sinList[1]), ATan2(cosList[2], sinList[2]));
+		transform.mScale = _parentTransform.mScale * _localTransform.mScale;
+
+		return transform;
+	}
 }
