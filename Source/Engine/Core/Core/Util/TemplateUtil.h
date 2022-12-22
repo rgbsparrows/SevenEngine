@@ -55,4 +55,6 @@ using TTypeSwitch = TemplateUtilDetail::TypeSwitch<_switch, _first, _second>::Ty
 template<typename _base, typename _drived>
 concept CBaseOf = std::derived_from<_drived, _base>;
 
+template<uint64_t _handleHash, std::unsigned_integral _underlyingType = uint64_t> using THandleType = typename TemplateUtilDetail::THandleType<_handleHash, _underlyingType>;
+
 using EmptyType = struct {};

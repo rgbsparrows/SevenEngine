@@ -1,20 +1,21 @@
 #pragma once
 
 #include <stdint.h>
+#include <concepts>
 #include <type_traits>
 
 namespace TemplateUtilDetail
 {
 	template<bool _isUnsigned, size_t _size> struct IntTypeHelper {};
 
-	template<> struct IntTypeHelper<false, 1> { using Type = int8_t  ; };
-	template<> struct IntTypeHelper<false, 2> { using Type = int16_t ; };
-	template<> struct IntTypeHelper<false, 4> { using Type = int32_t ; };
-	template<> struct IntTypeHelper<false, 8> { using Type = int64_t ; };
-	template<> struct IntTypeHelper<true , 1> { using Type = uint8_t ; };
-	template<> struct IntTypeHelper<true , 2> { using Type = uint16_t; };
-	template<> struct IntTypeHelper<true , 4> { using Type = uint32_t; };
-	template<> struct IntTypeHelper<true , 8> { using Type = uint64_t; };
+	template<> struct IntTypeHelper<false, 1> { using Type = int8_t; };
+	template<> struct IntTypeHelper<false, 2> { using Type = int16_t; };
+	template<> struct IntTypeHelper<false, 4> { using Type = int32_t; };
+	template<> struct IntTypeHelper<false, 8> { using Type = int64_t; };
+	template<> struct IntTypeHelper<true, 1> { using Type = uint8_t; };
+	template<> struct IntTypeHelper<true, 2> { using Type = uint16_t; };
+	template<> struct IntTypeHelper<true, 4> { using Type = uint32_t; };
+	template<> struct IntTypeHelper<true, 8> { using Type = uint64_t; };
 
 	template<typename _type> requires std::is_integral_v<_type> || std::is_floating_point_v<_type>
 	struct NumericInfo
@@ -76,5 +77,27 @@ namespace TemplateUtilDetail
 	struct TypeSwitch<false, _first, _second>
 	{
 		using Type = _second;
+	};
+
+	template<uint64_t _handleHash, std::unsigned_integral _underlyingType = uint64_t>
+	struct THandleType
+	{
+		using UnderlyingType = _underlyingType;
+
+		THandleType() noexcept = default;
+
+		THandleType(UnderlyingType _handleValue) noexcept
+			: mValue(_handleValue)
+		{
+		}
+
+		bool operator== (THandleType _right) const noexcept { return mValue == _right.mValue; }
+		bool operator!= (THandleType _right) const noexcept { return mValue != _right.mValue; }
+
+		bool operator< (THandleType _right) const noexcept { return mValue < _right.mValue; }
+
+		bool operator! () const noexcept { return mValue != UnderlyingType(); }
+
+		UnderlyingType mValue = UnderlyingType();
 	};
 }

@@ -53,8 +53,8 @@ public:
 	virtual void PostRender(RRenderingData& _renderSource, SSubRenderContent& _renderContent) noexcept {}
 };
 
-bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList, uint64_t _renderPassBaseClassHash) noexcept;
-bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_t _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<uint32_t>& _renderPackageGroup, std::vector<uint32_t>& _syncPointForRenderPackage) noexcept;
+bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList, SClassIdentifier _renderPassBaseClassHash) noexcept;
+bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, SClassIdentifier _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<uint32_t>& _renderPackageGroup, std::vector<uint32_t>& _syncPointForRenderPackage) noexcept;
 
 class RRenderGraphBase
 {

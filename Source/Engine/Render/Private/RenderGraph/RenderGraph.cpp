@@ -35,7 +35,7 @@ struct SRenderPackageInfo
 	std::vector<SRenderPackageInfo*> mSuccessorRenderPackage;
 };
 
-bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList, uint64_t _renderPassBaseClassHash) noexcept
+bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList, SClassIdentifier _renderPassBaseClassHash) noexcept
 {
 	if (_renderPassList.size() == 0)
 		return true;
@@ -95,7 +95,7 @@ bool CheckRenderGraphValid(const std::vector<RRenderPassBase*>& _renderPassList,
 	return true;
 }
 
-bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, uint64_t _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<uint32_t>& _renderPackageGroup, std::vector<uint32_t>& _syncPointForRenderPackage) noexcept
+bool ReorganizeRenderPass(std::vector<RRenderPassBase*> _renderPassList, SClassIdentifier _renderPassBaseClassHash, std::vector<RRenderPassBase*>& _sortedRenderPassList, std::vector<uint32_t>& _renderPackageGroup, std::vector<uint32_t>& _syncPointForRenderPackage) noexcept
 {
 	TODO("当需要构建包含子Pass的RenderGraph时，需要追加拆解RenedrGraph的函数，但函数主体内容不需要变更");
 	_sortedRenderPassList.resize(0);

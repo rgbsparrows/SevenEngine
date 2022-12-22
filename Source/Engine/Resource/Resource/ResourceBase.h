@@ -8,7 +8,7 @@
 
 struct SResourceDataHeader
 {
-	uint64_t mResourceTypeHash = 0;
+	SClassIdentifier mResourceTypeHash = 0;
 	uint64_t mContentSize = 0;
 };
 

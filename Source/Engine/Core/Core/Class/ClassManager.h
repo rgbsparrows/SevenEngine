@@ -11,7 +11,7 @@ __interface IClassObjectInterface;
 class SClassManager final : public TAsSingleton<SClassManager>
 {
 public:
-	void RegistClassObject(uint64_t _classHash, const IClassObjectInterface* _classObject) noexcept
+	void RegistClassObject(SClassIdentifier _classHash, const IClassObjectInterface* _classObject) noexcept
 	{
 		ASSERT(_classHash != 0 && _classObject!= nullptr);
 		ASSERT(mClassObjectMap.count(_classHash) == 0);
@@ -22,7 +22,7 @@ public:
 	void Init() noexcept {}
 	void Clear() noexcept {}
 
-	const IClassObjectInterface* GetClassObject(uint64_t _classHash)const noexcept
+	const IClassObjectInterface* GetClassObject(SClassIdentifier _classHash)const noexcept
 	{
 		auto it = mClassObjectMap.find(_classHash);
 
@@ -31,7 +31,7 @@ public:
 	}
 
 	template<typename _classType>
-	_classType* ConstructObject(std::uint64_t _classHash)
+	_classType* ConstructObject(SClassIdentifier _classHash)
 	{
 		using AncestorClassType = _classType::AncestorClass;
 		using ClassType = _classType;
@@ -45,5 +45,5 @@ public:
 	}
 
 private:
-	std::map<uint64_t, const IClassObjectInterface*> mClassObjectMap;
+	std::map<SClassIdentifier, const IClassObjectInterface*> mClassObjectMap;
 };
