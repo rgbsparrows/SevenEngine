@@ -70,6 +70,8 @@ public:
 
 	void RefrashContent() noexcept override;
 
+	RRenderProxy<RMesh>* GetRenderProxy() noexcept { return mMeshProxy; }
+
 	void SetVertexSemantic(EVertexSemanticFlag _vertexSemanticFlag) noexcept;
 
 	void ResizeVertexCount(size_t _vertexCount) noexcept;
@@ -98,6 +100,8 @@ public:
 	const std::vector<Math::SFloat4>& GetBlendWeightBuffer()const noexcept { return mBlendWeightBuffer; }
 	const std::vector<Math::SFloat2>& GetUvBuffer(size_t _uvChannel)const noexcept;
 
+	const std::vector<SSubMesh>& GetSubMeshList() noexcept { return mSubMeshList; }
+
 protected:
 	virtual void OnRelease() noexcept;
 
@@ -125,4 +129,4 @@ public:
 	RRenderProxy<RMesh>* mMeshProxy = nullptr;
 };
 
-using SStaticMeshResourceProxy = TResourceProxy<SStaticMeshResource>;
+using SStaticMeshRP = TResourceProxy<SStaticMeshResource>;

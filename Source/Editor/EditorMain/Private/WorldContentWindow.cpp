@@ -34,6 +34,39 @@ void SUIWorldContentWindow::OnGui() noexcept
 
 	ImGui::Begin(std::format("WorldContentWindow [{0}]", static_cast<const void*>(this)).c_str(), &mIsWindowOpen);
 
+	static Math::STransform transformParent;
+	static Math::STransform transformLocal;
+
+	ImGui::Text("ParentTransform");
+	Math::SFloat3 pos = static_cast<Math::SFloat3>(transformParent.mPosition);
+	ImGui::DragFloat3("ParentPosition", pos.GetData());
+	ImGui::DragFloat3("ParentRotation", transformParent.mRotation.GetData());
+	ImGui::DragFloat3("ParentScale", transformParent.mScale.GetData());
+	transformParent.mPosition = static_cast<Math::SDouble3>(pos);
+
+	ImGui::Text("LocalTransform");
+	pos = static_cast<Math::SFloat3>(transformLocal.mPosition);
+	ImGui::DragFloat3("LocalPosition", pos.GetData());
+	ImGui::DragFloat3("LocalRotation", transformLocal.mRotation.GetData());
+	ImGui::DragFloat3("LocalScale", transformLocal.mScale.GetData());
+	transformLocal.mPosition = static_cast<Math::SDouble3>(pos);
+
+	Math::SFloat4x4 rotationMatrix = Math::CalcTransformMatrix(transformLocal) * Math::CalcTransformMatrix(transformParent);
+	Math::SFloat4x4 rotation2Matrix = Math::CalcTransformMatrix(Math::ApplyTransform(transformParent, transformLocal));
+
+	ImGui::Text("Matrix1");
+	ImGui::DragFloat4("m10", rotationMatrix[0]);
+	ImGui::DragFloat4("m11", rotationMatrix[1]);
+	ImGui::DragFloat4("m12", rotationMatrix[2]);
+	ImGui::DragFloat4("m13", rotationMatrix[3]);
+
+	ImGui::Text("Matrix2");
+	ImGui::DragFloat4("m20", rotation2Matrix[0]);
+	ImGui::DragFloat4("m21", rotation2Matrix[1]);
+	ImGui::DragFloat4("m22", rotation2Matrix[2]);
+	ImGui::DragFloat4("m23", rotationMatrix[3]);
+
+
 	GetRenderCommandList()->RenderWorld(renderProxy, mRT, mRenderGraph);
 
 	ImGui::Image(mImTex, ImGui::GetContentRegionAvail());
@@ -46,7 +79,7 @@ void SUIWorldContentWindow::OnGui() noexcept
 		{
 			if (ImGui::Button(u8"Ìí¼ÓCubeMesh"))
 			{
-				SStaticMeshResourceProxy smr = SStaticMeshResourceProxy::New();
+				SStaticMeshRP smr = SStaticMeshRP::New();
 
 				smr->SetVertexSemantic(
 					ConvertToEnumFlag({
@@ -67,8 +100,7 @@ void SUIWorldContentWindow::OnGui() noexcept
 				SFullVertex v1;
 				SFullVertex v2;
 				SFullVertex v3;
-
-				v0.mPosition = Math::SFloat3(-50, -50, 0);
+				
 				v1.mPosition = Math::SFloat3(-50, 50, 0);
 				v2.mPosition = Math::SFloat3(50, 50, 0);
 				v3.mPosition = Math::SFloat3(50, -50, 0);

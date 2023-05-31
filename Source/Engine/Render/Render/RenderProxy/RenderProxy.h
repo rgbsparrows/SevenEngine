@@ -97,9 +97,14 @@ private:
 	RenderInfoType mRenderInfo[RenderInfoCount];
 };
 
-class RDirtyFlag
+class          RDirtyFlag
 {
 public:
+	RDirtyFlag(bool _isDirty = true) noexcept
+		: mDirtyFrameCount(_isDirty ? GRenderInfoCount : 0)
+	{
+	}
+
 	bool IsDirty() const noexcept { return mDirtyFrameCount != 0; }
 
 	void MarkDirty() noexcept { mDirtyFrameCount = GRenderInfoCount; }
@@ -113,3 +118,4 @@ public:
 private:
 	size_t mDirtyFrameCount = 0;
 };
+

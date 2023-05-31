@@ -61,25 +61,21 @@ struct TResourceProxy : public SResourceProxyBase
 
 	void operator=(const TResourceProxy& _other) noexcept
 	{
-		~TResourceProxy();
+		this->~TResourceProxy();
 		new(this) TResourceProxy(_other);
 	}
 
 	void operator=(TResourceProxy&& _other) noexcept
 	{
-		~TResourceProxy();
+		this->~TResourceProxy();
 		new(this) TResourceProxy(std::forward<TResourceProxy>(_other));
 	}
 
 	template<std::derived_from<ResourceType> _subResourceType> void operator=(const TResourceProxy<_subResourceType>& _other) noexcept
 	{
-		~TResourceProxy();
-		new(this) TResourceProxy(_other);
-	}
-
-	template<std::derived_from<ResourceType> _subResourceType> void operator=(TResourceProxy<_subResourceType>&& _other) noexcept
-	{
-		~TResourceProxy();
+		this->~TResourceProxy();
+		new(this) TResourceProxy(_other); 
+		this->~TResourceProxy();
 		new(this) TResourceProxy(std::forward<TResourceProxy<_subResourceType>>(_other));
 	}
 

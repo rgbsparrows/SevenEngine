@@ -10,9 +10,6 @@ __interface IRDIBuffer;
 
 struct RStaticMeshProxy
 {
-	Math::SFloat3 mPosition;
-	Math::SFloat3 mRotation;
-	Math::SFloat3 mScale;
 	Math::SFloat4x4 mWorldMatrix;
 
 	RRenderProxy<RMesh>* mMesh = nullptr;
@@ -34,7 +31,6 @@ struct RCamera
 
 struct RWorld
 {
-	RCamera mCamera;
-	std::vector<RStaticMeshProxy> mStaticMeshComponent;
+	std::vector<RStaticMeshProxy> mStaticMeshList;
 };
 template<> struct RRenderInfoTraits<RWorld> : RExclusiveMode {};

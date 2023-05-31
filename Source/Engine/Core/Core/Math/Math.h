@@ -2,6 +2,7 @@
 
 #include "Core/Math/Type.h"
 #include "Core/Math/Operation.h"
+#include "Core/Util/Algorithm.h"
 #include "Core/ProgramConfiguation/ConditionDeprecated.h"
 
 #include <type_traits>
@@ -81,6 +82,75 @@ namespace Math
 		return _rawPos + _aligned - 1 - (_rawPos + _aligned - 1) % _aligned;
 	}
 
+	template<size_t _hashByte, typename _valueType> requires (_hashByte == 4 || _hashByte == 8)
+	constexpr inline auto Hash(const _valueType& _value) noexcept
+	{
+		TIntType<true, _hashByte> fnvOffsetBasis = 0;
+		TIntType<true, _hashByte> fnvPrime = 0;
+
+		if constexpr (_hashByte == 4)
+		{
+			fnvOffsetBasis = 2166136261U;
+			fnvPrime = 16777619U;
+		}
+		else if constexpr (_hashByte == 8)
+		{
+			fnvOffsetBasis = 14695981039346656037ULL;
+			fnvPrime = 1099511628211ULL;
+		}
+
+		if constexpr (CRange<_valueType>)
+		{
+			uint32_t hash = fnvOffsetBasis;
+			for (const auto& v : _value)
+			{
+				const uint8_t* dataP = reinterpret_cast<const uint8_t*>(&v);
+				for (size_t i = 0; i < sizeof(v); ++i)
+				{
+					hash ^= dataP[i];
+					hash *= fnvPrime;
+				}
+			}
+		}
+		else
+		{
+			uint32_t hash = fnvOffsetBasis;
+
+			const uint8_t* dataP = reinterpret_cast<const uint8_t*>(&_value);
+			for (size_t i = 0; i < sizeof(_valueType); ++i)
+			{
+				hash ^= dataP[i];
+				hash *= fnvPrime;
+			}
+
+			return hash;
+		}
+	}
+
+	template<typename _valueType>
+	constexpr inline uint64_t Hash64(const _valueType& _value) noexcept
+	{
+		return Hash<8>(_value);
+	}
+
+	template<typename _valueType>
+	constexpr inline uint32_t Hash32(const _valueType& _value) noexcept
+	{
+		return Hash<4>(_value);
+	}
+
+	template<typename _valueType>
+	constexpr inline float HashFloat(const _valueType& _value) noexcept
+	{
+		return 1.f * Hash32(_value) / UINT32_MAX;
+	}
+
+	template<typename _valueType>
+	constexpr inline double HashDouble(const _valueType& _value) noexcept
+	{
+		return 1.0 * Hash64(_value) / UINT64_MAX;
+	}
+
 
 	constexpr inline SFloat4x4 CalcTranslationMatrix(const SFloat3& _position) noexcept
 	{
@@ -95,7 +165,7 @@ namespace Math
 	}
 
 	//旋转正方向为，当相应轴正方向竖直向上时，从上向下看的顺时针方向
-	constexpr inline SFloat4x4 CalcRotationMatrixX(float _angel) noexcept
+	inline SFloat4x4 CalcRotationMatrixX(float _angel) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -107,7 +177,7 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 CalcRotationMatrixY(float _angel) noexcept
+	inline SFloat4x4 CalcRotationMatrixY(float _angel) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -119,7 +189,7 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 CalcRotationMatrixZ(float _angel) noexcept
+	inline SFloat4x4 CalcRotationMatrixZ(float _angel) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -131,7 +201,7 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 CalcRotationMatrix(const SFloat3& _rotation) noexcept
+	inline SFloat4x4 CalcRotationMatrix(const SFloat3& _rotation) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{
@@ -144,19 +214,19 @@ namespace Math
 	}
 
 	//Y轴正方向为方向前
-	constexpr inline SFloat3 CalcForwardDirection(const SFloat3& _rotation) noexcept
+	inline SFloat3 CalcForwardDirection(const SFloat3& _rotation) noexcept
 	{
 		return SFloat3(Sin(_rotation[0]) * Sin(_rotation[1]) * Cos(_rotation[2]) + Cos(_rotation[0]) * Sin(_rotation[2]), -Sin(_rotation[0]) * Sin(_rotation[1]) * Sin(_rotation[2]) + Cos(_rotation[0]) * Cos(_rotation[2]), -Sin(_rotation[0]) * Cos(_rotation[1]));
 	}
 
 	//X轴正方向为方向右
-	constexpr inline SFloat3 CalcRightDirection(const SFloat3& _rotation) noexcept
+	inline SFloat3 CalcRightDirection(const SFloat3& _rotation) noexcept
 	{
 		return SFloat3(Cos(_rotation[1]) * Cos(_rotation[2]), -Cos(_rotation[1]) * Sin(_rotation[2]), Sin(_rotation[1]));
 	}
 
 	//Z轴正方向为方向上
-	constexpr inline SFloat3 CalcUpDirection(const SFloat3& _rotation) noexcept
+	inline SFloat3 CalcUpDirection(const SFloat3& _rotation) noexcept
 	{
 		return SFloat3(-Cos(_rotation[0]) * Sin(_rotation[1]) * Cos(_rotation[2]) + Sin(_rotation[0]) * Sin(_rotation[2]), Cos(_rotation[0]) * Sin(_rotation[1]) * Sin(_rotation[2]) + Sin(_rotation[0]) * Cos(_rotation[2]), Cos(_rotation[0]) * Cos(_rotation[1]));
 	}
@@ -173,17 +243,17 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 CalcTransformMatrix(const SFloat3& _position, const SFloat3& _rotation, const SFloat3& _scale) noexcept
+	inline SFloat4x4 CalcTransformMatrix(const SFloat3& _position, const SFloat3& _rotation, const SFloat3& _scale) noexcept
 	{
 		return CalcScaleMatrix(_scale) * CalcRotationMatrix(_rotation) * CalcTranslationMatrix(_position);
 	}
 
-	constexpr inline SFloat4x4 CalcTransformMatrix(const STransform& _transform) noexcept
+	inline SFloat4x4 CalcTransformMatrix(const STransform& _transform) noexcept
 	{
 		return CalcTransformMatrix(static_cast<SFloat3>(_transform.mPosition), _transform.mRotation, _transform.mScale);
 	}
 
-	constexpr inline SFloat4x4 CalcTransformViewMatrix(const SFloat3& _position, const SFloat3& _rotation) noexcept
+	inline SFloat4x4 CalcTransformViewMatrix(const SFloat3& _position, const SFloat3& _rotation) noexcept
 	{
 		SFloat3 forward = CalcForwardDirection(_rotation);
 		SFloat3 right = CalcForwardDirection(_rotation);
@@ -199,7 +269,7 @@ namespace Math
 		);
 	}
 
-	constexpr inline SFloat4x4 CalcPerspectiveProjectMatrix(float _fov, float _near, float _far, float _width, float _height) noexcept
+	inline SFloat4x4 CalcPerspectiveProjectMatrix(float _fov, float _near, float _far, float _width, float _height) noexcept
 	{
 		return SFloat4x4(
 			SFloat4x4Raw{

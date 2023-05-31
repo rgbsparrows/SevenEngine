@@ -156,7 +156,7 @@ namespace Math
 
 		for (size_t i = 0; i != _col; ++i)
 			for (size_t j = 0; j != _dimension; ++j)
-				resArray[i] += resArray[j] * _right[j][i];
+				resArray[i] += _left[j] * _right[j][i];
 
 		return resArray;
 	}
@@ -169,7 +169,7 @@ namespace Math
 
 		for (size_t i = 0; i != _row; ++i)
 			for (size_t j = 0; j != _dimension; ++j)
-				resArray[i] += _right[i][j] * resArray[j];
+				resArray[i] += _left[j] * _right[i][j];
 
 		return resArray;
 	}

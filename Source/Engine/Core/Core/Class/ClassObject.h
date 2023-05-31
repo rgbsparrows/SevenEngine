@@ -145,7 +145,7 @@ inline bool IsImplementedFrom(const _type* _object)
 	return _object->GetClassObject()->IsImplementedFrom(TTypeHash<_interfaceType>);
 }
 
-template<typename _baseType, typename _type> requires (_baseType::StaticGetClassObject())
+template<typename _baseType, typename _type> requires requires { _baseType::StaticGetClassObject(); }
 inline bool IsDrivedFrom(const _type* _object)
 {
 	return _object->GetClassObject()->IsDrivedFrom(_baseType::StaticGetClassObject()->GetClassHash());

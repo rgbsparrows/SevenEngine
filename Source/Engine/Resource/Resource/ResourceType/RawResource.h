@@ -22,4 +22,4 @@ private:
 	SBlob mContent;
 };
 
-using SRawResourceProxy = TResourceProxy<SRawResource>;
+using SRawRP = TResourceProxy<SRawResource>;

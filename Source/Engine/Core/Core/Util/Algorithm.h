@@ -11,6 +11,9 @@ concept CSwapableRange = CRange<_rangeType> && requires(_rangeType & _range) { s
 template<typename _rangeType>
 concept CEraseableRange = CRange<_rangeType> && requires(_rangeType & _range) { _range.erase(_range.begin()); };
 
+template<typename _rangeType>
+concept CErasebackableRange = CEraseableRange<_rangeType> && requires(_rangeType & _range) { _range.pop_back(); };
+
 template<CRange _rangeType, typename _valueType>
 constexpr inline auto Find(_rangeType& _range, const _valueType& _value) noexcept
 {
@@ -113,6 +116,26 @@ constexpr inline auto EraseFirstIf(_rangeType& _range, _predType _pred) noexcept
 			return;
 		}
 	}
+}
+
+template<CErasebackableRange _rangeType, typename _valueType>
+constexpr inline auto SwapEraseFirst(_rangeType& _range, const _valueType& _value) noexcept
+{
+	auto index = FindIndex(_range, _value);
+	if (index != std::distance(_range.begin(), _range.end()))
+		std::iter_swap(std::next(_range.begin(), index), _range.end() - 1);
+	_range.pop_back();
+	return std::next(_range.begin(), index);
+}
+
+template<CErasebackableRange _rangeType, typename _predType>
+constexpr inline auto SwapEraseFirstIf(_rangeType& _range, _predType _pred) noexcept
+{
+	auto index = FindIndexIf(_range, _pred);
+	if (index != std::distance(_range.begin(), _range.end()))
+		std::iter_swap(std::next(_range.begin(), index), _range.end() - 1);
+	_range.pop_back();
+	return std::next(_range.begin(), index);
 }
 
 template<CEraseableRange _rangeType, typename _valueType>
