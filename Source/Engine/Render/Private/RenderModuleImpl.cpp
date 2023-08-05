@@ -45,7 +45,7 @@ void SRenderModuleImpl::Clear() noexcept
 		BeginFrame_GameThread();
 		EndFrame_GameThread();
 
-		//推出渲染线程
+		//退出渲染线程
 		BeginFrame_GameThread();
 		mRequireExit[GetFrameInfoIndex_GameThread()] = true;
 		EndFrame_GameThread();

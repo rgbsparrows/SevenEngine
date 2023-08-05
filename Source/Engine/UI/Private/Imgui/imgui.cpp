@@ -784,7 +784,7 @@ CODE
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
-#include "UI/Imgui/imgui_internal.h"
+#include "Imgui/imgui_internal.h"
 
 // System includes
 #include <ctype.h>      // toupper

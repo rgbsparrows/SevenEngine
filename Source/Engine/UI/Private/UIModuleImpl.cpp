@@ -1,6 +1,7 @@
 ﻿#include "UIModuleImpl.h"
-#include "Core/Util/Assert.h"
 #include "UI/Imgui/imgui.h"
+#include "UI/Imgui/implot.h"
+#include "Core/Util/Assert.h"
 #include "Core/Clock/Clock.h"
 #include "Core/Misc/Localize.h"
 #include "UI/WindowInterface.h"
@@ -43,8 +44,7 @@ bool SUIModuleImpl::Init() noexcept
 
 void SUIModuleImpl::Clear() noexcept
 {
-	TODO("清理Imgui");
-	//ClearImgui();
+	ClearImgui();
 
 	UnregistWindowClass();
 
@@ -142,6 +142,7 @@ void SUIModuleImpl::InitImgui() noexcept
 void SUIModuleImpl::InitImguiConfig() noexcept
 {
 	ImGui::CreateContext();
+	ImPlot::CreateContext();
 	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
@@ -202,6 +203,7 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 		"xinput1_2.dll",   // DirectX SDK
 		"xinput1_1.dll"    // DirectX SDK
 	};
+
 	for (int n = 0; n < IM_ARRAYSIZE(xinput_dll_names); n++)
 	{
 		if (HMODULE dll = ::LoadLibraryA(xinput_dll_names[n]))
@@ -336,6 +338,16 @@ void SUIModuleImpl::InitImguiCallBack() noexcept
 	};
 }
 
+void SUIModuleImpl::ClearImgui() noexcept
+{
+	FreeLibrary(mXInputDLL);
+
+	GetRenderCommandList()->AddExpiringRenderProxy({ mFontTexture, mImFontTexture });
+
+	ImPlot::DestroyContext();
+	ImGui::DestroyContext();
+}
+
 void SUIModuleImpl::ProcessWndMessage() noexcept
 {
 	MSG msg;
@@ -438,11 +450,11 @@ void SUIModuleImpl::ImguiEndFrame() noexcept
 
 	mMainWindow->FlushImguiDrawData();
 
-	if (mIsMainWindowOpen == false)
-		mMainWindow->Release();
-
 	ImGui::UpdatePlatformWindows();
 	ImGui::RenderPlatformWindowsDefault();
+
+	if (mIsMainWindowOpen == false)
+		SEngineMain::RequireExit();
 }
 
 void SUIModuleImpl::RegistWindowClass() noexcept
