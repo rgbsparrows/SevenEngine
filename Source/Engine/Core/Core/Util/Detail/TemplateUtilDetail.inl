@@ -91,6 +91,8 @@ namespace TemplateUtilDetail
 		{
 		}
 
+		explicit operator UnderlyingType() const noexcept { return mValue; }
+
 		bool operator== (THandleType _right) const noexcept { return mValue == _right.mValue; }
 		bool operator!= (THandleType _right) const noexcept { return mValue != _right.mValue; }
 
@@ -98,6 +100,7 @@ namespace TemplateUtilDetail
 
 		bool operator! () const noexcept { return mValue != UnderlyingType(); }
 
+	private:
 		UnderlyingType mValue = UnderlyingType();
 	};
 }

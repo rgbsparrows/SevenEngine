@@ -41,13 +41,13 @@ constexpr inline size_t FindIndexIf(_rangeType& _range, _predType _pred) noexcep
 }
 
 template<CRange _rangeType, typename _valueType>
-constexpr inline auto Has(_rangeType& _range, const _valueType& _value) noexcept
+constexpr inline auto Contains(_rangeType& _range, const _valueType& _value) noexcept
 {
 	return Find(_range, _value) != std::end(_range);
 }
 
 template<CRange _rangeType, typename _predType>
-constexpr inline auto HasIf(_rangeType& _range, _predType _pred) noexcept
+constexpr inline auto ContainsIf(_rangeType& _range, _predType _pred) noexcept
 {
 	return FindIf(_range, _pred) != std::end(_range);
 }

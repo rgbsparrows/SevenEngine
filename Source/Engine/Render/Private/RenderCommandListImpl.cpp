@@ -1,9 +1,9 @@
 #include "Core/Misc/Thread.h"
-#include "Render/RenderContent.h"
+#include "Render/RenderContext.h"
 #include "RenderCommandListImpl.h"
+#include "RDI/Interface/RDIDevice.h"
 #include "RDI/Interface/RDISwapChain.h"
 #include "RDI/Interface/RDICommandList.h"
-#include "Render/RenderGraph/RenderGraph.h"
 #include "Render/RenderProxy/RenderProxy.h"
 #include "Core/ProgramConfiguation/BuildConfiguation.h"
 
@@ -12,16 +12,16 @@ bool SRenderCommandListImpl::HasImmediatelyRenderCommand() const noexcept
 	return mCommandQueueBegin != mCommandQueueEnd;
 }
 
-void SRenderCommandListImpl::ExecuateImmediatelyRenderCommand(SRenderContent& _renderContent) noexcept
+void SRenderCommandListImpl::ExecuateImmediatelyRenderCommand(SRenderContext& _renderContext) noexcept
 {
 	while (HasImmediatelyRenderCommand())
 	{
-		mImmediatelyRenderCommandQueue[mCommandQueueBegin](_renderContent);
+		mImmediatelyRenderCommandQueue[mCommandQueueBegin](_renderContext);
 		mCommandQueueBegin = (mCommandQueueBegin + 1) % mImmediatelyRenderCommandQueue.size();
 	}
 }
 
-void SRenderCommandListImpl::AddRenderCommand(std::function<void(SRenderContent&)> _renderCommand) noexcept
+void SRenderCommandListImpl::AddRenderCommand(std::function<void(SRenderContext&)> _renderCommand) noexcept
 {
 	if (mImmediatelyRenderCommandQueue.empty() || (mCommandQueueBegin == (mCommandQueueEnd + 1) % mImmediatelyRenderCommandQueue.size()))
 	{
@@ -35,20 +35,20 @@ void SRenderCommandListImpl::AddRenderCommand(std::function<void(SRenderContent&
 	mCommandQueueEnd = (mCommandQueueEnd + 1) % mImmediatelyRenderCommandQueue.size();
 }
 
-void SRenderCommandListImpl::InitRenderProxy(RRenderProxyBase* _renderProxy) noexcept
+void SRenderCommandListImpl::AddInitRenderProxy(RRenderProxyBase* _renderProxy) noexcept
 {
-	GetFrameResource_GameThread().mNeedInitRenderProxy.push_back(_renderProxy);
+	GetDeferTaskList_GameThread().mNeedInitRenderProxy.push_back(_renderProxy);
 }
 
-void SRenderCommandListImpl::InitRenderProxy(std::initializer_list<RRenderProxyBase*> _renderProxyList) noexcept
+void SRenderCommandListImpl::AddInitRenderProxy(std::initializer_list<RRenderProxyBase*> _renderProxyList) noexcept
 {
 	for (RRenderProxyBase* _renderProxy : _renderProxyList)
-		InitRenderProxy(_renderProxy);
+		AddInitRenderProxy(_renderProxy);
 }
 
 void SRenderCommandListImpl::AddExpiringRenderProxy(RRenderProxyBase* _renderProxy) noexcept
 {
-	GetFrameResource_GameThread().mExpiringRenderProxy.push_back(_renderProxy);
+	GetDeferTaskList_GameThread().mExpiringRenderProxy.push_back(_renderProxy);
 }
 
 void SRenderCommandListImpl::AddExpiringRenderProxy(std::initializer_list<RRenderProxyBase*> _renderProxyList) noexcept
@@ -57,24 +57,21 @@ void SRenderCommandListImpl::AddExpiringRenderProxy(std::initializer_list<RRende
 		AddExpiringRenderProxy(_renderProxy);
 }
 
+void SRenderCommandListImpl::AddInitRenderGraph(RRenderGraphBase* _renderGraph) noexcept
+{
+	if (_renderGraph)
+		GetDeferTaskList_GameThread().mNeedInitRenderGraph.push_back(_renderGraph);
+}
+
+void SRenderCommandListImpl::AddExpiringRenderGraph(RRenderGraphBase* _renderGraph) noexcept
+{
+	if (_renderGraph)
+		GetDeferTaskList_GameThread().mExpiringRenderGraph.push_back(_renderGraph);
+}
+
 void SRenderCommandListImpl::RefrashImmediatelyRenderCommand() noexcept
 {
 	Thread::YieldUntilValue(mCommandQueueBegin, mCommandQueueEnd.load());
-}
-
-void SRenderCommandListImpl::ConstructRenderGraph(RRenderGraphBase* _renderGraph) noexcept
-{
-	struct SConstructRenderGraphCommand
-	{
-		RRenderGraphBase* mRenderGraph = nullptr;
-
-		void operator()(SRenderContent& _renderContent) noexcept
-		{
-			mRenderGraph->Init_RenderThread(&_renderContent);
-		}
-	};
-
-	AddRenderCommand(SConstructRenderGraphCommand{ _renderGraph });
 }
 
 void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* _texture2D, RTexture2DData&& _textureData) noexcept
@@ -84,7 +81,7 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 		RRenderProxy<RTexture2D>* mTexture2D = nullptr;
 		RTexture2DData mTexture2DData;
 
-		void operator()(SRenderContent& _renderContent) noexcept
+		void operator()(SRenderContext& _renderContext) noexcept
 		{
 			RTexture2D& texture = mTexture2D->Get();
 
@@ -100,11 +97,11 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 
 			if (needRecreate)
 			{
-				_renderContent.SyncToGpuFrameEnd();
+				_renderContext.SyncToGpuFrameEnd();
 				texture.mTexture->Release();
 			}
 
-			texture.mTexture = _renderContent.GetDevice()->CreateTexture2D(&mTexture2DData.mDesc);
+			texture.mTexture = _renderContext.GetDevice()->CreateTexture2D(&mTexture2DData.mDesc);
 
 			if (mTexture2DData.mSubresourceData.empty() == false)
 			{
@@ -115,7 +112,7 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 					desc.mResourceUsage = ERDIResourceUsage::None;
 					desc.mBufferSize = SPixelFormatMeta::GetPixelFootprint(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, mTexture2DData.mDesc.mMipCount);
 
-					uploadBuffer = _renderContent.GetDevice()->CreateBuffer(&desc);
+					uploadBuffer = _renderContext.GetDevice()->CreateBuffer(&desc);
 
 					void* dataPtr = nullptr;
 					uploadBuffer->Map(&dataPtr);
@@ -133,20 +130,20 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 					uploadBuffer->Unmap();
 				}
 
-				IRDICommandList* commandList = _renderContent.AllocateCommandList();
-				for (uint32_t i = 0, offset = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
-				{
-					commandList->CopyTexture2D(texture.mTexture, i, uploadBuffer, offset);
-					offset += SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
-				}
-				commandList->TranstionResourceState(texture.mTexture, ERDIResourceState::CopyDest, ERDIResourceState::Common);
-				commandList->Close();
+				_renderContext.AddRenderTask(u8"更新贴图", [&](IRDICommandList* _commandList)
+					{
+						for (uint32_t i = 0, offset = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
+						{
+							_commandList->CopyTexture2D(texture.mTexture, i, uploadBuffer, offset);
+							offset += SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
+						}
+						_commandList->TranstionResourceState(texture.mTexture, ERDIResourceState::CopyDest, ERDIResourceState::Common);
+					});
 
-				_renderContent.ExecuteCommandList(commandList);
-				_renderContent.SyncToGpuFrameEnd(true);
+				_renderContext.ExecuteRenderGraph();
+				_renderContext.SyncToGpuFrameEnd(true);
 
 				uploadBuffer->Release();
-				_renderContent.ReleaseCommandList(commandList);
 			}
 		}
 	};
@@ -161,14 +158,14 @@ void SRenderCommandListImpl::RefrashImTexture2D_I(RRenderProxy<RTexture2D>* _tex
 		RRenderProxy<RTexture2D>* mTexture2D;
 		RRenderProxy<RImguiTexture2D>* mImTexture2D;
 
-		void operator()(SRenderContent& _renderContent) noexcept
+		void operator()(SRenderContext& _renderContext) noexcept
 		{
 			auto& texture2dInfo = mTexture2D->Get();
 			auto& imTextureInfo = mImTexture2D->Get();
 
 			imTextureInfo.mTexture2D = texture2dInfo.mTexture;
 			if (imTextureInfo.mDescriptorHeapRange == nullptr)
-				imTextureInfo.mDescriptorHeapRange = _renderContent.GetDevice()->CreateDescriptorRange(1, 0);
+				imTextureInfo.mDescriptorHeapRange = _renderContext.GetDevice()->CreateDescriptorRange(1, 0);
 			imTextureInfo.mDescriptorHeapRange->SetSRV(0, imTextureInfo.mTexture2D->GetSRV());
 		}
 	};
@@ -183,9 +180,9 @@ void SRenderCommandListImpl::RefrashSwapChain_I(RRenderProxy<RSwapChain>* _swapC
 		RRenderProxy<RSwapChain>* mSwapChain;
 		RSwapChainData mSwapChainData;
 
-		void operator()(SRenderContent& _renderContent) noexcept
+		void operator()(SRenderContext& _renderContext) noexcept
 		{
-			_renderContent.SyncToGpuFrameEnd();
+			_renderContext.SyncToGpuFrameEnd();
 
 			RSwapChain& swapChain = mSwapChain->Get();
 
@@ -202,7 +199,7 @@ void SRenderCommandListImpl::RefrashSwapChain_I(RRenderProxy<RSwapChain>* _swapC
 			swapChainDesc.mOutputWindow = mSwapChainData.mOutputWindow;
 			swapChainDesc.mIsWindowed = mSwapChainData.mIsWindowed;
 
-			swapChain.mSwapChain = _renderContent.GetDevice()->CreateSwapChain(&swapChainDesc);
+			swapChain.mSwapChain = _renderContext.GetDevice()->CreateSwapChain(&swapChainDesc);
 		}
 	};
 
@@ -216,9 +213,9 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 		RRenderProxy<RMesh>* mMeshProxy;
 		RMeshData mMeshData;
 
-		IRDIBuffer* CreateIndexBuffer(SRenderContent& _renderContent, IRDICommandList* _commandList, const uint32_t* _indexData, size_t _indexCount, IRDIBuffer** _uploadBuffer) noexcept
+		IRDIBuffer* CreateIndexBuffer(SRenderContext& _renderContext, const uint32_t* _indexData, size_t _indexCount, IRDIBuffer** _uploadBuffer) noexcept
 		{
-			IRDIDevice* device = _renderContent.GetDevice();
+			IRDIDevice* device = _renderContext.GetDevice();
 
 			SRDIBufferResourceDesc indexBufferDesc;
 			indexBufferDesc.mResourceUsage = ERDIResourceUsage::IndexBuffer;
@@ -239,14 +236,12 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 			memcpy_s(dataPtr, _indexCount * sizeof(uint32_t), _indexData, _indexCount * sizeof(uint32_t));
 			(*_uploadBuffer)->Unmap();
 
-			_commandList->CopyBuffer(indexBuffer, *_uploadBuffer);
-
 			return indexBuffer;
 		}
 
-		IRDIBuffer* CreateVertexBuffer(SRenderContent& _renderContent, IRDICommandList* _commandList, const void* _vertexData, size_t _vertexCount, uint32_t _vertexStride, IRDIBuffer** _uploadBuffer) noexcept
+		IRDIBuffer* CreateVertexBuffer(SRenderContext& _renderContext, const void* _vertexData, size_t _vertexCount, uint32_t _vertexStride, IRDIBuffer** _uploadBuffer) noexcept
 		{
-			IRDIDevice* device = _renderContent.GetDevice();
+			IRDIDevice* device = _renderContext.GetDevice();
 
 			SRDIBufferResourceDesc vertexBufferDesc;
 			vertexBufferDesc.mResourceUsage = ERDIResourceUsage::VertexBuffer;
@@ -267,12 +262,10 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 			memcpy_s(dataPtr, _vertexCount * _vertexStride, _vertexData, _vertexCount * _vertexStride);
 			(*_uploadBuffer)->Unmap();
 
-			_commandList->CopyBuffer(vertexBuffer, *_uploadBuffer);
-
 			return vertexBuffer;
 		}
 
-		void operator()(SRenderContent& _renderContent) noexcept
+		void operator()(SRenderContext& _renderContext) noexcept
 		{
 			const EVertexSemantic vertexSemantic[] = {
 					EVertexSemantic::Position,
@@ -346,8 +339,6 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 
 			IRDIBuffer* uploadBuffer[EnumToInt(EVertexSemantic::Num) + 1];
 
-			IRDICommandList* commandList = _renderContent.AllocateCommandList();
-
 			if (mesh.mIndexBuffer)
 				mesh.mIndexBuffer->Release();
 
@@ -360,32 +351,49 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 			mesh.mVertexSemantic = mMeshData.mVertexSemantic;
 
 			if (mMeshData.mIndexBuffer)
-				mesh.mIndexBuffer = CreateIndexBuffer(_renderContent, commandList, mMeshData.mIndexBuffer->data(), mMeshData.mIndexBuffer->size(), &uploadBuffer[0]);
+				mesh.mIndexBuffer = CreateIndexBuffer(_renderContext, mMeshData.mIndexBuffer->data(), mMeshData.mIndexBuffer->size(), &uploadBuffer[0]);
 
 			for (size_t i = 0; i != ArraySize(vertexData); ++i)
 			{
 				if (vertexData[i])
-					mesh.mVertexBuffer[EnumToInt(vertexSemantic[i])] = CreateVertexBuffer(_renderContent, commandList, vertexData[i], vertexCount[i], vertexStride[i], &uploadBuffer[i + 1]);
+					mesh.mVertexBuffer[EnumToInt(vertexSemantic[i])] = CreateVertexBuffer(_renderContext, vertexData[i], vertexCount[i], vertexStride[i], &uploadBuffer[i + 1]);
 			}
 
 			mesh.mSubMeshRange = mMeshData.mSubMeshRange;
 			mesh.mVertexSemantic = mMeshData.mVertexSemantic;
 
-			commandList->Close();
-			_renderContent.ExecuteCommandList(commandList);
-			_renderContent.ReleaseCommandList(commandList);
+			_renderContext.AddRenderTask("更新顶点数据", [&](IRDICommandList* _commandList) 
+				{
+					if (mMeshData.mIndexBuffer)
+						_commandList->CopyBuffer(mesh.mIndexBuffer, uploadBuffer[0]);
+
+					for (size_t i = 0; i != ArraySize(vertexData); ++i)
+					{
+						if (vertexData[i])
+							_commandList->CopyBuffer(mesh.mIndexBuffer, uploadBuffer[i + 1]);
+					}
+				});
+
+			_renderContext.ExecuteRenderGraph();
+			_renderContext.SyncToGpuFrameEnd(true);
+
+			for (size_t i = 0; i != ArraySize(uploadBuffer); ++i)
+			{
+				if (uploadBuffer[i])
+					uploadBuffer[i]->Release();
+			}
 		}
 	};
 
 	AddRenderCommand(SRefrashMeshCommand{ _mesh, _meshData });
 }
 
-void SRenderCommandListImpl::RenderWorld(RRenderProxy<RWorld>* _3dWorldData, RRenderProxy<RTexture2D>* _canvas, RWorldRenderGraph* _renderGraph) noexcept
+void SRenderCommandListImpl::RenderWorld_D(RRenderProxy<RWorld>* _world, const RCamera& _camera, RRenderProxy<RTexture2D>* _canvas, RRenderGraphBase* _renderGraph) noexcept
 {
-	GetFrameResource_GameThread().mRenderWorldList.push_back(RRenderWorldInfo{ _3dWorldData, _canvas, _renderGraph });
+	GetDeferTaskList_GameThread().mRenderWorldList.push_back(RRenderWorldInfo{ _world, _camera, _canvas, _renderGraph});
 }
 
-void SRenderCommandListImpl::RenderWindow(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData) noexcept
+void SRenderCommandListImpl::RenderWindow_D(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData, bool enableVSync) noexcept
 {
-	GetFrameResource_GameThread().mRenderWindowList.push_back(RRenderWindowInfo{ _swapChain, _imguiDrawData });
+	GetDeferTaskList_GameThread().mRenderWindowList.push_back(RRenderWindowInfo{ _swapChain, _imguiDrawData, enableVSync });
 }

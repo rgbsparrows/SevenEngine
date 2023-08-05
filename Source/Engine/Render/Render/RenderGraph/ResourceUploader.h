@@ -1,25 +1,32 @@
-#pragma once
+ #pragma once
+#include "Core/Util/Assert.h"
+#include "RDI/RDITypeTraits.h"
+#include "Render/RenderModule.h"
+#include "Core/Util/UtilMacros.h"
+#include "RDI/Interface/RDIDevice.h"
 #include "RDI/Interface/RDIResource.h"
+#include "RDI/Interface/RDICommandList.h"
 
 #include <concepts>
 #include <algorithm>
 
 __interface IRDICommandList;
 
+DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithSizeX, mSizeX)
+DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithSizeY, mSizeY)
+DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithSizeXY, mSizeXY)
+DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithSizeZ, mSizeZ)
+DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithArraySize, mArraySize)
+DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithMipCount, mMipCount)
+
 template<std::derived_from<IRDIResource> _rdiResourceType>
 class TDynamicGPUResrouce
 {
-	DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithSizeX, mSizeX)
-	DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithSizeY, mSizeY)
-	DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithSizeXY, mSizeXY)
-	DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithSizeZ, mSizeZ)
-	DECLARE_NAMED_CONCEPT_WITH_MEMBER(CDescWithArraySize, mArraySize)
-
 public:
 	using RDIResourceType = _rdiResourceType;
-	using RDIResourceDescType = TRDIResourceDescType<RDIResourceType>;
+	using RDIResourceDescType = TRDIResourceDescType<_rdiResourceType>;
 
-	static TDynamicGPUResrouce MakeDynamicGPUResource(IRDIDevice* _device, const RDIResourceDescType* _desc)
+	static TDynamicGPUResrouce ConstructDynamicGPUResource(IRDIDevice* _device, const RDIResourceDescType* _desc)
 	{
 		RDIResourceType* rdiResource = nullptr;
 
@@ -40,7 +47,7 @@ public:
 		else if constexpr (std::is_same_v<RDIResourceType, IRDITextureCubeArray>)
 			rdiResource = _device->CreateTextureCubeArray(_desc);
 
-		return TDynamicGPUResrouce(_device, rdiResource)
+		return TDynamicGPUResrouce(_device, rdiResource);
 	}
 
 	TDynamicGPUResrouce() noexcept = default;
@@ -53,6 +60,7 @@ public:
 
 	TDynamicGPUResrouce(TDynamicGPUResrouce&& _resource) noexcept
 	{
+		mRDIDevice = _resource.mRDIDevice;
 		mRDIResource = _resource.mRDIResource;
 
 		for (size_t i = 0; i != GRenderInfoCount; ++i)
@@ -61,6 +69,9 @@ public:
 		_resource.mRDIResource = nullptr;
 		for (size_t i = 0; i != GRenderInfoCount; ++i)
 			_resource.mUploadBuffer[i] = nullptr;
+
+		_resource.mRDIDevice = nullptr;
+		_resource.mRDIResource = nullptr;
 	}
 
 	~TDynamicGPUResrouce() noexcept
@@ -79,39 +90,51 @@ public:
 		new(this) TDynamicGPUResrouce(std::move(_resource));
 	}
 
+	bool IsValid() const noexcept { return mRDIResource != nullptr; }
 	RDIResourceType* GetRDIResource() noexcept { return mRDIResource; }
+	RDIResourceDescType GetDesc() noexcept
+	{
+		if (IsValid())
+		{
+			RDIResourceDescType desc;
+			GetRDIResource()->GetDesc(&desc);
+			return desc;
+		}
+		else
+		{
+			return RDIResourceDescType();
+		}
+	}
 
 	void Map(void** _dataPtr) noexcept
 	{
 		CHECK(mRDIResource && mRDIDevice);
 
-		size_t uploadBufferIndex = GetIndex();
-		if (mUploadBuffer[uploadBufferIndex] == nullptr)
-			mUploadBuffer[uploadBufferIndex] = CreateUploadBuffer();
+		if (mUploadBuffer[GetUploadBufferIndex()] == nullptr)
+			mUploadBuffer[GetUploadBufferIndex()] = CreateUploadBuffer();
 
-		mUploadBuffer[uploadBufferIndex]->Map(_dataPtr); []
+		mUploadBuffer[GetUploadBufferIndex()]->Map(_dataPtr);
 	}
 
 	void Unmap() noexcept
 	{
 		CHECK(mRDIResource && mRDIDevice);
 
-		size_t uploadBufferIndex = GetIndex();
-		mUploadBuffer[uploadBufferIndex]->Unmap();
+		mUploadBuffer[GetUploadBufferIndex()]->Unmap();
 	}
 
 	void Upload(IRDICommandList* _commandList) noexcept
 	{
-		IRDIBuffer* uploadBuffer = mUploadBuffer[GetIndex()];
+		IRDIBuffer* uploadBuffer = mUploadBuffer[GetUploadBufferIndex()];
 
 		if (uploadBuffer == nullptr || mRDIResource == nullptr)
 			return;
 
-		_commandList->TranstionResourceState(mRDIResource, ERDIResourceState::CopyDest);
+		_commandList->TranstionResourceState(mRDIResource, ERDIResourceState::Common, ERDIResourceState::CopyDest);
 
 		if constexpr (std::is_same_v<RDIResourceType, IRDIBuffer>)
 		{
-			_commandList->CopyBuffer(mRDIResource, mUploadBuffer[uploadBufferIndex]);
+			_commandList->CopyBuffer(mRDIResource, mUploadBuffer[GetUploadBufferIndex()]);
 		}
 		else
 		{
@@ -123,7 +146,7 @@ public:
 			uint32_t height = 1;
 			uint32_t depth = 1;
 
-			uint16_t mipCount = resourceDesc.mMipCount;
+			uint16_t mipCount = 1;
 			uint16_t texArraySize = 1;
 
 			if constexpr (CDescWithSizeX<RDIResourceDescType>)
@@ -145,6 +168,9 @@ public:
 			if constexpr (std::is_same_v<RDIResourceType, IRDITextureCube> || std::is_same_v<RDIResourceType, IRDITextureCubeArray>)
 				texArraySize *= 6;
 
+			if constexpr (CDescWithMipCount<RDIResourceDescType>)
+				mipCount = resourceDesc.mMipCount;
+
 			uint64_t bufferOffset = 0ull;
 
 			for (uint16_t texIndex = 0; texIndex != texArraySize; ++texIndex)
@@ -152,24 +178,24 @@ public:
 				for (uint16_t mipSlice = 0; mipSlice != mipCount; ++mipSlice)
 				{
 					if constexpr (std::is_same_v<RDIResourceType, IRDITexture1D>)
-						_commandList->CopyTexture1D(mRDIResource, mipSlice, mUploadBuffer[uploadBufferIndex], bufferOffset)
+						_commandList->CopyTexture1D(mRDIResource, mipSlice, mUploadBuffer[GetUploadBufferIndex()], bufferOffset);
 					else if constexpr (std::is_same_v<RDIResourceType, IRDITexture1DArray>)
-						_commandList->CopyTexture1DArray(mRDIResource, mipSlice, texIndex, mUploadBuffer[uploadBufferIndex], bufferOffset)
+						_commandList->CopyTexture1DArray(mRDIResource, mipSlice, texIndex, mUploadBuffer[GetUploadBufferIndex()], bufferOffset);
 					else if constexpr (std::is_same_v<RDIResourceType, IRDITexture2D>)
-						_commandList->CopyTexture2D(mRDIResource, mipSlice, mUploadBuffer[uploadBufferIndex], bufferOffset)
+						_commandList->CopyTexture2D(mRDIResource, mipSlice, mUploadBuffer[GetUploadBufferIndex()], bufferOffset);
 					else if constexpr (std::is_same_v<RDIResourceType, IRDITexture2DArray>)
-						_commandList->CopyTexture2DArray(mRDIResource, mipSlice, texIndex, mUploadBuffer[uploadBufferIndex], bufferOffset)
+						_commandList->CopyTexture2DArray(mRDIResource, mipSlice, texIndex, mUploadBuffer[GetUploadBufferIndex()], bufferOffset);
 					else if constexpr (std::is_same_v<RDIResourceType, IRDITexture3D>)
-						_commandList->CopyTexture3D(mRDIResource, mipSlice, mUploadBuffer[uploadBufferIndex], bufferOffset)
+						_commandList->CopyTexture3D(mRDIResource, mipSlice, mUploadBuffer[GetUploadBufferIndex()], bufferOffset);
 					else if constexpr (std::is_same_v<RDIResourceType, IRDITextureCube>)
-						_commandList->CopyTextureCube(mRDIResource, mipSlice, static_cast<ERDITextureCubeFace>(texIndex), mUploadBuffer[uploadBufferIndex], bufferOffset)
+						_commandList->CopyTextureCube(mRDIResource, mipSlice, static_cast<ERDITextureCubeFace>(texIndex), mUploadBuffer[GetUploadBufferIndex()], bufferOffset);
 					else if constexpr (std::is_same_v<RDIResourceType, IRDITextureCubeArray>)
 						_commandList->CopyTextureCubeArray(
 							mRDIResource,
 							static_cast<ERDITextureCubeFace>(texIndex % EnumToInt(ERDITextureCubeFace::FaceCount)),
 							mipSlice,
 							texIndex / EnumToInt(ERDITextureCubeFace::FaceCount),
-							mUploadBuffer[uploadBufferIndex],
+							mUploadBuffer[GetUploadBufferIndex()],
 							bufferOffset
 						);
 
@@ -177,6 +203,8 @@ public:
 				}
 			}
 		}
+
+		_commandList->TranstionResourceState(mRDIResource, ERDIResourceState::CopyDest, ERDIResourceState::Common);
 	}
 
 	void DestroyUploadBuffer() noexcept
@@ -192,7 +220,7 @@ public:
 	}
 
 private:
-	size_t GetIndex() const noexcept
+	size_t GetUploadBufferIndex() const noexcept
 	{
 		return GetRenderModule()->GetFrameInfoIndex_RenderThread();
 	}
@@ -224,7 +252,7 @@ private:
 		else if constexpr (std::is_same_v<RDIResourceType, IRDITextureCubeArray>)
 			uploadBufferDesc.mBufferSize = SPixelFormatMeta::GetPixelFootprint(resourceDesc.mPixelFormat, resourceDesc.mSizeXY, resourceDesc.mSizeXY, resourceDesc.mMipCount, resourceDesc.mArraySize * 6);
 
-		return mRDIDevice->CreateBuffer(uploadBufferDesc);
+		return mRDIDevice->CreateBuffer(&uploadBufferDesc);
 	}
 
 private:

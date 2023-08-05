@@ -15,7 +15,6 @@
 #include "Core/Misc/PreWindowsApi.h"
 #include <XInput.h>
 #include "Core/Misc/PostWindowsApi.h"
-#include "Render/RenderGraph/RenderGraph.h"
 
 static SUIModuleImpl* GUIModuleImpl = nullptr;
 
@@ -321,7 +320,7 @@ void SUIModuleImpl::InitImguiCallBack() noexcept
 	ImGui::GetPlatformIO().Platform_SetWindowTitle = [](ImGuiViewport* _viewport, const char* _title)
 	{
 		SUIInternalWindow* window = reinterpret_cast<SUIInternalWindow*>(_viewport->PlatformUserData);
-		window->SetWindowTitle(Locale::ConvertStringToWstring(Locale::ECodePage::UTF8, _title));
+		window->SetWindowTitle(Locale::ConvertStringToWstring(_title));
 	};
 
 	ImGui::GetPlatformIO().Platform_SetWindowAlpha = [](ImGuiViewport* _viewport, float _alpha)

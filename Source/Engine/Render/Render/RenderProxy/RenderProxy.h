@@ -3,7 +3,7 @@
 
 #include <concepts>
 
-__interface IRDIDevice;
+class SRenderContext;
 
 enum class EExclusiveMode
 {
@@ -28,15 +28,15 @@ template<typename _renderInfoType>
 concept CRenderInfo = CExclusiveRenderInfo<_renderInfoType> || CShareRenderInfo<_renderInfoType>;
 
 template<typename _renderInfoType>
-concept CInitableRenderInfo = CRenderInfo<_renderInfoType> && requires(_renderInfoType & _renderInfo, IRDIDevice* _device) { _renderInfo.Init(_device); };
+concept CInitableRenderInfo = CRenderInfo<_renderInfoType> && requires(_renderInfoType & _renderInfo, SRenderContext& _renderContext) { _renderInfo.Init(_renderContext); };
 
 template<typename _renderInfoType>
-concept CClearableRenderInfo = CRenderInfo<_renderInfoType> && requires(_renderInfoType & _renderInfo) { _renderInfo.Clear(); };
+concept CClearableRenderInfo = CRenderInfo<_renderInfoType> && requires(_renderInfoType & _renderInfo, SRenderContext& _renderContext) { _renderInfo.Clear(_renderContext); };
 
 __interface RRenderProxyBase
 {
-	void Init(IRDIDevice* _device) noexcept;
-	void Release() noexcept;
+	void Init(SRenderContext& _renderContext) noexcept;
+	void Release(SRenderContext& _renderContext) noexcept;
 };
 
 template<CRenderInfo _renderInfoType>
@@ -73,21 +73,21 @@ public:
 			return *static_cast<RenderInfoType*>(nullptr);
 	}
 
-	void Init(IRDIDevice* _device) noexcept override
+	void Init(SRenderContext& _renderContext) noexcept override
 	{
 		if constexpr (HasInitMethod)
 		{
 			for (size_t i = 0; i != RenderInfoCount; ++i)
-				mRenderInfo[i].Init(_device);
+				mRenderInfo[i].Init(_renderContext);
 		}
 	}
 
-	void Release() noexcept override
+	void Release(SRenderContext& _renderContext) noexcept override
 	{
 		if constexpr (HasClearMethod)
 		{
 			for (size_t i = 0; i != RenderInfoCount; ++i)
-				mRenderInfo[i].Clear();
+				mRenderInfo[i].Clear(_renderContext);
 		}
 
 		delete this;
@@ -97,7 +97,7 @@ private:
 	RenderInfoType mRenderInfo[RenderInfoCount];
 };
 
-class          RDirtyFlag
+class RDirtyFlag
 {
 public:
 	RDirtyFlag(bool _isDirty = true) noexcept

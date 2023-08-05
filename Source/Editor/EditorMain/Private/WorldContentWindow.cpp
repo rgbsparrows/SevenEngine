@@ -2,7 +2,6 @@
 #include "WorldContentWindow.h"
 #include "Resource/ResourceModule.h"
 #include "Render/RenderCommandList.h"
-#include "RenderGraph/WorldForwardRenderGraph.h"
 #include "Resource/ResourceType/StaticMeshResource.h"
 
 #include <format>
@@ -15,9 +14,12 @@ void SUIWorldContentWindow::OnGui() noexcept
 	static RRenderProxy<RWorld>* renderProxy = new RRenderProxy<RWorld>;
 	if (mRenderGraph == nullptr)
 	{
-		mRenderGraph = new RWorldForwardRenderGraph;
-		mRenderGraph->Init();
-		GetRenderCommandList()->ConstructRenderGraph(mRenderGraph);
+		//mRenderGraph = new RWorldForwardRenderGraph;
+		//mRenderGraph->Init();
+		//GetRenderCommandList()->ConstructRenderGraph(mRenderGraph);
+
+		if (mRT == nullptr)
+		{
 
 		mRT = new RRenderProxy<RTexture2D>;
 		RTexture2DData texData;
@@ -27,9 +29,13 @@ void SUIWorldContentWindow::OnGui() noexcept
 		texData.mDesc.mSizeY = 1024;
 		texData.mDesc.mClearColor = Math::SFColor(0.5f, 0, 0, 1);
 		GetRenderCommandList()->RefrashStaticTexture2D_I(mRT, std::move(texData));
+		}
 
-		mImTex = new RRenderProxy<RImguiTexture2D>;
-		GetRenderCommandList()->RefrashImTexture2D_I(mRT, mImTex);
+		if (mImTex == nullptr)
+		{
+			mImTex = new RRenderProxy<RImguiTexture2D>;
+			GetRenderCommandList()->RefrashImTexture2D_I(mRT, mImTex);
+		}
 	}
 
 	ImGui::Begin(std::format("WorldContentWindow [{0}]", static_cast<const void*>(this)).c_str(), &mIsWindowOpen);
@@ -67,7 +73,7 @@ void SUIWorldContentWindow::OnGui() noexcept
 	ImGui::DragFloat4("m23", rotationMatrix[3]);
 
 
-	GetRenderCommandList()->RenderWorld(renderProxy, mRT, mRenderGraph);
+	//GetRenderCommandList()->RenderWorld(renderProxy, mRT, mRenderGraph);
 
 	ImGui::Image(mImTex, ImGui::GetContentRegionAvail());
 

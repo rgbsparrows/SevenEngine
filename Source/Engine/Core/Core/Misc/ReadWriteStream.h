@@ -157,8 +157,8 @@ struct SReadStreamStat
 	SReadStreamStat(const SReadStreamStat&) noexcept = delete;
 	SReadStreamStat(SReadStreamStat&&) noexcept = delete;
 
-	SReadStreamStat(size_t& _writeByteCount, SReadStream& _readStream) noexcept
-		:mReadByteCount(_writeByteCount), mReadStream(_readStream)
+	SReadStreamStat(size_t& _readByteCount, SReadStream& _readStream) noexcept
+		:mReadByteCount(_readByteCount), mReadStream(_readStream)
 	{
 		mBeginPos = mReadStream.GetCurrentPos();
 	}

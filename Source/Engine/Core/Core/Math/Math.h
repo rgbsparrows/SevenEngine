@@ -67,6 +67,21 @@ namespace Math
 		return ::sqrtf(_v);
 	}
 
+	template<typename _type> constexpr inline auto& Max(const _type& _left, const _type& _right) noexcept
+	{
+		return std::max(_left, _right);
+	}
+
+	template<typename _type> constexpr inline auto& Min(const _type& _left, const _type& _right) noexcept
+	{
+		return std::min(_left, _right);
+	}
+
+	template<typename _type> constexpr inline auto& Clamp(const _type& _value, const _type& _min, const _type& _max) noexcept
+	{
+		return std::clamp(_value, _min, _max);
+	}
+
 	template<std::unsigned_integral _underlyingType> constexpr inline auto CalcBlockCount(_underlyingType _elementCount, _underlyingType _elementPerBlock) noexcept
 	{
 		return (_elementCount + _elementPerBlock - 1) / _elementPerBlock;
@@ -82,18 +97,20 @@ namespace Math
 		return _rawPos + _aligned - 1 - (_rawPos + _aligned - 1) % _aligned;
 	}
 
-	template<size_t _hashByte, typename _valueType> requires (_hashByte == 4 || _hashByte == 8)
+	template<typename _underlyingType, typename _valueType> requires (std::is_same_v<_underlyingType, uint32_t> || std::is_same_v<_underlyingType, uint64_t>)
 	constexpr inline auto Hash(const _valueType& _value) noexcept
 	{
-		TIntType<true, _hashByte> fnvOffsetBasis = 0;
-		TIntType<true, _hashByte> fnvPrime = 0;
+		using UnderlyingType = _underlyingType;
 
-		if constexpr (_hashByte == 4)
+		UnderlyingType fnvOffsetBasis = 0;
+		UnderlyingType fnvPrime = 0;
+
+		if constexpr (std::is_same_v<UnderlyingType, uint32_t>)
 		{
 			fnvOffsetBasis = 2166136261U;
 			fnvPrime = 16777619U;
 		}
-		else if constexpr (_hashByte == 8)
+		else if constexpr (std::is_same_v<UnderlyingType, uint64_t>)
 		{
 			fnvOffsetBasis = 14695981039346656037ULL;
 			fnvPrime = 1099511628211ULL;
@@ -101,7 +118,7 @@ namespace Math
 
 		if constexpr (CRange<_valueType>)
 		{
-			uint32_t hash = fnvOffsetBasis;
+			UnderlyingType hash = fnvOffsetBasis;
 			for (const auto& v : _value)
 			{
 				const uint8_t* dataP = reinterpret_cast<const uint8_t*>(&v);
@@ -114,7 +131,7 @@ namespace Math
 		}
 		else
 		{
-			uint32_t hash = fnvOffsetBasis;
+			UnderlyingType hash = fnvOffsetBasis;
 
 			const uint8_t* dataP = reinterpret_cast<const uint8_t*>(&_value);
 			for (size_t i = 0; i < sizeof(_valueType); ++i)
@@ -130,13 +147,13 @@ namespace Math
 	template<typename _valueType>
 	constexpr inline uint64_t Hash64(const _valueType& _value) noexcept
 	{
-		return Hash<8>(_value);
+		return Hash<uint64_t>(_value);
 	}
 
 	template<typename _valueType>
 	constexpr inline uint32_t Hash32(const _valueType& _value) noexcept
 	{
-		return Hash<4>(_value);
+		return Hash<uint32_t>(_value);
 	}
 
 	template<typename _valueType>

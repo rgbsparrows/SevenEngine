@@ -153,7 +153,7 @@ IRDICommandList* SD3D12Device::CreateCommandList(ERDICommandListType _commandLis
 
 	SD3D12CommandList* commandList = mCommandListPool.AllocateElement();
 	commandList->Init(commandListNativePtr, this);
-	commandList->SetDescriptorHeap();
+	commandList->Close();
 
 	return commandList;
 }
@@ -956,7 +956,7 @@ bool SD3D12Device::CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shade
 	for (size_t i = 0; i != _shaderMacro->mDefinedMacro.size(); ++i)
 	{
 		std::wstring_view currentMacro = _shaderMacro->mDefinedMacro[i];
-		std::string macro = Locale::ConvertWstringToString(Locale::ECodePage::ACP, currentMacro);
+		std::string macro = Locale::ConvertWstringToString(currentMacro, Locale::ECodePage::ACP);
 		strcpy_s(macroBuffer[i], 128, macro.c_str());
 
 		shaderMacro[i].Name = macroBuffer[i];
@@ -996,7 +996,7 @@ void SD3D12Device::GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _error
 	}
 
 	std::string compiledError = reinterpret_cast<const char*>(_errorBlob->GetBufferPointer());
-	_errorInfo->mErrorString = Locale::ConvertStringToWstring(Locale::ECodePage::ACP, compiledError);
+	_errorInfo->mErrorString = Locale::ConvertStringToWstring(compiledError, Locale::ECodePage::ACP);
 	const wchar_t* errorStr = _errorInfo->mErrorString.c_str();
 
 	size_t begin = 0;

@@ -277,7 +277,7 @@ void SUIInternalWindow::FlushImguiDrawData() noexcept
 		drawData.mDisplayPos = Math::SFloat2(imDrawDataRaw->DisplayPos.x, imDrawDataRaw->DisplayPos.y);
 		drawData.mDisplaySize = Math::SFloat2(imDrawDataRaw->DisplaySize.x, imDrawDataRaw->DisplaySize.y);
 
-		GetRenderCommandList()->RenderWindow(mSwapChain, mDrawData);
+		GetRenderCommandList()->RenderWindow_D(mSwapChain, mDrawData);
 	}
 
 	mIsSwapChainDiry = false;

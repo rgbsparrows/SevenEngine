@@ -1,45 +1,45 @@
 #pragma once
 
+#include "DeferFrameTask.h"
 #include "Render/RenderCommandList.h"
-#include "FrameResource.h"
+#include "Render/RenderGraph/RenderGraphBase.h"
 
-class SRenderContent;
+class SRenderContext;
 
 class SRenderCommandListImpl : public IRenderCommandList
 {
 public:
 	bool HasImmediatelyRenderCommand() const noexcept;
-	void ExecuateImmediatelyRenderCommand(SRenderContent& _renderContent) noexcept;
-	void AddRenderCommand(std::function<void(SRenderContent&)> _renderCommand) noexcept;
-	
-public:
-	void SetFrameResource(RRenderProxy<RFrameResource>* _frameResource) noexcept { mFrameResource = _frameResource; }
+	void ExecuateImmediatelyRenderCommand(SRenderContext& _renderContext) noexcept;
+	void AddRenderCommand(std::function<void(SRenderContext&)> _renderCommand) noexcept;
 
-	void InitRenderProxy(RRenderProxyBase* _renderProxy) noexcept override;
-	void InitRenderProxy(std::initializer_list<RRenderProxyBase*> _renderProxyList) noexcept override;
+	RDeferFrameTask& GetDeferTaskList_GameThread() noexcept { return mDeferFrameTaskList[GetRenderModule()->GetFrameInfoIndex_GameThread()]; }
+	RDeferFrameTask& GetDeferTaskList_RenderThread() noexcept { return mDeferFrameTaskList[GetRenderModule()->GetFrameInfoIndex_RenderThread()]; }
+
+public:
+	void AddInitRenderProxy(RRenderProxyBase* _renderProxy) noexcept override;
+	void AddInitRenderProxy(std::initializer_list<RRenderProxyBase*> _renderProxyList) noexcept override;
 
 	void AddExpiringRenderProxy(RRenderProxyBase* _renderProxy) noexcept override;
 	void AddExpiringRenderProxy(std::initializer_list<RRenderProxyBase*> _renderProxyList) noexcept override;
 
+	void AddInitRenderGraph(RRenderGraphBase* _renderGraph) noexcept;
+	void AddExpiringRenderGraph(RRenderGraphBase* _renderGraph) noexcept;
+
 	void RefrashImmediatelyRenderCommand() noexcept override;
 
-	void ConstructRenderGraph(RRenderGraphBase* _renderGraph) noexcept;
 	void RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* _texture2D, RTexture2DData&& _textureData) noexcept override;
 	void RefrashImTexture2D_I(RRenderProxy<RTexture2D>* _texture2D, RRenderProxy<RImguiTexture2D>* _imTexture2D) noexcept override;
 	void RefrashSwapChain_I(RRenderProxy<RSwapChain>* _swapChain, const RSwapChainData& _swapChainData) noexcept override;
 	void RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData _meshData) noexcept;
 
-	void RenderWorld(RRenderProxy<RWorld>* _3dWorldData, RRenderProxy<RTexture2D>* _canvas, RWorldRenderGraph* _renderGraph) noexcept;
-	void RenderWindow(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData) noexcept;
+	void RenderWorld_D(RRenderProxy<RWorld>* _world, const RCamera& _camera, RRenderProxy<RTexture2D>* _canvas, RRenderGraphBase* _renderGraph) noexcept;
+	void RenderWindow_D(RRenderProxy<RSwapChain>* _swapChain, RRenderProxy<RImguiDrawData>* _imguiDrawData, bool enableVSync) noexcept;
 
 private:
-	RFrameResource& GetFrameResource_GameThread() noexcept { return mFrameResource->Get_GameThread(); }
-	RFrameResource& GetFrameResource_RenderThread() noexcept { return mFrameResource->Get_RenderThread(); }
+	RDeferFrameTask mDeferFrameTaskList[GRenderInfoCount];
 
-private:
-	RRenderProxy<RFrameResource>* mFrameResource = nullptr;
-
-	std::vector<std::function<void(SRenderContent&)>> mImmediatelyRenderCommandQueue;
+	std::vector<std::function<void(SRenderContext&)>> mImmediatelyRenderCommandQueue;
 	std::atomic<size_t> mCommandQueueBegin = 0;
 	std::atomic<size_t> mCommandQueueEnd = 0;
 };

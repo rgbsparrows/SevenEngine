@@ -8,14 +8,14 @@
 namespace Thread
 {
 	bool IsGameThread(std::thread::id _threadId) noexcept;
-
 	void SetGameThreadId(std::thread::id _threadId) noexcept;
-
 	bool IsRenderThread(std::thread::id _threadId) noexcept;
-
 	void SetRenderThread(std::thread::id _threadId) noexcept;
-
 	void SetCurrentThreadName(std::wstring_view _threadName) noexcept;
+
+	constexpr size_t GetFixedThreadCount() noexcept { return 2; } // Game and Render
+	size_t GetMaxMinorThreadCount() noexcept;
+	size_t GetSubRenderThreadCount() noexcept;
 
 	template<typename _funcType>
 	void YieldUntil(_funcType _condition) noexcept

@@ -360,6 +360,55 @@ namespace Math
 			struct { UnderlyingType r, g, b, a; };
 			struct { UnderlyingType R, G, B, A; };
 		};
+
+		static constexpr TColor Black() noexcept { return TColor(0, 0, 0, 1); }
+		static constexpr TColor White() noexcept { return TColor(1, 1, 1, 1); }
+		static constexpr TColor Red() noexcept { return TColor(1, 0, 0, 1); }
+		static constexpr TColor Green() noexcept { return TColor(0, 1, 0, 1); }
+		static constexpr TColor Blue() noexcept { return TColor(0, 0, 1, 1); }
+		static constexpr TColor Yellow() noexcept { return TColor(1, 1, 0, 1); }
+		static constexpr TColor Cyan() noexcept { return TColor(0, 1, 1, 1); }
+		static constexpr TColor Magenta() noexcept { return TColor(1, 0, 1, 1); }
+		static constexpr TColor Transparent() noexcept { return TColor(0, 0, 0, 0); }
+		static constexpr TColor Gray() noexcept { return TColor(0.5, 0.5, 0.5, 1); }
+		static constexpr TColor LightGray() noexcept { return TColor(0.75, 0.75, 0.75, 1); }
+		static constexpr TColor DarkGray() noexcept { return TColor(0.25, 0.25, 0.25, 1); }
+		static constexpr TColor Orange() noexcept { return TColor(1, 0.5, 0, 1); }
+		static constexpr TColor Brown() noexcept { return TColor(0.6, 0.4, 0.2, 1); }
+		static constexpr TColor Pink() noexcept { return TColor(1, 0.5, 0.5, 1); }
+		static constexpr TColor Clear() noexcept { return TColor(0, 0, 0, 0); }
+		static constexpr TColor Purple() noexcept { return TColor(0.5, 0, 0.5, 1); }
+		static constexpr TColor Turquoise() noexcept { return TColor(0, 1, 1, 1); }
+		static constexpr TColor SkyBlue() noexcept { return TColor(0.5, 0.5, 1, 1); }
+		static constexpr TColor Lime() noexcept { return TColor(0, 1, 0, 1); }
+		static constexpr TColor ForestGreen() noexcept { return TColor(0.13, 0.55, 0.13, 1); }
+		static constexpr TColor Mint() noexcept { return TColor(0.67, 1, 0.67, 1); }
+		static constexpr TColor Olive() noexcept { return TColor(0.5, 0.5, 0, 1); }
+		static constexpr TColor Maroon() noexcept { return TColor(0.5, 0, 0, 1); }
+		static constexpr TColor Navy() noexcept { return TColor(0, 0, 0.5, 1); }
+		static constexpr TColor Teal() noexcept { return TColor(0, 0.5, 0.5, 1); }
+		static constexpr TColor Silver() noexcept { return TColor(0.75, 0.75, 0.75, 1); }
+		static constexpr TColor LimeGreen() noexcept { return TColor(0.2, 0.8, 0.2, 1); }
+		static constexpr TColor Indigo() noexcept { return TColor(0.29, 0, 0.51, 1); }
+		static constexpr TColor DarkRed() noexcept { return TColor(0.5, 0, 0, 1); }
+		static constexpr TColor DarkGreen() noexcept { return TColor(0, 0.5, 0, 1); }
+		static constexpr TColor DarkBlue() noexcept { return TColor(0, 0, 0.5, 1); }
+		static constexpr TColor YellowGreen() noexcept { return TColor(0.6, 0.8, 0.2, 1); }
+		static constexpr TColor PurpleBlue() noexcept { return TColor(0.5, 0, 0.5, 1); }
+		static constexpr TColor DarkCyan() noexcept { return TColor(0, 0.5, 0.5, 1); }
+		static constexpr TColor Coral() noexcept { return TColor(1, 0.5, 0.31, 1); }
+		static constexpr TColor CoralRed() noexcept { return TColor(1, 0.25, 0.25, 1); }
+		static constexpr TColor Gold() noexcept { return TColor(1, 0.84, 0, 1); }
+		static constexpr TColor LightYellow() noexcept { return TColor(1, 1, 0.88, 1); }
+		static constexpr TColor Khaki() noexcept { return TColor(0.94, 0.9, 0.55, 1); }
+		static constexpr TColor OrangeRed() noexcept { return TColor(1, 0.27, 0, 1); }
+		static constexpr TColor Orchid() noexcept { return TColor(0.85, 0.44, 0.84, 1); }
+		static constexpr TColor Salmon() noexcept { return TColor(0.98, 0.5, 0.45, 1); }
+		static constexpr TColor Tan() noexcept { return TColor(0.82, 0.71, 0.55, 1); }
+		static constexpr TColor Thistle() noexcept { return TColor(0.85, 0.75, 0.85, 1); }
+		static constexpr TColor TurquoiseBlue() noexcept { return TColor(0, 0.78, 0.55, 1); }
+		static constexpr TColor Violet() noexcept { return TColor(0.93, 0.51, 0.93, 1); }
+		static constexpr TColor Wheat() noexcept { return TColor(0.96, 0.87, 0.7, 1); }
 	};
 
 #pragma endregion

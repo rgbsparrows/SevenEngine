@@ -21,6 +21,10 @@ public:
 	void Reset(IRDICommandAllocator* _commandAllocator) noexcept override;
 	void Close() noexcept override;
 
+	void SetMark(const std::string& _eventName) noexcept override;
+	void BeginEvent(const std::string& _eventName) noexcept override;
+	void EndEvent() noexcept override;
+
 	void DrawIndexedInstanced(uint32_t _indexCount, uint32_t _instanceCount, uint32_t _startIndexLocation, uint32_t _baseVertexLocation) noexcept override;
 	void Dispatch(uint32_t _threadGroupX, uint32_t _threadGroupY, uint32_t _threadGroupZ) noexcept override;
 

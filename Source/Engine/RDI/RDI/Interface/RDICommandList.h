@@ -41,6 +41,10 @@ __interface IRDICommandList
 	void Reset(IRDICommandAllocator* _commandAllocator) noexcept;
 	void Close() noexcept;
 
+	void SetMark(const std::string& _eventName) noexcept;
+	void BeginEvent(const std::string& _eventName) noexcept;
+	void EndEvent() noexcept;
+
 	void CopyBufferRegion(IRDIBuffer* _destBuffer, uint64_t _destOffset, IRDIBuffer* _srcBuffer, uint64_t _srcOffset, uint64_t _numByte) noexcept;
 	void CopyBuffer(IRDIBuffer* _destBuffer, IRDIBuffer* _srcBuffer) noexcept;
 	void CopyTexture1D(IRDITexture1D* _destTexture, IRDITexture1D* _srcTexture) noexcept;

@@ -3,7 +3,7 @@
 
 namespace Locale
 {
-	std::wstring ConvertStringToWstring(uint32_t _codePage, std::string_view _srcString) noexcept
+	std::wstring ConvertStringToWstring(std::string_view _srcString, uint32_t _codePage) noexcept
 	{
 		std::wstring result;
 
@@ -15,7 +15,7 @@ namespace Locale
 		return result;
 	}
 
-	std::string ConvertWstringToString(uint32_t _codePage, std::wstring_view _srcString) noexcept
+	std::string ConvertWstringToString(std::wstring_view _srcString, uint32_t _codePage) noexcept
 	{
 		std::string result;
 

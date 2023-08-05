@@ -1,4 +1,5 @@
 #include "D3D/D3DUtil.h"
+#include "Core/Misc/Localize.h"
 #include "D3D/D3D12/D3D12Device.h"
 #include "D3D/D3D12/D3D12Resource.h"
 #include "D3D/D3D12/D3D12CommandList.h"
@@ -7,6 +8,10 @@
 #include "D3D/D3D12/D3D12PipelineState.h"
 #include "D3D/D3D12/D3D12DescriptorHeap.h"
 #include "D3D/D3D12/Helper/D3D12EnumConvertor.h"
+
+#include "Core/Misc/PreWindowsApi.h"
+#include <pix.h>
+#include "Core/Misc/PostWindowsApi.h"
 
 void SD3D12CommandList::Init(ID3D12GraphicsCommandList* _commandListNativePtr, SD3D12Device* _device) noexcept
 {
@@ -35,6 +40,23 @@ void SD3D12CommandList::Reset(IRDICommandAllocator* _commandAllocator) noexcept
 void SD3D12CommandList::Close() noexcept
 {
 	VERIFY_D3D_RETURN(GetNativePtr()->Close());
+}
+
+void SD3D12CommandList::SetMark(const std::string& _eventName) noexcept
+{
+	std::wstring eventName = Locale::ConvertStringToWstring(_eventName);
+	PIXSetMarker(GetNativePtr(), 0, eventName.c_str());
+}
+
+void SD3D12CommandList::BeginEvent(const std::string& _eventName) noexcept
+{
+	std::wstring eventName = Locale::ConvertStringToWstring(_eventName);
+	PIXBeginEvent(GetNativePtr(), 0, eventName.c_str());
+}
+
+void SD3D12CommandList::EndEvent() noexcept
+{
+	PIXEndEvent(GetNativePtr());
 }
 
 void SD3D12CommandList::DrawIndexedInstanced(uint32_t _indexCount, uint32_t _instanceCount, uint32_t _startIndexLocation, uint32_t _baseVertexLocation) noexcept

@@ -46,14 +46,14 @@ void AActor::SetTransform(const Math::STransform& _newTransforms) noexcept
 void AActor::AddChild_Internal(ACComponent* _childComponent, size_t _index) noexcept
 {
 	CHECK(_index == SIZE_MAX || _index <= mChildren.size());
-	CHECK(Has(mChildren, _childComponent) == false);
+	CHECK(Contains(mChildren, _childComponent) == false);
 
 	mChildren.insert(std::next(mChildren.begin(), _index == SIZE_MAX ? mChildren.size() : _index), _childComponent);
 }
 
 void AActor::RemoveChild_Internal(ACComponent* _childComponent) noexcept
 {
-	CHECK(Has(mChildren, _childComponent));
+	CHECK(Contains(mChildren, _childComponent));
 
 	EraseFirst(mChildren, _childComponent);
 }

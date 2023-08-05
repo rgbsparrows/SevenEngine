@@ -1,5 +1,5 @@
-#include "StaticMeshComponent.h"
 #include "Render/RenderProxy/World/WorldProxy.h"
+#include "Engine/Classes/StaticMeshComponent.h"
 
 void ACStaticMesh::EmitRenderProxy(RStaticMeshProxy& _renderProxy) noexcept
 {

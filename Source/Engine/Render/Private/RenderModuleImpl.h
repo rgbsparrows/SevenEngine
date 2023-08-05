@@ -1,12 +1,10 @@
 #pragma once
 
-#include "FrameResource.h"
-#include "RenderResource.h"
+#include "ImguiRenderGraph.h"
 #include "Core/Misc/windowsEx.h"
 #include "Render/RenderModule.h"
-#include "Render/RenderContent.h"
+#include "Render/RenderContext.h"
 #include "RenderCommandListImpl.h"
-#include "RDI/Interface/RDIFactory.h"
 #include "Render/RenderProxy/RenderProxy.h"
 
 #include <thread>
@@ -21,6 +19,8 @@ public:
 	void BeginFrame_GameThread() noexcept override;
 	void EndFrame_GameThread() noexcept override;
 
+	void Init_RenderThread() noexcept;
+	void Clear_RenderThread() noexcept;
 	void BeginFrame_RenderThread() noexcept;
 	void FrameTick_RenderThread() noexcept;
 	void EndFrame_RenderThread() noexcept;
@@ -28,22 +28,21 @@ public:
 	size_t GetFrameInfoIndex_GameThread() noexcept override { return mFrameInfoIndex_GameThread; }
 	size_t GetFrameInfoIndex_RenderThread() noexcept override { return mFrameInfoIndex_RenderThread; }
 
+	SRenderContext& GetRenderContext() noexcept { return mRenderContext; }
+
 	IRenderCommandList* GetRenderCommandList() noexcept { return &mRenderCommandList; }
 
 private:
 	void RenderThreadMain() noexcept;
 
 	void RenderWorld() noexcept;
-	void RenderImgui() noexcept;
-	void PresentWindows() noexcept;
+	void RenderPresentImgui() noexcept;
 
 private:
 	std::thread mRenderThread;
+	SRenderContext mRenderContext;
 
-	IRDIFactory* mRdiFactory = nullptr;
-	IRDIDevice* mRdiDevice = nullptr;
-	IRDICommandQueue* mRdiCommandQueue = nullptr;
-	SRenderContent mMainRenderContent;
+	RImguiRenderGraph mImguiRenderGraph;
 
 	size_t mFrameInfoIndex_GameThread = 0;
 	size_t mFrameInfoIndex_RenderThread = 0;
@@ -51,9 +50,10 @@ private:
 	size_t mFrameCount_GameThread = 0;
 	size_t mFrameCount_RenderThread = 0;
 
-	RRenderProxy<RFrameResource>* mFrameResource = nullptr;
-	RRenderProxy<RStaticRenderResource>* mStaticRenderResource = nullptr;
-	RRenderProxy<RFrameRenderResource>* mFrameRenderResource = nullptr;
+	std::atomic_bool mRequireExit[GRenderInfoCount] = { false, false, false };
+	std::atomic_bool mGameThreadFrameResourceReadyFlag[GRenderInfoCount] = { true, true, true };
+	std::atomic_bool mRenderThreadFrameResourceReadyFlag[GRenderInfoCount] = { false, false, false };
+
 	SRenderCommandListImpl mRenderCommandList;
 };
 

@@ -66,9 +66,6 @@ struct RImguiDrawData
 	Math::SFloat2 mDisplayPos;
 	Math::SFloat2 mDisplaySize;
 
-	IRDIBuffer* mRDIIndexBuffer = nullptr;
-	IRDIBuffer* mRDIVertexBuffer = nullptr;
-
 	void NewFrame() noexcept
 	{
 		mCmdBuffer.resize(0);

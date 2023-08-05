@@ -1,3 +1,4 @@
+#include "Core/Math/Math.h"
 #include "Core/Misc/Thread.h"
 
 std::thread::id GGameThreadId;
@@ -28,5 +29,15 @@ namespace Thread
 	void SetCurrentThreadName(std::wstring_view _threadName) noexcept
 	{
 		::SetThreadDescription(GetCurrentThread(), std::wstring(_threadName).c_str());
+	}
+
+	size_t GetMaxMinorThreadCount() noexcept
+	{
+		return Math::Max<size_t>(1, std::thread::hardware_concurrency() - GetFixedThreadCount());
+	}
+
+	size_t GetSubRenderThreadCount() noexcept
+	{
+		return Math::Clamp<size_t>(GetMaxMinorThreadCount() / 3, 1, 6);
 	}
 }
