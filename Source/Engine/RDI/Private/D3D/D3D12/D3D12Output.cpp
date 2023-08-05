@@ -1,4 +1,5 @@
 #include "D3D/D3DUtil.h"
+#include "Core/Misc/Localize.h"
 #include "D3D/D3D12/D3D12Output.h"
 
 void SD3D12Output::Init(IDXGIOutput* _nativePtr) noexcept
@@ -12,7 +13,7 @@ void SD3D12Output::Init(IDXGIOutput* _nativePtr) noexcept
 		DXGI_OUTPUT_DESC desc;
 		GetNativePtr()->GetDesc(&desc);
 
-		mDesc.mDeviceName = desc.DeviceName;
+		mDesc.mDeviceName = Locale::ConvertWstringToString(desc.DeviceName);
 		mDesc.mDesktopCoordinates.mLeftOn[0] = desc.DesktopCoordinates.left;
 		mDesc.mDesktopCoordinates.mLeftOn[1] = desc.DesktopCoordinates.top;
 		mDesc.mDesktopCoordinates.mRightDwon[0] = desc.DesktopCoordinates.right;

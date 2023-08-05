@@ -9,15 +9,15 @@
 void SEngineLoop::PreInit() noexcept
 {
 	Thread::SetGameThreadId(std::this_thread::get_id());
-	Thread::SetCurrentThreadName(L"主线程");
+	Thread::SetCurrentThreadName(u8"主线程");
 
 	SModuleManager::Get().Init();
 	SClassManager::Get().Init();
 
-	SModuleManager::Get().LoadModule(L"ResourceModule");
-	SModuleManager::Get().LoadModule(L"RenderModule");
-	SModuleManager::Get().LoadModule(L"UIModule");
-	SModuleManager::Get().LoadModule(L"EditorModule");
+	SModuleManager::Get().LoadModule("ResourceModule");
+	SModuleManager::Get().LoadModule("RenderModule");
+	SModuleManager::Get().LoadModule("UIModule");
+	SModuleManager::Get().LoadModule("EditorModule");
 }
 
 void SEngineLoop::Run() noexcept
@@ -37,8 +37,8 @@ void SEngineLoop::Run() noexcept
 
 void SEngineLoop::Clear() noexcept
 {
-	SModuleManager::Get().UnloadModule(L"EditorModule");
-	SModuleManager::Get().UnloadModule(L"UIModule");
-	SModuleManager::Get().UnloadModule(L"RenderModule");
-	SModuleManager::Get().UnloadModule(L"ResourceModule");
+	SModuleManager::Get().UnloadModule("EditorModule");
+	SModuleManager::Get().UnloadModule("UIModule");
+	SModuleManager::Get().UnloadModule("RenderModule");
+	SModuleManager::Get().UnloadModule("ResourceModule");
 }

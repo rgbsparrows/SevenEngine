@@ -11,7 +11,7 @@
 
 struct SD3D12AdapterDesc
 {
-	std::wstring mDescription;
+	std::string mDescription;
 	uint64_t mDedicatedVideoMemory = 0;
 	uint64_t mDedicatedSystemMemory = 0;
 	uint64_t mSharedSystemMemory = 0;

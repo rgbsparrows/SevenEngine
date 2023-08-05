@@ -23,6 +23,6 @@ auto GetProcAddress(HMODULE _module, const char* _funcSignature) noexcept
 	return reinterpret_cast<FunctionType*>(::GetProcAddress(_module, _funcSignature));
 }
 
-std::wstring GetHResultMessage(HRESULT _hresult) noexcept;
+std::string GetHResultMessage(HRESULT _hresult) noexcept;
 
 void YieldForSingleObject(HANDLE _handle) noexcept;

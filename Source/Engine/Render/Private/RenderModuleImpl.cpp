@@ -24,12 +24,12 @@ IRenderCommandList* GetRenderCommandList() noexcept
 	return GetRenderModule()->GetRenderCommandList();
 }
 
-REGIST_MODULE(L"RenderModule", SRenderModuleImpl)
+REGIST_MODULE("RenderModule", SRenderModuleImpl)
 
 bool SRenderModuleImpl::Init() noexcept
 {
 	GRenderModuleImpl = this;
-	SModuleManager::Get().LoadModule(L"RDIModule");
+	SModuleManager::Get().LoadModule("RDIModule");
 	mRenderThread = std::thread(std::mem_fn(&SRenderModuleImpl::RenderThreadMain), this);
 
 	return true;
@@ -54,7 +54,7 @@ void SRenderModuleImpl::Clear() noexcept
 	}
 
 	{
-		SModuleManager::Get().UnloadModule(L"RDIModule");
+		SModuleManager::Get().UnloadModule("RDIModule");
 		GRenderModuleImpl = nullptr;
 	}
 }
@@ -142,7 +142,7 @@ void SRenderModuleImpl::EndFrame_RenderThread() noexcept
 
 void SRenderModuleImpl::RenderThreadMain() noexcept
 {
-	Thread::SetCurrentThreadName(L"渲染线程");
+	Thread::SetCurrentThreadName(u8"渲染线程");
 
 	Init_RenderThread();
 	while (mRequireExit[GetFrameInfoIndex_RenderThread()] == false)

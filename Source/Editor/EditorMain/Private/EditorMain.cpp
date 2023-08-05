@@ -18,4 +18,4 @@ private:
 
 };
 
-REGIST_MODULE(L"EditorModule", SEditorModuleImpl)
+REGIST_MODULE("EditorModule", SEditorModuleImpl)

@@ -143,7 +143,7 @@ REGIST_ENUM_FLAG(EPixelFormatFlag)
 
 struct SPixelFormatMeta
 {
-	std::wstring_view mPixelFormatName;
+	std::string_view mPixelFormatName;
 	uint16_t mBlockSizeX = 0;
 	uint16_t mBlockSizeY = 0;
 	uint16_t mBlockSizeZ = 0;

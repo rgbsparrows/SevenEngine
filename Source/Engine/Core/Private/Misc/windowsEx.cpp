@@ -1,9 +1,10 @@
 #include "Core/Misc/Thread.h"
+#include "Core/Misc/Localize.h"
 #include "Core/Misc/windowsEx.h"
 
 #include <thread>
 
-std::wstring GetHResultMessage(HRESULT _hresult) noexcept
+std::string GetHResultMessage(HRESULT _hresult) noexcept
 {
 	wchar_t msgBuffer[512];
 
@@ -15,7 +16,7 @@ std::wstring GetHResultMessage(HRESULT _hresult) noexcept
 		msgBuffer,
 		512, NULL);
 
-	return msgBuffer;
+	return Locale::ConvertWstringToString(msgBuffer);
 }
 
 void YieldForSingleObject(HANDLE _handle) noexcept

@@ -19,7 +19,7 @@ public:
 	void SetWindowFocus() noexcept;
 	bool GetWindowFocus() noexcept;
 	bool GetWindowMinimized() noexcept;
-	void SetWindowTitle(std::wstring_view _title) noexcept;
+	void SetWindowTitle(std::string_view _title) noexcept;
 	void SetWindowAlpha(float _alpha) noexcept;
 
 	void FlushImguiDrawData() noexcept;

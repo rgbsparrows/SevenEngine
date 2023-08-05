@@ -6,14 +6,14 @@
 
 struct SCommandLine
 {
-	static const std::wstring& GetCommandLine() noexcept;
+	static const std::string& GetCommandLine() noexcept;
 
-	static bool HasArgument(std::wstring_view _key) noexcept
+	static bool HasArgument(std::string_view _key) noexcept
 	{
 		return GetRawArgumentValue(_key).first;
 	}
 
-	template<typename _type> NO_DISCARD_RETURN static auto GetArgumentValue(std::wstring_view _key, const _type& _defaultValue = _type()) noexcept
+	template<typename _type> NO_DISCARD_RETURN static auto GetArgumentValue(std::string_view _key, const _type& _defaultValue = _type()) noexcept
 	{
 		using Type = _type;
 		auto rawValue = GetRawArgumentValue(_key);
@@ -25,5 +25,5 @@ struct SCommandLine
 		return res.first ? res : std::make_pair(false, _defaultValue);
 	}
 
-	NO_DISCARD_RETURN static std::pair<bool, std::wstring_view> GetRawArgumentValue(std::wstring_view _key) noexcept;
+	NO_DISCARD_RETURN static std::pair<bool, std::string_view> GetRawArgumentValue(std::string_view _key) noexcept;
 };

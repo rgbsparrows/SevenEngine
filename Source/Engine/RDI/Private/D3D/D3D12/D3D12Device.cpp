@@ -955,9 +955,11 @@ bool SD3D12Device::CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shade
 
 	for (size_t i = 0; i != _shaderMacro->mDefinedMacro.size(); ++i)
 	{
-		std::wstring_view currentMacro = _shaderMacro->mDefinedMacro[i];
-		std::string macro = Locale::ConvertWstringToString(currentMacro, Locale::ECodePage::ACP);
-		strcpy_s(macroBuffer[i], 128, macro.c_str());
+		std::string_view macro = _shaderMacro->mDefinedMacro[i];
+
+		for (size_t j = 0; j != macro.size(); ++j)
+			macroBuffer[i][j] = macro[j];
+		macroBuffer[i][macro.size()] = '\0';
 
 		shaderMacro[i].Name = macroBuffer[i];
 		shaderMacro[i].Definition = nullptr;
@@ -996,17 +998,17 @@ void SD3D12Device::GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _error
 	}
 
 	std::string compiledError = reinterpret_cast<const char*>(_errorBlob->GetBufferPointer());
-	_errorInfo->mErrorString = Locale::ConvertStringToWstring(compiledError, Locale::ECodePage::ACP);
-	const wchar_t* errorStr = _errorInfo->mErrorString.c_str();
+	_errorInfo->mErrorString = compiledError;
+	const char* errorStr = _errorInfo->mErrorString.c_str();
 
 	size_t begin = 0;
 	while (true)
 	{
 		size_t end = _errorInfo->mErrorString.find_first_of(L'\n', begin);
-		if (end == std::wstring::npos)
+		if (end == std::string::npos)
 			break;
 
-		_errorInfo->mParsedErrorString.push_back(std::wstring_view(errorStr + begin, errorStr + end));
+		_errorInfo->mParsedErrorString.push_back(std::string_view(errorStr + begin, errorStr + end));
 		begin = end + 1;
 	}
 }

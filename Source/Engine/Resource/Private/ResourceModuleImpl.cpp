@@ -21,7 +21,7 @@ SResourceModuleImpl* GetResourceModuleImpl() noexcept
 	return GResourceModuleImpl;
 }
 
-REGIST_MODULE(L"ResourceModule", SResourceModuleImpl)
+REGIST_MODULE("ResourceModule", SResourceModuleImpl)
 
 bool SResourceModuleImpl::Init() noexcept
 {

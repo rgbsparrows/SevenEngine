@@ -131,7 +131,7 @@ void SUIWorldContentWindow::OnGui() noexcept
 				smr->SetVertex(v2, 2);
 				smr->SetVertex(v3, 3);
 
-				GetResourceModule()->CreateResource(smr, L"Engine/Content/DefaultResource/a.mesh");
+				GetResourceModule()->CreateResource(smr, "Engine/Content/DefaultResource/a.mesh");
 				smr->Release();
 			}
 

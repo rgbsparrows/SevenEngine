@@ -19,7 +19,7 @@ __interface IRDICommandQueue;
 __interface IRDIFactory
 {
 	const SRDIFutureSupport& GetFutureSupport() noexcept;
-	std::wstring_view GetFactoryDesc() noexcept;
+	std::string_view GetFactoryDesc() noexcept;
 
 	bool Create() noexcept;
 	void Release() noexcept;

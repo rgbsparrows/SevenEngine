@@ -15,7 +15,7 @@ void SModuleManager::Clear() noexcept
 	}
 }
 
-bool SModuleManager::LoadModule(std::wstring_view _moduleName) noexcept
+bool SModuleManager::LoadModule(std::string_view _moduleName) noexcept
 {
 	SModuleInfo* seModule = GetModuleInfo(_moduleName);
 
@@ -33,7 +33,7 @@ bool SModuleManager::LoadModule(std::wstring_view _moduleName) noexcept
 	return true;
 }
 
-void SModuleManager::UnloadModule(std::wstring_view _moduleName) noexcept
+void SModuleManager::UnloadModule(std::string_view _moduleName) noexcept
 {
 	SModuleInfo* seModule = GetModuleInfo(_moduleName);
 
@@ -49,7 +49,7 @@ void SModuleManager::UnloadModule(std::wstring_view _moduleName) noexcept
 	seModule->mRefCount--;
 }
 
-ModuleDetail::SModuleRegister::SModuleRegister(std::wstring_view _moduleName, IModuleInterface* (*_moduleCreateFunc)() noexcept) noexcept
+ModuleDetail::SModuleRegister::SModuleRegister(std::string_view _moduleName, IModuleInterface* (*_moduleCreateFunc)() noexcept) noexcept
 {
 	SModuleManager::Get().RegistModule(_moduleName, _moduleCreateFunc);
 }

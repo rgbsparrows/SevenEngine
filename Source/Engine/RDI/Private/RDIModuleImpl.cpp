@@ -14,7 +14,7 @@ SRDIModuleImpl* GetRDIModuleImpl() noexcept
 	return GRDIModuleImpl;
 }
 
-REGIST_MODULE(L"RDIModule", SRDIModuleImpl)
+REGIST_MODULE("RDIModule", SRDIModuleImpl)
 
 
 bool SRDIModuleImpl::Init() noexcept

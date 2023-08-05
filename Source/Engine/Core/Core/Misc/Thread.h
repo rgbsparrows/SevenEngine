@@ -11,7 +11,7 @@ namespace Thread
 	void SetGameThreadId(std::thread::id _threadId) noexcept;
 	bool IsRenderThread(std::thread::id _threadId) noexcept;
 	void SetRenderThread(std::thread::id _threadId) noexcept;
-	void SetCurrentThreadName(std::wstring_view _threadName) noexcept;
+	void SetCurrentThreadName(std::string_view _threadName) noexcept;
 
 	constexpr size_t GetFixedThreadCount() noexcept { return 2; } // Game and Render
 	size_t GetMaxMinorThreadCount() noexcept;

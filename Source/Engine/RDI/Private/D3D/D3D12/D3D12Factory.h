@@ -22,7 +22,7 @@ public:
 
 public:
 	const SRDIFutureSupport& GetFutureSupport() noexcept { return mFutureSupport; }
-	std::wstring_view GetFactoryDesc() noexcept { return L"D3D12 RDI"; }
+	std::string_view GetFactoryDesc() noexcept { return "D3D12 RDI"; }
 
 	bool Create() noexcept override { return Init(); }
 	TODO("Release操作")

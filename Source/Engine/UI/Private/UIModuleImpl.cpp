@@ -1,4 +1,4 @@
-#include "UIModuleImpl.h"
+Ôªø#include "UIModuleImpl.h"
 #include "Core/Util/Assert.h"
 #include "UI/Imgui/imgui.h"
 #include "Core/Clock/Clock.h"
@@ -28,7 +28,7 @@ SUIModuleImpl* GetUIModuleImpl() noexcept
 	return GUIModuleImpl;
 }
 
-REGIST_MODULE(L"UIModule", SUIModuleImpl)
+REGIST_MODULE("UIModule", SUIModuleImpl)
 
 bool SUIModuleImpl::Init() noexcept
 {
@@ -43,7 +43,7 @@ bool SUIModuleImpl::Init() noexcept
 
 void SUIModuleImpl::Clear() noexcept
 {
-	TODO("«Â¿ÌImgui");
+	TODO("Ê∏ÖÁêÜImgui");
 	//ClearImgui();
 
 	UnregistWindowClass();
@@ -59,7 +59,7 @@ void SUIModuleImpl::OnGUI() noexcept
 
 	if (mIsMainWindowOpen)
 	{
-		std::string str = std::format("Seven Engine FPS : {0} ###MainWindow", 1.F / SClock::Get().GetAbsoluteDeltaTime());
+		std::string str = std::format(u8"SevenEngine FPS : {0} ###MainWindow", 1.F / SClock::Get().GetAbsoluteDeltaTime());
 		ImGui::Begin(str.c_str(), &mIsMainWindowOpen, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MainWindow | ImGuiWindowFlags_MenuBar);
 		ImGui::DockSpace(ImGui::GetID("MainDockSpace"));
 		ImGui::End();
@@ -107,7 +107,7 @@ void SUIModuleImpl::OnGUI() noexcept
 	ImguiEndFrame();
 }
 
-void SUIModuleImpl::AddWindow(IUIWindowInterface* _window, const std::wstring& _windowTag) noexcept
+void SUIModuleImpl::AddWindow(IUIWindowInterface* _window, const std::string& _windowTag) noexcept
 {
 	if (_windowTag.empty() == false)
 	{
@@ -120,7 +120,7 @@ void SUIModuleImpl::AddWindow(IUIWindowInterface* _window, const std::wstring& _
 	}
 }
 
-IUIWindowInterface* SUIModuleImpl::GetWindowByTag(const std::wstring& _windowTag) noexcept
+IUIWindowInterface* SUIModuleImpl::GetWindowByTag(const std::string& _windowTag) noexcept
 {
 	auto it = mUIWindows.find(_windowTag);
 
@@ -320,7 +320,7 @@ void SUIModuleImpl::InitImguiCallBack() noexcept
 	ImGui::GetPlatformIO().Platform_SetWindowTitle = [](ImGuiViewport* _viewport, const char* _title)
 	{
 		SUIInternalWindow* window = reinterpret_cast<SUIInternalWindow*>(_viewport->PlatformUserData);
-		window->SetWindowTitle(Locale::ConvertStringToWstring(_title));
+		window->SetWindowTitle(_title);
 	};
 
 	ImGui::GetPlatformIO().Platform_SetWindowAlpha = [](ImGuiViewport* _viewport, float _alpha)
@@ -449,10 +449,10 @@ void SUIModuleImpl::RegistWindowClass() noexcept
 {
 	std::filesystem::path iconPath;
 	if (SProgramConfiguation::IsWithProject())
-		iconPath = SBasicPath::GetProjectPath() / L"Game.ico";
+		iconPath = SBasicPath::GetProjectPath() / "Game.ico";
 
 	if (std::filesystem::exists(iconPath) == false)
-		iconPath = SBasicPath::GetEnginePath() / L"RgbSparrows.ico";
+		iconPath = SBasicPath::GetEnginePath() / "RgbSparrows.ico";
 
 	HANDLE icon = LoadImageW(::GetModuleHandleW(nullptr), iconPath.c_str(), IMAGE_ICON, 0, 0, LR_LOADFROMFILE);
 	mIcon = static_cast<HICON>(icon);

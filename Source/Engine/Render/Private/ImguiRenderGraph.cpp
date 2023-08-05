@@ -104,15 +104,15 @@ void RImguiRenderGraph::Init(SRenderContext& _renderContext) noexcept
 
 	SRDIVertexInputElememt inputLayoutElement[3];
 
-	inputLayoutElement[0].mSemanticName = L"POSITION";
+	inputLayoutElement[0].mSemanticName = "POSITION";
 	inputLayoutElement[0].mFormat = ERDIPixelFormat::R32G32_FLOAT;
 	inputLayoutElement[0].mAlignedByteOffset = 0;
 
-	inputLayoutElement[1].mSemanticName = L"UV";
+	inputLayoutElement[1].mSemanticName = "UV";
 	inputLayoutElement[1].mFormat = ERDIPixelFormat::R32G32_FLOAT;
 	inputLayoutElement[1].mAlignedByteOffset = 8;
 
-	inputLayoutElement[2].mSemanticName = L"COLOR";
+	inputLayoutElement[2].mSemanticName = "COLOR";
 	inputLayoutElement[2].mFormat = ERDIPixelFormat::R8G8B8A8_UNORM;
 	inputLayoutElement[2].mAlignedByteOffset = 16;
 

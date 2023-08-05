@@ -21,37 +21,37 @@ namespace StringParserDetail
 				Error, 10,       11,    12,    13,    14,    15																	//0x60-0x6f('`' - 'f')
 			};
 
-			if (_character >= L'0' && _character <= L'f') return map[_character - L'0'];
+			if (_character >= '0' && _character <= 'f') return map[_character - '0'];
 			return Error;
 		}
 
-		bool operator()(std::wstring_view _str, IntType& _value) noexcept
+		bool operator()(std::string_view _str, IntType& _value) noexcept
 		{
 			IntType valueSignal = 1;
-			if (_str.size() >= 1 && _str[0] == L'-')
+			if (_str.size() >= 1 && _str[0] == '-')
 			{
 				if (IsUnsigned) return false;
 				else valueSignal = -1;
 				_str.remove_prefix(1);
 			}
-			else if (_str.size() >= 1 && _str[0] == L'+')
+			else if (_str.size() >= 1 && _str[0] == '+')
 			{
 				valueSignal = 1; 
 				_str.remove_prefix(1);
 			}
 
 			IntType numberSystem = 0;
-			if (_str.size() >= 2 && _str[0] == L'0' && (_str[1] == L'X' || _str[1] == L'x'))
+			if (_str.size() >= 2 && _str[0] == '0' && (_str[1] == 'X' || _str[1] == 'x'))
 			{
 				numberSystem = 16;
 				_str.remove_prefix(2);
 			}
-			if (_str.size() >= 2 && _str[0] == L'0' && (_str[1] == L'B' || _str[1] == L'b'))
+			if (_str.size() >= 2 && _str[0] == '0' && (_str[1] == 'B' || _str[1] == 'b'))
 			{
 				numberSystem = 2;
 				_str.remove_prefix(2);
 			}
-			else if (_str.size() >= 1 && _str[0] == L'0')
+			else if (_str.size() >= 1 && _str[0] == '0')
 			{
 				numberSystem = 8;
 				_str.remove_prefix(1);

@@ -9,7 +9,7 @@
 #include <functional>
 #include "Thread.h"
 
-using STaskIdentify = THandleType<CalcStrHash(L"STaskHandle"), uint64_t>;
+using STaskIdentify = THandleType<CalcStrHash("STaskHandle"), uint64_t>;
 
 struct STask
 {

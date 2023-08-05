@@ -91,7 +91,7 @@ SD3D12DescriptorHeapRange* SD3D12ShaderVisibleDescriptorHeap::AllocateDescriptor
 {
 	uint64_t srvUavStart = mSrvUavDescriptorAlloctorHelper.AllocateSlotArray(0ull + _srvDescriptorCount + _uavDescriptorCount);
 
-	CHECK(srvUavStart != SCircularSlotArrayAllocatorHelper::ErrorSlot && L"描述符堆中没有充足的空间以为新资源分配描述符");
+	CHECK(srvUavStart != SCircularSlotArrayAllocatorHelper::ErrorSlot && u8"描述符堆中没有充足的空间以为新资源分配描述符");
 
 	SD3D12DescriptorHeapRange descriptorHeapRange;
 	descriptorHeapRange.Init(srvUavStart, _srvDescriptorCount, _uavDescriptorCount, this);
@@ -103,7 +103,7 @@ SD3D12SamplerHeapRange* SD3D12ShaderVisibleDescriptorHeap::AllocateSamplerHeapRa
 {
 	uint64_t samplerViewStart = mSamplerViewAlloctorHelper.AllocateSlotArray(_samplerViewDescriptorCount);
 
-	CHECK(samplerViewStart != SCircularSlotArrayAllocatorHelper::ErrorSlot && L"Sampler描述符堆中没有充足的空间以为新资源分配描述符");
+	CHECK(samplerViewStart != SCircularSlotArrayAllocatorHelper::ErrorSlot && u8"Sampler描述符堆中没有充足的空间以为新资源分配描述符");
 
 	SD3D12SamplerHeapRange descriptorHeapRange;
 	descriptorHeapRange.Init(samplerViewStart, _samplerViewDescriptorCount, this);

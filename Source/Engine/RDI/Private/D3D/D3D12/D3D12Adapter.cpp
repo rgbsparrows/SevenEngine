@@ -1,4 +1,5 @@
 #include "D3D/D3DUtil.h"
+#include "Core/Misc/Localize.h"
 #include "D3D/D3D12/D3D12Adapter.h"
 
 void SD3D12Adapter::Init(IDXGIAdapter* _nativePtr) noexcept
@@ -12,7 +13,7 @@ void SD3D12Adapter::Init(IDXGIAdapter* _nativePtr) noexcept
 		DXGI_ADAPTER_DESC desc;
 		GetNativePtr()->GetDesc(&desc);
 
-		mDesc.mDescription = desc.Description;
+		mDesc.mDescription = Locale::ConvertWstringToString(desc.Description);
 		mDesc.mDedicatedVideoMemory = desc.DedicatedVideoMemory;
 		mDesc.mDedicatedSystemMemory = desc.DedicatedSystemMemory;
 		mDesc.mSharedSystemMemory = desc.SharedSystemMemory;

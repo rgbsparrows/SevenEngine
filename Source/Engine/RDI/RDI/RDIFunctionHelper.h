@@ -31,8 +31,8 @@ struct SRDIFutureSupport
 
 struct SRDIErrorInfo
 {
-	std::wstring mErrorString;
-	std::vector<std::wstring_view> mParsedErrorString;
+	std::string mErrorString;
+	std::vector<std::string_view> mParsedErrorString;
 };
 
 #pragma endregion
@@ -53,7 +53,7 @@ enum class ERDICommandListType
 
 struct SRDIAdapterDesc
 {
-	std::wstring_view mDescription;
+	std::string_view mDescription;
 	uint64_t mDedicatedVideoMemory = 0;
 	uint64_t mDedicatedSystemMemory = 0;
 	uint64_t mSharedSystemMemory = 0;
@@ -65,7 +65,7 @@ struct SRDIAdapterDesc
 
 struct SRDIOutputDesc
 {
-	std::wstring_view mDeviceName;
+	std::string_view mDeviceName;
 	Math::SIntRect mDesktopCoordinates;
 	bool mAttachedToDesktop = false;
 };
@@ -386,7 +386,7 @@ struct SRDISamplerResourceDesc
 //尽可能的让信息储存在Shader/材质文件本身当中，以排除掉由程序额外指定参数对代码阅读所造成的困扰，所以这里剔除掉宏参数，只保留宏本身
 struct SRDIShaderMacro
 {
-	std::vector<std::wstring_view> mDefinedMacro;
+	std::vector<std::string_view> mDefinedMacro;
 };
 
 #pragma endregion
@@ -486,7 +486,7 @@ struct SRDIRootSignatureDesc
 
 struct SRDIVertexInputElememt
 {
-	std::wstring_view mSemanticName;
+	std::string_view mSemanticName;
 	ERDIPixelFormat mFormat;
 	uint32_t mAlignedByteOffset;
 };

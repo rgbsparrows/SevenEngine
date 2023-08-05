@@ -8,7 +8,7 @@
 
 __interface IClassObjectInterface;
 
-using SClassIdentifier = THandleType<CalcStrHash(L"SClassIdentifier")>;
+using SClassIdentifier = THandleType<CalcStrHash("SClassIdentifier")>;
 
 namespace ClassObjectDetail
 {
@@ -18,8 +18,8 @@ namespace ClassObjectDetail
 __interface IClassObjectInterface
 {
 	SClassIdentifier GetClassHash()const noexcept;
-	std::wstring_view GetClassFullName()const noexcept;
-	std::wstring_view GetClassShortName()const noexcept;
+	std::string_view GetClassFullName()const noexcept;
+	std::string_view GetClassShortName()const noexcept;
 	size_t GetClassSize()const noexcept;
 	size_t GetClassAlign()const noexcept;
 	bool IsAbstractClass()const noexcept;
@@ -52,8 +52,8 @@ public:
 	constexpr static bool IsAncestorClass = std::is_void_v<BaseClass>;
 
 	static constexpr SClassIdentifier StaticGetClassHash() noexcept { return TTypeHash<Type>; }
-	static constexpr std::wstring_view StaticGetClassFullName() noexcept { return TFullTypeName<Type>; }
-	static constexpr std::wstring_view StaticGetClassShortName() noexcept { return TShortTypeName<Type>; }
+	static constexpr std::string_view StaticGetClassFullName() noexcept { return TFullTypeName<Type>; }
+	static constexpr std::string_view StaticGetClassShortName() noexcept { return TShortTypeName<Type>; }
 	static constexpr size_t StaticGetClassSize() noexcept { return sizeof(Type); }
 	static constexpr size_t StaticGetClassAlign() noexcept { return alignof(Type); }
 	static constexpr bool StaticIsAbstractClass() noexcept { return std::is_abstract_v<Type>; }
@@ -81,8 +81,8 @@ public:
 	TClassObject() { ClassObjectDetail::RegistClassObject(StaticGetClassHash(), this); }
 
 	SClassIdentifier GetClassHash()const noexcept override { return StaticGetClassHash(); }
-	std::wstring_view GetClassFullName()const noexcept override { return StaticGetClassFullName(); }
-	std::wstring_view GetClassShortName()const noexcept override { return StaticGetClassShortName(); }
+	std::string_view GetClassFullName()const noexcept override { return StaticGetClassFullName(); }
+	std::string_view GetClassShortName()const noexcept override { return StaticGetClassShortName(); }
 	size_t GetClassSize()const noexcept override { return StaticGetClassSize(); }
 	size_t GetClassAlign()const noexcept override { return StaticGetClassAlign(); }
 	bool IsAbstractClass()const noexcept override { return StaticIsAbstractClass(); }

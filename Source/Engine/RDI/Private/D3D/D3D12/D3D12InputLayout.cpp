@@ -9,7 +9,7 @@ void SD3D12InputLayout::Init(const SRDIVertexInputLayoutDesc* _desc, SD3D12Devic
 
 	for (auto& _ele : _desc->mInputElements)
 	{
-		mSemanticNames.push_back(Locale::ConvertWstringToString(_ele.mSemanticName, Locale::ECodePage::ACP));
+		mSemanticNames.push_back(std::string(_ele.mSemanticName));
 
 		D3D12_INPUT_ELEMENT_DESC elementDesc;
 		elementDesc.SemanticName = nullptr;

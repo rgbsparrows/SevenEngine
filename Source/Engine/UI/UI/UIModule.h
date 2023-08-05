@@ -10,8 +10,8 @@ __interface IUIModuleInterface : IModuleInterface
 
 	void OnGUI() noexcept;
 
-	void AddWindow(IUIWindowInterface* _window, const std::wstring& _windowTag = std::wstring()) noexcept;
-	IUIWindowInterface* GetWindowByTag(const std::wstring& _windowTag) noexcept;
+	void AddWindow(IUIWindowInterface* _window, const std::string& _windowTag = std::string()) noexcept;
+	IUIWindowInterface* GetWindowByTag(const std::string& _windowTag) noexcept;
 };
 
 IUIModuleInterface* GetUIModule() noexcept;

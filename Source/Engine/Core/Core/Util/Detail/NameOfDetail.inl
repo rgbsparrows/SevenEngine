@@ -10,31 +10,31 @@
 namespace NameOfDetail
 {
 	template<typename _type>
-	NO_DISCARD_RETURN constexpr std::wstring_view GetFullTypeName() noexcept
+	NO_DISCARD_RETURN constexpr std::string_view GetFullTypeName() noexcept
 	{
-		std::wstring_view funcsig = MAKE_WIDE(__FUNCSIG__);
+		std::string_view funcsig = __FUNCSIG__;
 		funcsig.remove_prefix(110);
 		funcsig.remove_suffix(16);
-		size_t lastPos = funcsig.find_last_of(L' ');
-		if (lastPos != std::wstring_view::npos && !funcsig.contains(L'<'))
+		size_t lastPos = funcsig.find_last_of(' ');
+		if (lastPos != std::string_view::npos && !funcsig.contains('<'))
 			funcsig.remove_prefix(lastPos + 1);
 		return funcsig;
 	}
 
 	template<typename _type>
-	NO_DISCARD_RETURN constexpr std::wstring_view GetShortTypeName() noexcept
+	NO_DISCARD_RETURN constexpr std::string_view GetShortTypeName() noexcept
 	{
-		std::wstring_view typeName = GetFullTypeName<_type>();
-		if (!std::is_integral_v<_type> && !std::is_floating_point_v<_type> && !typeName.contains(L'<'))
+		std::string_view typeName = GetFullTypeName<_type>();
+		if (!std::is_integral_v<_type> && !std::is_floating_point_v<_type> && !typeName.contains('<'))
 		{
-			size_t lastPos = typeName.find_last_of(L':');
-			if (lastPos != std::wstring_view::npos)
+			size_t lastPos = typeName.find_last_of(':');
+			if (lastPos != std::string_view::npos)
 				typeName.remove_prefix(lastPos + 1);
 		}
 		return typeName;
 	}
 
-	NO_DISCARD_RETURN constexpr uint64_t CalcStrHash(std::wstring_view _str) noexcept
+	NO_DISCARD_RETURN constexpr uint64_t CalcStrHash(std::string_view _str) noexcept
 	{
 		constexpr uint64_t FnvPrime = 1099511628211ULL;
 		constexpr uint64_t FnvOffsetBasis = 14695981039346656037ULL;

@@ -9,7 +9,7 @@
 
 struct SD3D12OutputDesc
 {
-	std::wstring mDeviceName;
+	std::string mDeviceName;
 	Math::SIntRect mDesktopCoordinates;
 	bool mAttachedToDesktop = false;
 };

@@ -19,8 +19,8 @@ public:
 
 	void OnGUI() noexcept override;
 
-	void AddWindow(IUIWindowInterface* _window, const std::wstring& _windowTag) noexcept override;
-	IUIWindowInterface* GetWindowByTag(const std::wstring& _windowTag) noexcept override;
+	void AddWindow(IUIWindowInterface* _window, const std::string& _windowTag) noexcept override;
+	IUIWindowInterface* GetWindowByTag(const std::string& _windowTag) noexcept override;
 
 private:
 	void InitImgui() noexcept;
@@ -49,7 +49,7 @@ private:
 	bool mIsMainWindowOpen = true;
 	std::vector<SUIInternalWindow*> mAdditionWindow;
 
-	std::map<std::wstring, IUIWindowInterface*> mUIWindows;
+	std::map<std::string, IUIWindowInterface*> mUIWindows;
 	std::vector<IUIWindowInterface*> mAnonymousUIWindows;
 
 	RRenderProxy<RTexture2D>* mFontTexture = nullptr;

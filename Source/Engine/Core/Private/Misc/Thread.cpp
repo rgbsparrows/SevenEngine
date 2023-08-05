@@ -1,5 +1,6 @@
 #include "Core/Math/Math.h"
 #include "Core/Misc/Thread.h"
+#include "Core/Misc/Localize.h"
 
 std::thread::id GGameThreadId;
 std::thread::id GRenderThreadId;
@@ -26,9 +27,9 @@ namespace Thread
 		GRenderThreadId = _threadId;
 	}
 
-	void SetCurrentThreadName(std::wstring_view _threadName) noexcept
+	void SetCurrentThreadName(std::string_view _threadName) noexcept
 	{
-		::SetThreadDescription(GetCurrentThread(), std::wstring(_threadName).c_str());
+		::SetThreadDescription(GetCurrentThread(), Locale::ConvertStringToWstring(_threadName).c_str());
 	}
 
 	size_t GetMaxMinorThreadCount() noexcept

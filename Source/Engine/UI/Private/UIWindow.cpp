@@ -1,8 +1,9 @@
 #include "UIWindow.h"
-
-#include <format>
+#include "Core/Misc/Localize.h"
 #include "Render/RenderModule.h"
 #include "Render/RenderCommandList.h"
+
+#include <format>
 
 void SUIInternalWindow::Init(ImGuiViewport* _viewport)
 {
@@ -10,7 +11,7 @@ void SUIInternalWindow::Init(ImGuiViewport* _viewport)
 	DWORD wndExStyle = 0;
 	SUIInternalWindow* parrentWindow = nullptr;
 	Math::SFloatRect windowRect;
-	std::wstring windowName;
+	std::string windowName;
 
 	if (ImGui::GetMainViewport() == _viewport)
 	{
@@ -20,7 +21,7 @@ void SUIInternalWindow::Init(ImGuiViewport* _viewport)
 		windowRect.mRightDwon[0] = 1280 + 100;
 		windowRect.mRightDwon[1] = 800 + 100;
 
-		windowName = L"SevenEngine";
+		windowName = u8"SevenEngine";
 
 		wndStyle = WS_POPUP;
 		wndExStyle = WS_EX_APPWINDOW;
@@ -52,7 +53,7 @@ void SUIInternalWindow::Init(ImGuiViewport* _viewport)
 		windowRect.mRightDwon[0] = _viewport->Pos.x + _viewport->Size.x;
 		windowRect.mRightDwon[1] = _viewport->Pos.y + _viewport->Size.y;
 
-		windowName = std::format(L"SevenEngine [{:p}]", static_cast<void*>(this));
+		windowName = std::format("SevenEngine [{:p}]", static_cast<void*>(this));
 	}
 
 	RECT rect = {
@@ -65,11 +66,11 @@ void SUIInternalWindow::Init(ImGuiViewport* _viewport)
 	::AdjustWindowRectEx(&rect, wndStyle, FALSE, wndExStyle);
 
 	HWND parrentHwnd = parrentWindow == nullptr ? nullptr : parrentWindow->GetHwnd();
-
+	
 	mHwnd = ::CreateWindowExW(
 		wndExStyle,
 		L"Seven Engine Window",
-		windowName.c_str(),
+		Locale::ConvertStringToWstring(windowName).c_str(),
 		wndStyle,
 		rect.left,
 		rect.top,
@@ -185,10 +186,9 @@ bool SUIInternalWindow::GetWindowMinimized() noexcept
 	return ::IsIconic(mHwnd) != FALSE;
 }
 
-void SUIInternalWindow::SetWindowTitle(std::wstring_view _title) noexcept
+void SUIInternalWindow::SetWindowTitle(std::string_view _title) noexcept
 {
-	std::wstring title(_title.begin(), _title.end());
-	::SetWindowTextW(mHwnd, title.c_str());
+	::SetWindowTextW(mHwnd, Locale::ConvertStringToWstring(_title).c_str());
 }
 
 void SUIInternalWindow::SetWindowAlpha(float _alpha) noexcept

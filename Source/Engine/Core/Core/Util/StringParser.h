@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Misc/Localize.h"
 #include "Detail/StringParserDetail.inl"
 
 #include <string>
@@ -10,13 +11,13 @@ template<typename _type>
 struct TStringParser
 {
 	using Type = _type;
-	bool operator()(std::wstring_view _str, Type& _value) noexcept = delete;
+	bool operator()(std::string_view _str, Type& _value) noexcept = delete;
 };
 
 template<>
-struct TStringParser<std::wstring>
+struct TStringParser<std::string>
 {
-	bool operator()(std::wstring_view _str, std::wstring_view& _value) noexcept
+	bool operator()(std::string_view _str, std::string_view& _value) noexcept
 	{
 		_value = _str;
 		return true;
@@ -24,9 +25,19 @@ struct TStringParser<std::wstring>
 };
 
 template<>
+struct TStringParser<std::wstring>
+{
+	bool operator()(std::string_view _str, std::wstring& _value) noexcept
+	{
+		_value = Locale::ConvertStringToWstring(_str);
+		return true;
+	}
+};
+
+template<>
 struct TStringParser<wchar_t>
 {
-	bool operator()(std::wstring_view _str, wchar_t& _value) noexcept
+	bool operator()(std::string_view _str, wchar_t& _value) noexcept
 	{
 		if (_str.size() == 1)
 		{
@@ -40,21 +51,21 @@ struct TStringParser<wchar_t>
 template<>
 struct TStringParser<bool>
 {
-	bool operator()(std::wstring_view _str, bool& _value) noexcept
+	bool operator()(std::string_view _str, bool& _value) noexcept
 	{
-		if (_str == L"true") _value = true;
-		else if (_str == L"false") _value = false;
-		else return false;
-		return true;
+		if (_str == "true") _value = true;
+		else if (_str == "false") _value = false;
+		
+		return false;
 	}
 };
 
 template<>
 struct TStringParser<std::filesystem::path>
 {
-	bool operator()(std::wstring_view _str, std::filesystem::path& _value) noexcept
+	bool operator()(std::string_view _str, std::filesystem::path& _value) noexcept
 	{
-		_value = _str;
+		_value = Locale::ConvertStringToWstring(_str);
 		return true;
 	}
 };

@@ -16,7 +16,7 @@ __interface IRDICommandQueue;
 __interface IRDICommandList;
 __interface IRDICommandAllocator;
 
-using SRenderTaskIdentify = THandleType<CalcStrHash(L"SRenderTaskIdentify"), uint64_t>;
+using SRenderTaskIdentify = THandleType<CalcStrHash("SRenderTaskIdentify"), uint64_t>;
 
 struct SRenderTask
 {

@@ -8,15 +8,15 @@
 
 struct SBasicPath
 {
-	static std::filesystem::path GetBinariesPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / L"Binaries" / SBuildConfiguation::GBuildConfig; }
+	static std::filesystem::path GetBinariesPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / "Binaries" / SBuildConfiguation::GBuildConfig; }
 
-	static std::filesystem::path GetConfigPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / L"Config"; }
+	static std::filesystem::path GetConfigPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / "Config"; }
 
-	static std::filesystem::path GetPluginPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / L"Plugins"; }
+	static std::filesystem::path GetPluginPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / "Plugins"; }
 
-	static std::filesystem::path GetShaderPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / L"Shaders"; }
+	static std::filesystem::path GetShaderPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / "Shaders"; }
 
-	static std::filesystem::path GetSourcePath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / L"Source"; }
+	static std::filesystem::path GetSourcePath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / "Source"; }
 
 	static std::filesystem::path GetEnginePath() noexcept { return SProgramConfiguation::GetEnginePath(); }
 
