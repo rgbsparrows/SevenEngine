@@ -1,18 +1,22 @@
 #include "Core/Util/Algorithm.h"
 #include "Core/Misc/ConfigFile.h"
 
-TSharedPtr<SConfigFile> SConfigFile::LoadConfigFile(const std::filesystem::path& _configFilePath) noexcept
-{
-	Erase(GConfigFiles, TWeakPtr<SConfigFile>());
+#include <fstream>
 
-	auto it = FindIf(GConfigFiles, [&](const TWeakPtr<SConfigFile>& _configFile) { return _configFile->GetConfigFilePath() == _configFilePath; });
+std::vector<std::weak_ptr<SConfigFile>> SConfigFile::GConfigFiles;
+
+std::shared_ptr<SConfigFile> SConfigFile::LoadConfigFile(const std::filesystem::path& _configFilePath) noexcept
+{
+	EraseIf(GConfigFiles, [](const std::weak_ptr<SConfigFile>& _configFile) { return _configFile.expired(); });
+
+	auto it = FindIf(GConfigFiles, [&](const std::weak_ptr<SConfigFile>& _configFile) { return _configFile.lock()->GetConfigFilePath() == _configFilePath; });
 
 	if (it != GConfigFiles.end()) return it->lock();
 
-	auto configFile = TWeakPtr<SConfigFile>(new SConfigFile(_configFilePath));
+	auto configFile = std::shared_ptr<SConfigFile>(new SConfigFile(_configFilePath));
 	GConfigFiles.push_back(configFile);
 
-	return configFile.lock();
+	return configFile;
 }
 
 bool SConfigFile::GetValue(const std::string& _category, const std::string& _key, int32_t& _value) const noexcept

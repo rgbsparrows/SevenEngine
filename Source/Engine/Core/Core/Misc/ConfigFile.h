@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/Misc/json.hpp"
+
 #include <map>
 #include <string>
 #include <filesystem>
@@ -7,7 +9,7 @@
 class SConfigFile
 {
 public:
-	static TSharedPtr<SConfigFile> LoadConfigFile(const std::filesystem::path& _configFile) noexcept;
+	static std::shared_ptr<SConfigFile> LoadConfigFile(const std::filesystem::path& _configFile) noexcept;
 
 	std::filesystem::path GetConfigFilePath() const noexcept {return mConfigFilePath; }
 
@@ -27,8 +29,7 @@ public:
 
 private:
 	SConfigFile(const std::filesystem::path& _configFile) noexcept;
-
 	std::filesystem::path mConfigFilePath;
 	nlohmann::json mConfigJsonData;
-	static std::vector<TWeakPtr<SConfigFile>> GConfigFiles;
+	static std::vector<std::weak_ptr<SConfigFile>> GConfigFiles;
 };
