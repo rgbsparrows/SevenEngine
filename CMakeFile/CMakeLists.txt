@@ -36,6 +36,8 @@ set(ENGINE_FILES)
 set(ENGINE_INCLUDE)
 set(ENGINE_DEBUG_LIB)
 set(ENGINE_RELEASE_LIB)
+set(ENGINE_DEBUG_DLL)
+set(ENGINE_RELEASE_DLL)
 
 file(GLOB_RECURSE srcFile ${ENGINE_DIR}/Source/*)
 file(GLOB_RECURSE shaderFile ${ENGINE_DIR}/Shaders/*)
@@ -53,18 +55,48 @@ foreach(includeDir ${srcDir})
     endif()
 endforeach(includeDir)
 
-foreach(sdk IN ${ENGINE_SDKS})
-    file(GLOB_RECURSE sdkFiles ${${sdk}_INCLUDE})
-    list(APPEND ENGINE_FILES ${sdkFiles})
-    list(APPEND ENGINE_INCLUDE ${sdkFiles})
-    list(APPEND ENGINE_DEBUG_LIB ${${sdk}_DEBUGLIB})
-    list(APPEND ENGINE_RELEASE_LIB ${${sdk}_RELEASELIB})
-endforeach()
+foreach(sdk ${ENGINE_SDKS})
+    if (DEFINED ${sdk}_INCLUDE)
+        file(GLOB_RECURSE sdkIncludeFiles ${${sdk}_INCLUDE}/*)
+        list(APPEND ENGINE_FILES ${sdkIncludeFiles})
+        list(APPEND ENGINE_INCLUDE ${${sdk}_INCLUDE})
+    endif()
+
+    if (DEFINED ${sdk}_SOURCE)
+        file(GLOB_RECURSE sdkSourceFiles ${${sdk}_SOURCE}/*)
+        list(APPEND ENGINE_FILES ${sdkSourceFiles})
+    endif()
+
+    if (DEFINED ${sdk}_DEBUGLIB)
+        list(APPEND ENGINE_DEBUG_LIB ${${sdk}_DEBUGLIB})
+    endif()
+    
+    if (DEFINED ${sdk}_RELEASELIB)
+        list(APPEND ENGINE_RELEASE_LIB ${${sdk}_RELEASELIB})
+    endif()
+
+    if (DEFINED ${sdk}_DEBUGDLL)
+        list(APPEND ENGINE_DEBUG_DLL ${${sdk}_DEBUGDLL})
+    endif()
+    
+    if (DEFINED ${sdk}_RELEASEDLL)
+        list(APPEND ENGINE_RELEASE_DLL ${${sdk}_RELEASEDLL})
+    endif()
+
+endforeach(sdk)
 
 add_executable(SevenEngine ${ENGINE_FILES})
 include_directories(SevenEngine ${ENGINE_INCLUDE})
 
-target_link_libraries(SevenEngine $<$<CONFIG:Debug>:${ENGINE_DEBUG_LIB}>$<$<CONFIG:Shipping>:${ENGINE_RELEASE_LIB}>$<$<CONFIG:Profile>:${ENGINE_RELEASE_LIB}>$<$<CONFIG:Test>:${ENGINE_RELEASE_LIB}>)
+target_link_directories(SevenEngine PRIVATE $<$<CONFIG:Debug>:${ENGINE_DEBUG_LIB}>$<$<CONFIG:Shipping>:${ENGINE_RELEASE_LIB}>$<$<CONFIG:Profile>:${ENGINE_RELEASE_LIB}>$<$<CONFIG:Test>:${ENGINE_RELEASE_LIB}>)
+
+foreach(dllDir $<$<CONFIG:Debug>:${ENGINE_DEBUG_DLL}>$<$<CONFIG:Shipping>:${ENGINE_RELEASE_DLL}>$<$<CONFIG:Profile>:${ENGINE_RELEASE_DLL}>$<$<CONFIG:Test>:${ENGINE_RELEASE_DLL}>)
+    add_custom_command(TARGET SevenEngine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${dllDir}
+            $<TARGET_FILE_DIR:SevenEngine>
+    )
+endforeach(dllDir)
 
 source_group(TREE ${ENGINE_DIR}/ FILES ${ENGINE_FILES} )
 
