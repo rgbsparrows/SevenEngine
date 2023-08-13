@@ -23,8 +23,8 @@
 // ImPlot v0.14
 
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "UI/Imgui/implot.h"
-#include "Imgui/implot_internal.h"
+#include "implot.h"
+#include "implot_internal.h"
 
 //-----------------------------------------------------------------------------
 // [SECTION] Macros and Defines

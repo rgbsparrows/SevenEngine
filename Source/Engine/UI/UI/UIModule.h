@@ -3,15 +3,29 @@
 
 __interface IUIWindowInterface;
 
-__interface IUIModule : IModuleInterface
+class IUIModule : public IModuleInterface
 {
-	bool Init() noexcept;
-	void Clear() noexcept;
+public:
+	template<std::derived_from<IUIWindowInterface> _uiWindowClass>
+	IUIWindowInterface* FindOrAddWindow(const std::string& _windowTag = std::string()) noexcept
+	{
+		using UIWindowClass = _uiWindowClass;
+		IUIWindowInterface* uiWindow = GetWindowByTag(_windowTag);
+		if (uiWindow == nullptr)
+		{
+			uiWindow = new UIWindowClass;
+			AddWindow(uiWindow, _windowTag);
+		}
+		return uiWindow;
+	}
 
-	void OnGUI() noexcept;
+	virtual bool Init() noexcept = 0;
+	virtual void Clear() noexcept = 0;
 
-	void AddWindow(IUIWindowInterface* _window, const std::string& _windowTag = std::string()) noexcept;
-	IUIWindowInterface* GetWindowByTag(const std::string& _windowTag) noexcept;
+	virtual void OnGUI() noexcept = 0;
+
+	virtual void AddWindow(IUIWindowInterface* _window, const std::string& _windowTag = std::string()) noexcept = 0;
+	virtual IUIWindowInterface* GetWindowByTag(const std::string& _windowTag) noexcept = 0;
 };
 
 IUIModule* GetUIModule() noexcept;

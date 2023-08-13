@@ -1,6 +1,4 @@
 ﻿#include "UIModuleImpl.h"
-#include "UI/Imgui/imgui.h"
-#include "UI/Imgui/implot.h"
 #include "Core/Util/Assert.h"
 #include "Core/Clock/Clock.h"
 #include "Core/Misc/Localize.h"
@@ -16,6 +14,9 @@
 #include "Core/Misc/PreWindowsApi.h"
 #include <XInput.h>
 #include "Core/Misc/PostWindowsApi.h"
+
+#include "imgui.h"
+#include "implot.h"
 
 static SUIModuleImpl* GUIModuleImpl = nullptr;
 
@@ -123,8 +124,7 @@ void SUIModuleImpl::AddWindow(IUIWindowInterface* _window, const std::string& _w
 IUIWindowInterface* SUIModuleImpl::GetWindowByTag(const std::string& _windowTag) noexcept
 {
 	auto it = mUIWindows.find(_windowTag);
-
-	return it->second;
+	return it == mUIWindows.end() ? nullptr : it->second;
 }
 
 void SUIModuleImpl::InitImgui() noexcept

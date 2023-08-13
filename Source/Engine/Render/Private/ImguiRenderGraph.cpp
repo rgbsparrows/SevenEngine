@@ -220,7 +220,7 @@ void RImguiRenderGraph::Render(std::vector<RRenderWindowInfo>& _renderWindowInfo
 		if (mDynamicVertexBufferList.size() <= i)
 			mDynamicVertexBufferList.push_back(RDynamicGPUBuffer());
 
-		if (mDynamicIndexBufferList[i].GetDesc().mBufferSize < drawData.mVertexBuffer.size() * sizeof(uint16_t))
+		if (mDynamicIndexBufferList[i].GetDesc().mBufferSize < drawData.mIndexBuffer.size() * sizeof(uint16_t))
 		{
 			_renderContext.SyncToGpuFrameEnd();
 

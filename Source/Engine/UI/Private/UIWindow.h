@@ -1,9 +1,9 @@
 #pragma once
 #include "Core/Math/Type.h"
-#include "UI/Imgui/imgui.h"
 #include "Core/Misc/windowsEx.h"
 #include "Render/RenderProxy/WindowInfo.h"
 
+#include "imgui.h"
 
 class SUIInternalWindow
 {

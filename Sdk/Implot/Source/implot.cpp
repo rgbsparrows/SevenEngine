@@ -123,8 +123,8 @@ You can read releases logs https://github.com/epezent/implot/releases for more d
 */
 
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "UI/Imgui/implot.h"
-#include "Imgui/implot_internal.h"
+#include "implot.h"
+#include "implot_internal.h"
 
 #include <stdlib.h>
 
