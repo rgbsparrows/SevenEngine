@@ -3,7 +3,7 @@
 
 __interface IUIWindowInterface;
 
-__interface IUIModuleInterface : IModuleInterface
+__interface IUIModule : IModuleInterface
 {
 	bool Init() noexcept;
 	void Clear() noexcept;
@@ -14,4 +14,4 @@ __interface IUIModuleInterface : IModuleInterface
 	IUIWindowInterface* GetWindowByTag(const std::string& _windowTag) noexcept;
 };
 
-IUIModuleInterface* GetUIModule() noexcept;
+IUIModule* GetUIModule() noexcept;

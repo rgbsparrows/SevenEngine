@@ -11,7 +11,7 @@
 #include <string>
 #include <map>
 
-class SUIModuleImpl : public IUIModuleInterface
+class SUIModuleImpl : public IUIModule
 {
 public:
 	bool Init() noexcept override;

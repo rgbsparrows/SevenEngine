@@ -7,8 +7,8 @@ class SEditorModuleImpl : public IModuleInterface
 public:
 	bool Init() noexcept override
 	{
-		SUIWorldContentWindow* worldContentWindow = new SUIWorldContentWindow;
-		GetUIModule()->AddWindow(worldContentWindow);
+		//SUIWorldContentWindow* worldContentWindow = new SUIWorldContentWindow;
+		//GetUIModule()->AddWindow(worldContentWindow);
 		return true;
 	}
 

@@ -19,7 +19,7 @@
 
 static SUIModuleImpl* GUIModuleImpl = nullptr;
 
-IUIModuleInterface* GetUIModule() noexcept
+IUIModule* GetUIModule() noexcept
 {
 	return GUIModuleImpl;
 }
