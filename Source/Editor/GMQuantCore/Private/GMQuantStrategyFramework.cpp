@@ -104,6 +104,20 @@ void SGMQuantStrategyContextImpl::on_schedule(const char*, const char*)
 	mCurrentStrategy->Schedule(this);
 }
 
+void SGMQuantStrategyContextImpl::on_backtest_finished(Indicator*)
+{
+	if (mCurrentStrategy == nullptr)
+		return;
+
+	unsubscribe("SHSE.000001", "tick");
+
+	mCurrentStrategy->Stop(this);
+	mCurrentStrategy->SetStrategyExecuteState(EStrategyExecuteState::Executed);
+
+	mCurrentStrategy = nullptr;
+	mIsBacktestMode = true;
+}
+
 void SGMQuantStrategyContextImpl::on_stop()
 {
 	if (mCurrentStrategy == nullptr)
@@ -113,6 +127,9 @@ void SGMQuantStrategyContextImpl::on_stop()
 
 	mCurrentStrategy->Stop(this);
 	mCurrentStrategy->SetStrategyExecuteState(EStrategyExecuteState::Executed);
+
+	mCurrentStrategy = nullptr;
+	mIsBacktestMode = true;
 }
 
 std::string SGMQuantStrategyContextImpl::FormatTime_yy_mm_dd_hh_mm_ss(std::chrono::system_clock::time_point _time) const noexcept

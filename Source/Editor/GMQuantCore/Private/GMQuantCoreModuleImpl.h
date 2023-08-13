@@ -16,7 +16,7 @@ public:
 	void Clear() noexcept override;
 
 	void StartupQuantitativeTerminal(const std::filesystem::path& _gmQuantTerminalPath) const noexcept override;
-	void InitQuantSystem(const std::string& _userToken) noexcept override;
+	void SetUserToken(const std::string& _userToken) noexcept override;
 	void ExecuteBacktestQuantStrategy(SQuantStrategyBase* _strategy, const std::string& _strategyTokenName, const SBacktestConfig& _backtestConfig) noexcept override;
 	void ExecuteRealtimeQuantStrategy(SQuantStrategyBase* _strategy, const std::string& _strategyTokenName) noexcept override;
 

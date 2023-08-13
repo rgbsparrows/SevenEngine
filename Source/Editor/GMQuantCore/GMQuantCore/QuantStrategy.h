@@ -23,9 +23,12 @@ class SQuantStrategyBase
 public:
 	EStrategyExecuteState GetStrategyExecuteState() const noexcept { return mExecuteState; }
 	void SetStrategyExecuteState(EStrategyExecuteState _state) noexcept { mExecuteState = _state; }
-	
+
 	bool IsRequireExit() const noexcept { return mRequireExit; }
 	void RequireExit() noexcept { mRequireExit = true; }
+
+	std::string GetDisplayName() const noexcept { return mDisplayName; }
+	void SetDisplayName(const std::string& _displayName) noexcept { mDisplayName = _displayName; }
 
 	void Init(IQuantStrategyContext* _context) noexcept
 	{
@@ -69,6 +72,18 @@ public:
 		OnGui();
 	}
 
+	void ParameterGui() noexcept
+	{
+		std::lock_guard lock(mMutex);
+		OnParameterGui();
+	}
+
+	void StatsGui() noexcept
+	{
+		std::lock_guard lock(mMutex);
+		OnStatsGui();
+	}
+
 public:
 	virtual std::vector<std::chrono::hh_mm_ss<std::chrono::seconds>> GetScheduleTimeList() const noexcept { return {}; }
 
@@ -79,8 +94,12 @@ public:
 
 	virtual void OnReset() noexcept {}
 	virtual void OnGui() noexcept {}
+	virtual void OnParameterGui() noexcept {}
+	virtual void OnStatsGui() noexcept {}
 
 private:
+	std::string mDisplayName;
+
 	std::atomic<EStrategyExecuteState> mExecuteState = EStrategyExecuteState::Unexecuted;
 	std::atomic_bool mRequireExit = false;
 	mutable std::mutex mMutex;

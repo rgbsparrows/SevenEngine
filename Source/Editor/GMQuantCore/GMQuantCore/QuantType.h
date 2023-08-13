@@ -28,3 +28,14 @@ struct SBacktestConfig
 	// ¸´È¨Ä£Ê½
 	EAdjustMode mAdjustMode = EAdjustMode::ADJUST_BACKWARD;
 };
+
+struct SBar
+{
+	std::chrono::system_clock::time_point mTime;
+	float mOpen = 0.f;
+	float mHigh = 0.f;
+	float mLow = 0.f;
+	float mClose = 0.f;
+	float mVolume = 0.f;
+	float mAmount = 0.f;
+};

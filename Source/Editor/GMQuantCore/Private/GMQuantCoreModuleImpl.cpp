@@ -29,6 +29,7 @@ bool SGMQuantCoreModuleImpl::Init() noexcept
 
 void SGMQuantCoreModuleImpl::Clear() noexcept
 {
+	mRequireExit = true;
 	if (mQuantThread.joinable())
 		mQuantThread.join();
 
@@ -37,10 +38,10 @@ void SGMQuantCoreModuleImpl::Clear() noexcept
 
 void SGMQuantCoreModuleImpl::StartupQuantitativeTerminal(const std::filesystem::path& _gmQuantTerminalPath) const noexcept
 {
-	ShellExecuteW(nullptr, L"open", _gmQuantTerminalPath.c_str(), nullptr, nullptr, FALSE);
+	ShellExecuteW(nullptr, L"open", std::format(L"\"{}\"", _gmQuantTerminalPath.c_str()).c_str(), nullptr, nullptr, TRUE);
 }
 
-void SGMQuantCoreModuleImpl::InitQuantSystem(const std::string& _userToken) noexcept
+void SGMQuantCoreModuleImpl::SetUserToken(const std::string& _userToken) noexcept
 {
 	std::lock_guard lock(mQuantTasksMutex);
 
@@ -83,6 +84,8 @@ void SGMQuantCoreModuleImpl::ExecuteRealtimeQuantStrategy(SQuantStrategyBase* _s
 
 void SGMQuantCoreModuleImpl::QuantThreadMain() noexcept
 {
+	Thread::SetCurrentThreadName(u8"量化线程");
+
 	SGMQuantStrategyContextImpl strategyFramework;
 
 	while (mRequireExit == false)
@@ -91,6 +94,7 @@ void SGMQuantCoreModuleImpl::QuantThreadMain() noexcept
 		{
 			std::lock_guard lock(mQuantTasksMutex);
 			quantTaskList = mQuantTaskList;
+			mQuantTaskList.clear();
 		}
 
 		for (auto& quantTask : quantTaskList)

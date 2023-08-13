@@ -27,6 +27,7 @@ public:
 	void on_init() override;
 	void on_tick(Tick*) override;
 	void on_schedule(const char*, const char*) override;
+	void on_backtest_finished(Indicator*) override;
 	void on_stop() override;
 	// End Strategy
 

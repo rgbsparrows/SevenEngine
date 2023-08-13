@@ -70,36 +70,51 @@ bool SConfigFile::GetValue(const std::string& _category, const std::string& _key
 	return true;
 }
 
+void SConfigFile::SetValue(const std::string& _category, const std::string& _key, const std::filesystem::path& _value) noexcept
+{
+	SetValue(_category, _key, _value.u8string().c_str());
+}
+
+void SConfigFile::SetValue(const std::string& _category, const std::string& _key, const char* _value) noexcept
+{
+	SetValue(_category, _key, std::string(_value));
+}
+
 void SConfigFile::SetValue(const std::string& _category, const std::string& _key, int32_t _value) noexcept
 {
 	mConfigJsonData[_category][_key] = _value;
+	SaveConfig();
 }
 
 void SConfigFile::SetValue(const std::string& _category, const std::string& _key, float _value) noexcept
 {
 	mConfigJsonData[_category][_key] = _value;
+	SaveConfig();
 }
 
 void SConfigFile::SetValue(const std::string& _category, const std::string& _key, const std::string& _value) noexcept
 {
 	mConfigJsonData[_category][_key] = _value;
+	SaveConfig();
 }
 
 void SConfigFile::SetValue(const std::string& _category, const std::string& _key, bool _value) noexcept
 {
 	mConfigJsonData[_category][_key] = _value;
+	SaveConfig();
 }
 
 void SConfigFile::SetValue(const std::string& _category, const std::string& _key, const std::vector<std::string>& _value) noexcept
 {
 	mConfigJsonData[_category][_key] = _value;
+	SaveConfig();
 }
 
 void SConfigFile::SaveConfig() noexcept
 {
 	std::ofstream ofs(GetConfigFilePath());
 	if (ofs.is_open())
-		ofs << mConfigJsonData << std::endl;
+		ofs << std::setw(4) << mConfigJsonData << std::endl;
 }
 
 SConfigFile::SConfigFile(const std::filesystem::path& _configFile) noexcept
