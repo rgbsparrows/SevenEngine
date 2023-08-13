@@ -21,8 +21,7 @@ void SEngineLoop::PreInit() noexcept
 void SEngineLoop::Init() noexcept
 {
 	GetRenderModule()->BeginFrame_GameThread();
-	SModuleManager::Get().LoadModule("UIModule");
-	SModuleManager::Get().LoadModule("EditorModule");
+	SModuleManager::Get().LoadAllModule();
 	GetRenderModule()->EndFrame_GameThread();
 }
 
@@ -44,8 +43,7 @@ void SEngineLoop::Run() noexcept
 void SEngineLoop::Clear() noexcept
 {
 	GetRenderModule()->BeginFrame_GameThread();
-	SModuleManager::Get().UnloadModule("EditorModule");
-	SModuleManager::Get().UnloadModule("UIModule");
+	SModuleManager::Get().UnloadAllModule();
 	GetRenderModule()->EndFrame_GameThread();
 
 	SModuleManager::Get().UnloadModule("RenderModule");

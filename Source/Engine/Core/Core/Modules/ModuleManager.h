@@ -32,6 +32,9 @@ public:
 	void Init() noexcept {}
 	void Clear() noexcept;
 
+	void LoadAllModule() noexcept;
+	void UnloadAllModule() noexcept;
+
 	bool LoadModule(std::string_view _moduleName) noexcept;
 	template<typename _moduleClass = IModuleInterface> auto GetModule(std::string_view _moduleName) noexcept { return static_cast<_moduleClass>(GetRawModule(_moduleName)); }
 	void UnloadModule(std::string_view _moduleName) noexcept;

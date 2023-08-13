@@ -15,6 +15,18 @@ void SModuleManager::Clear() noexcept
 	}
 }
 
+void SModuleManager::LoadAllModule() noexcept
+{
+	for (const auto& module : mModuleInfoMap)
+		LoadModule(module.first);
+}
+
+void SModuleManager::UnloadAllModule() noexcept
+{
+	for (const auto& module : mModuleInfoMap)
+		UnloadModule(module.first);
+}
+
 bool SModuleManager::LoadModule(std::string_view _moduleName) noexcept
 {
 	SModuleInfo* seModule = GetModuleInfo(_moduleName);
