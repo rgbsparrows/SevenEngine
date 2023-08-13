@@ -98,12 +98,14 @@ void SConfigFile::SetValue(const std::string& _category, const std::string& _key
 void SConfigFile::SaveConfig() noexcept
 {
 	std::ofstream ofs(GetConfigFilePath());
-	ofs << mConfigJsonData << std::endl;
+	if (ofs.is_open())
+		ofs << mConfigJsonData << std::endl;
 }
 
 SConfigFile::SConfigFile(const std::filesystem::path& _configFile) noexcept
 {
 	mConfigFilePath = _configFile;
 	std::ifstream ifs(GetConfigFilePath());
-	mConfigJsonData = nlohmann::json::parse(ifs);
+	if (ifs.is_open())
+		mConfigJsonData = nlohmann::json::parse(ifs);
 }
