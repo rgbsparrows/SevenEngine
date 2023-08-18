@@ -11,11 +11,6 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 
-SGMQuantMainWindow::SGMQuantMainWindow() noexcept
-{
-	mGMQuantConfig = SConfigFile::LoadConfigFile(SBasicPath::GetEngineConfigPath() / "GMQuantConfig.json");
-}
-
 void SGMQuantMainWindow::OnGui() noexcept
 {
 	if (ImGui::BeginMainMenuBar())
@@ -56,30 +51,22 @@ void SGMQuantMainWindow::Release() noexcept
 
 void SGMQuantMainWindow::ShowAllStrategyList() noexcept
 {
-	ImGui::Begin(u8"策略列表", nullptr, ImGuiWindowFlags_NoTitleBar);
+	ImGui::Begin(u8"策略列表");
 
 	std::vector<SCreateQuantStrategyInfo> createQuantStrategyInfoList = GetGMQuantModuleImpl()->GetCreateQuantStrategyInfoList();
 
-	if (ImGui::BeginTable("策略列表Table", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_NoSavedSettings))
+	for (size_t i = 0; i != createQuantStrategyInfoList.size(); ++i)
 	{
-		for (size_t i = 0; i != createQuantStrategyInfoList.size(); ++i)
+		if (ImGui::Selectable(std::format(u8"{0}###{0}_{1}", createQuantStrategyInfoList[i].mStrategyName.c_str(), i).c_str(), false, ImGuiSelectableFlags_AllowDoubleClick) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 		{
-			ImGui::TableNextColumn();
-			ImGui::Text(createQuantStrategyInfoList[i].mStrategyName.c_str());
-
-			ImGui::TableNextColumn();
-			if (ImGui::Button(std::format(u8"创建###创建{0}_{1}", createQuantStrategyInfoList[i].mStrategyName.c_str(), i).c_str()))
+			SQuantStrategyBase* strategy = createQuantStrategyInfoList[i].mCreateQuantStrategy();
+			if (strategy)
 			{
-				SQuantStrategyBase* strategy = createQuantStrategyInfoList[i].mCreateQuantStrategy();
-				if (strategy)
-				{
-					strategy->SetDisplayName(createQuantStrategyInfoList[i].mStrategyName);
-					mStrategyList.push_back(strategy);
-				}
+				strategy->SetDisplayName(createQuantStrategyInfoList[i].mStrategyName);
+				mCurrentStrategy = strategy;
+				mStrategyList.push_back(strategy);
 			}
 		}
-
-		ImGui::EndTable();
 	}
 
 	ImGui::End();
@@ -91,7 +78,7 @@ void SGMQuantMainWindow::ShowCreatedStrategyList() noexcept
 
 	for (size_t i = 0; i != mStrategyList.size(); ++i)
 	{
-		if (ImGui::Selectable(std::format("{0}###{0}_{1}", mStrategyList[i]->GetDisplayName().c_str(), i).c_str(), mCurrentStrategy == mStrategyList[i], ImGuiSelectableFlags_AllowDoubleClick))
+		if (ImGui::RadioButton(std::format("{0}###{0}_{1}", mStrategyList[i]->GetDisplayName().c_str(), i).c_str(), mCurrentStrategy == mStrategyList[i]))
 			mCurrentStrategy = mStrategyList[i];
 	}
 
@@ -110,14 +97,48 @@ void SGMQuantMainWindow::ShowSteagyMainWindow() noexcept
 	ImGui::End();
 }
 
-void SGMQuantMainWindow::ShowSteagyParameterWindow() noexcept
+void SGMQuantMainWindow::ShowGMQuantStartupWindow() noexcept
 {
-	ImGui::Begin(u8"策略参数");
+	ImGui::Begin(u8"量化模块启动菜单");
 
-	if (mCurrentStrategy != nullptr)
-		mCurrentStrategy->ParameterGui();
-	else
-		ImGui::Text(u8"无选中策略");
+	if (ImGui::Button(u8"启动掘金量化平台"))
+	{
+		std::filesystem::path quantTerminalPath = mGMQuantConfig.GetTerminalPath();
+		std::string userToken = mGMQuantConfig.GetUserToken();
+
+		if (std::filesystem::exists(quantTerminalPath) == false || userToken.empty())
+			GetUIModule()->FindOrAddWindow<SGMQuantConfigWindow>(u8"量化配置窗口");
+		else
+			GetGMQuantCoreModule()->StartupQuantitativeTerminal(quantTerminalPath, userToken);
+	}
+
+	ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
+	if (ImGui::BeginCombo(u8"策略Token", mGMQuantConfig.GetStrategyTokenDisplayName(mCurrentStrategyToken).c_str()))
+	{
+		std::vector<std::string> strategyTokenList = mGMQuantConfig.GetStrategyTokenList();
+
+		for (size_t i = 0; i != strategyTokenList.size(); ++i)
+		{
+			std::string displayName = mGMQuantConfig.GetStrategyTokenDisplayName(strategyTokenList[i]);
+
+			if (ImGui::Selectable(std::format(u8"{0}###{0}_{1}", displayName.c_str(), i).c_str()))
+			{
+				mCurrentStrategyToken = strategyTokenList[i];
+			}
+		}
+
+		ImGui::EndCombo();
+	}
+	ImGui::PopItemWidth();
+
+	ImGui::SameLine();
+	if (ImGui::Button(u8"执行策略"))
+	{
+		if (mCurrentStrategy != nullptr && mCurrentStrategy->AvilableForExecute())
+		{
+			GetGMQuantCoreModule()->ExecuteBacktestQuantStrategy(mCurrentStrategy, mCurrentStrategyToken);
+		}
+	}
 
 	ImGui::End();
 }
@@ -134,25 +155,14 @@ void SGMQuantMainWindow::ShowStatsWindow() noexcept
 	ImGui::End();
 }
 
-void SGMQuantMainWindow::ShowGMQuantStartupWindow() noexcept
+void SGMQuantMainWindow::ShowSteagyParameterWindow() noexcept
 {
-	ImGui::Begin(u8"量化模块启动菜单");
+	ImGui::Begin(u8"策略参数");
 
-	if (ImGui::Button(u8"启动掘金量化平台"))
-	{
-		std::string quantTerminalPath;
-		mGMQuantConfig->GetValue("GMQuant", "TerminalPath", quantTerminalPath);
-
-		GetGMQuantCoreModule()->StartupQuantitativeTerminal(quantTerminalPath);
-	}
-
-	if (ImGui::Button(u8"设置用户Token"))
-	{
-		std::string userToken;
-		mGMQuantConfig->GetValue("GMQuant", "UserToken", userToken);
-
-		GetGMQuantCoreModule()->SetUserToken(userToken);
-	}
+	if (mCurrentStrategy != nullptr)
+		mCurrentStrategy->ParameterGui();
+	else
+		ImGui::Text(u8"无选中策略");
 
 	ImGui::End();
 }

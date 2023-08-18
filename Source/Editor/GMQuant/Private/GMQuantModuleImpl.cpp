@@ -31,9 +31,8 @@ bool SGMQuantModuleImpl::Init() noexcept
 	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"21日均线策略");
 	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"MACD策略");
 	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"KDJ策略");
-	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"21日均线策略");
-	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"21日均线策略");
-	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"21日均线策略");
+	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"自然之力策略");
+	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"研究策略");
 
 	return true;
 }

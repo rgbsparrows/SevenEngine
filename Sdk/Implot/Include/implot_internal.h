@@ -32,6 +32,7 @@
 #pragma once
 
 #include <time.h>
+#include "implot.h"
 #include "imgui_internal.h"
 
 #ifndef IMPLOT_VERSION

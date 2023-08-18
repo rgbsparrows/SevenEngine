@@ -1,14 +1,10 @@
 #include "Core/Math/Math.h"
+#include "Core/Misc/Localize.h"
 #include "GMQuantConfigWindow.h"
 #include "Core/ProgramConfiguation/BasicPath.h"
 
 #include "imgui.h"
 #include "imgui_internal.h"
-
-SGMQuantConfigWindow::SGMQuantConfigWindow() noexcept
-{
-	mGMQuantConfig = SConfigFile::LoadConfigFile(SBasicPath::GetEngineConfigPath() / "GMQuantConfig.json");
-}
 
 void SGMQuantConfigWindow::OnGui() noexcept
 {
@@ -16,55 +12,42 @@ void SGMQuantConfigWindow::OnGui() noexcept
 
 	ImGui::Begin(u8"量化配置", &mIsWindowOpen);
 	
-	std::string quantTerminalPath;
-	mGMQuantConfig->GetValue("GMQuant", "TerminalPath", quantTerminalPath);
-	strcpy_s(textBuffer, quantTerminalPath.c_str());
+	std::filesystem::path quantTerminalPath = mGMQuantConfig.GetTerminalPath();
+	strcpy_s(textBuffer, quantTerminalPath.u8string().c_str());
 	if (ImGui::InputText(u8"量化终端路径", textBuffer, 512))
-		mGMQuantConfig->SetValue("GMQuant", "TerminalPath", textBuffer);
+		mGMQuantConfig.SetTerminalPath(Locale::ConvertStringToWstring(textBuffer));
 
-	std::string userToken;
-	mGMQuantConfig->GetValue("GMQuant", "UserToken", userToken);
+	std::string userToken = mGMQuantConfig.GetUserToken();
 	strcpy_s(textBuffer, userToken.c_str());
 	if (ImGui::InputText(u8"用户Token", textBuffer, 512))
-		mGMQuantConfig->SetValue("GMQuant", "UserToken", textBuffer);
+		mGMQuantConfig.SetUserToken(userToken);
 
-	std::vector<std::string> strategyToken;
-	mGMQuantConfig->GetValue("GMQuant", "StrategyToken", strategyToken);
-	std::vector<std::string> strategyTokenDisplayName;
-	mGMQuantConfig->GetValue("GMQuant", "StrategyTokenDisplayName", strategyTokenDisplayName);
-
-	strategyTokenDisplayName.resize(strategyToken.size());
-	bool strategyTokenChange = false;
-	for (size_t i = 0, id = 0; i != strategyToken.size(); ++i, ++id)
+	std::vector<std::string> strategyTokenList = mGMQuantConfig.GetStrategyTokenList();
+	for (size_t i = 0, id = 0; i != strategyTokenList.size(); ++i, ++id)
 	{
+		const std::string& strategyToken = strategyTokenList[i];
+		const std::string& displayName = mGMQuantConfig.GetStrategyTokenDisplayName(strategyToken);
+
 		ImGui::PushID(std::format(u8"策略{}", id).c_str());
 
 		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-		strcpy_s(textBuffer, strategyTokenDisplayName[i].c_str());
+		strcpy_s(textBuffer, displayName.c_str());
 		if (ImGui::InputText(u8"策略名称", textBuffer, 512))
-		{
-			strategyTokenDisplayName[i] = textBuffer;
-			strategyTokenChange = true;
-		}
+			mGMQuantConfig.SetStrategyToken(strategyToken, textBuffer);
 		ImGui::PopItemWidth();
 
 		ImGui::SameLine();
-		strcpy_s(textBuffer, strategyToken[i].c_str());
+		strcpy_s(textBuffer, strategyToken.c_str());
 		if (ImGui::InputText(u8"策略Token", textBuffer, 512))
 		{
-			strategyToken[i] = textBuffer;
-			strategyTokenChange = true;
+			mGMQuantConfig.RemoveStrategyToken(strategyToken);
+			mGMQuantConfig.SetStrategyToken(textBuffer, displayName);
 		}
 		ImGui::PopItemWidth();
 
 		ImGui::SameLine();
 		if (ImGui::Button(u8"移除"))
-		{
-			strategyTokenDisplayName.erase(strategyTokenDisplayName.begin() + i);
-			strategyToken.erase(strategyToken.begin() + i);
-			strategyTokenChange = true;
-			--i;
-		}
+			mGMQuantConfig.RemoveStrategyToken(strategyToken);
 		ImGui::PopItemWidth();
 
 		ImGui::PopID();
@@ -72,15 +55,7 @@ void SGMQuantConfigWindow::OnGui() noexcept
 
 	if (ImGui::Button(u8"新增"))
 	{
-		strategyTokenDisplayName.push_back(std::string());
-		strategyToken.push_back(std::string());
-		strategyTokenChange = true;
-	}
-
-	if (strategyTokenChange)
-	{
-		mGMQuantConfig->SetValue("GMQuant", "StrategyToken", strategyToken);
-		mGMQuantConfig->SetValue("GMQuant", "StrategyTokenDisplayName", strategyTokenDisplayName);
+		mGMQuantConfig.SetStrategyToken("", u8"未命名策略Token");
 	}
 
 	ImGui::End();

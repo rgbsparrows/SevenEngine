@@ -2,12 +2,11 @@
 
 #include "UI/WindowInterface.h"
 #include "Core/Misc/ConfigFile.h"
+#include "GMQuantConfigFile.h"
 
 class SGMQuantConfigWindow : public IUIWindowInterface
 {
 public:
-	SGMQuantConfigWindow() noexcept;
-
 	bool IsWindowOpen() noexcept { return mIsWindowOpen; }
 
 	void OnGui() noexcept;
@@ -15,5 +14,5 @@ public:
 
 private:
 	bool mIsWindowOpen;
-	std::shared_ptr<SConfigFile> mGMQuantConfig;
+	SGMQuantConfigFile mGMQuantConfig;
 };

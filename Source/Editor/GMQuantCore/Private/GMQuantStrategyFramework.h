@@ -8,13 +8,30 @@
 struct SBacktestConfig;
 class SQuantStrategyBase;
 
+TODO("需要针对当前时间对接口做相应的封装")
 class SGMQuantStrategyContextImpl : public Strategy, public IQuantStrategyContext
 {
 public:
 	// IQuantStrategyContext Interface
-	std::chrono::system_clock::time_point GetEarliestBacktestTime() const noexcept override;
-	std::chrono::system_clock::time_point GetLatestBacktestTime() const noexcept override;
-	std::chrono::system_clock::time_point GetNowTime() noexcept;
+	std::chrono::system_clock::time_point GetEarliestBacktestTime() noexcept override;
+	std::chrono::system_clock::time_point GetLatestBacktestTime() noexcept override;
+	std::chrono::system_clock::time_point GetNowTime() noexcept override;
+
+	std::vector<std::string> GetAllStockSymbols(std::chrono::system_clock::time_point _time) noexcept override;
+
+	std::vector<STick> GetHistoryTick(const std::string& _symbol, std::chrono::system_clock::time_point _startTime, std::chrono::system_clock::time_point _endTime, EAdjustMode _adjustMode = EAdjustMode::ADJUST_BACKWARD) noexcept override;
+	std::vector<STick> GetHistoryNTick(const std::string& _symbol, uint64_t _n, std::chrono::system_clock::time_point _endTime, EAdjustMode _adjustMode = EAdjustMode::ADJUST_BACKWARD) noexcept override;
+	std::vector<STick> GetLastestNTick(const std::string& _symbol, uint64_t _n, EAdjustMode _adjustMode = EAdjustMode::ADJUST_BACKWARD);
+
+	std::vector<SBar> GetHistoryBar(const std::string& _symbol, std::chrono::system_clock::time_point _startTime, std::chrono::system_clock::time_point _endTime, EFrequency _frequency, EAdjustMode _adjustMode) noexcept;
+	std::vector<SBar> GetHistoryNBar(const std::string& _symbol, uint64_t _n, std::chrono::system_clock::time_point _endTime, EFrequency _frequency, EAdjustMode _adjustMode) noexcept;
+	std::vector<SBar> GetLastestNBar(const std::string& _symbol, uint64_t _n, EFrequency _frequency, EAdjustMode _adjustMode) noexcept;
+
+	void BuyVolume(const std::string& _symbol, uint64_t _volume, float _price = 0) noexcept override;
+	void SellVolume(const std::string& _symbol, uint64_t _volume, float _price = 0) noexcept override;
+
+	SCash GetCash() noexcept override;
+	std::vector<SPosition> GetPositionList()noexcept override;
 	// End IQuantStrategyContext
 
 public:
@@ -32,9 +49,11 @@ public:
 	// End Strategy
 
 private:
-	std::string FormatTime_yy_mm_dd_hh_mm_ss(std::chrono::system_clock::time_point _time) const noexcept;
-	std::string FormatTime_yy_mm_dd(std::chrono::year_month_day _time) const noexcept;
-	std::string FormatTime_hh_mm_ss(std::chrono::hh_mm_ss<std::chrono::seconds> _time) const noexcept;
+	std::string FormatFrequency(EFrequency _frequency) const noexcept;
+
+	std::vector<STick> ConvertToTickList(DataArray<Tick>* _rawTickList) noexcept;
+	std::vector<SBar> ConvertToBarList(DataArray<Bar>* _rawBarList) noexcept;
+	std::vector<SPosition> ConvertToPositionList(DataArray<Position>* _rawPositionList) noexcept;
 
 	SQuantStrategyBase* mCurrentStrategy;
 	bool mIsBacktestMode = true;

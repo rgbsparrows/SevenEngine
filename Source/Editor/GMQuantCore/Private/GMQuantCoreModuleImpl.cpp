@@ -36,15 +36,11 @@ void SGMQuantCoreModuleImpl::Clear() noexcept
 	GGMQuantCoreModuleImpl = nullptr;
 }
 
-void SGMQuantCoreModuleImpl::StartupQuantitativeTerminal(const std::filesystem::path& _gmQuantTerminalPath) const noexcept
+void SGMQuantCoreModuleImpl::StartupQuantitativeTerminal(const std::filesystem::path& _gmQuantTerminalPath, const std::string& _userToken) noexcept
 {
 	ShellExecuteW(nullptr, L"open", std::format(L"\"{}\"", _gmQuantTerminalPath.c_str()).c_str(), nullptr, nullptr, TRUE);
-}
 
-void SGMQuantCoreModuleImpl::SetUserToken(const std::string& _userToken) noexcept
-{
 	std::lock_guard lock(mQuantTasksMutex);
-
 	mQuantTaskList.push_back(
 		[=](SGMQuantStrategyContextImpl* _strategyFramework) {
 			_strategyFramework->SetUserToken(_userToken);

@@ -2,14 +2,13 @@
 
 #include "UI/WindowInterface.h"
 #include "Core/Misc/ConfigFile.h"
+#include "GMQuantConfigFile.h"
 
 class SQuantStrategyBase;
 
 class SGMQuantMainWindow : public IUIWindowInterface
 {
 public:
-	SGMQuantMainWindow() noexcept;
-
 	bool IsWindowOpen() noexcept override { return mIsWindowOpen; }
 
 	void OnGui() noexcept override;
@@ -19,15 +18,17 @@ protected:
 	void ShowAllStrategyList() noexcept;
 	void ShowCreatedStrategyList() noexcept;
 	void ShowSteagyMainWindow() noexcept;
-	void ShowSteagyParameterWindow() noexcept;
-	void ShowStatsWindow() noexcept;
 	void ShowGMQuantStartupWindow() noexcept;
+	void ShowStatsWindow() noexcept;
+	void ShowSteagyParameterWindow() noexcept;
 
 private:
-	std::shared_ptr<SConfigFile> mGMQuantConfig;
+	SGMQuantConfigFile mGMQuantConfig;
 
 	std::vector<SQuantStrategyBase*> mStrategyList;
 	SQuantStrategyBase* mCurrentStrategy = nullptr;
+
+	std::string mCurrentStrategyToken;
 
 	bool mIsWindowOpen = true;
 };

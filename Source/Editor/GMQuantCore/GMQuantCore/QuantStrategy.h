@@ -2,6 +2,7 @@
 
 #include "QuantType.h"
 #include "Core/Misc/Thread.h"
+#include "Core/Class/ClassObject.h"
 
 #include <mutex>
 #include <vector>
@@ -20,6 +21,8 @@ enum class EStrategyExecuteState
 
 class SQuantStrategyBase
 {
+	DECLARE_ANCESTOR_CLASSOBJECT_BODY(SQuantStrategyBase)
+
 public:
 	EStrategyExecuteState GetStrategyExecuteState() const noexcept { return mExecuteState; }
 	void SetStrategyExecuteState(EStrategyExecuteState _state) noexcept { mExecuteState = _state; }
@@ -29,6 +32,9 @@ public:
 
 	std::string GetDisplayName() const noexcept { return mDisplayName; }
 	void SetDisplayName(const std::string& _displayName) noexcept { mDisplayName = _displayName; }
+
+	bool AvilableForExecute() const noexcept { return mExecuteState == EStrategyExecuteState::Unexecuted || mExecuteState == EStrategyExecuteState::Executed; }
+	bool IsExecuting() const noexcept { return mExecuteState == EStrategyExecuteState::WaitingForExecute || mExecuteState == EStrategyExecuteState::Executing; }
 
 	void Init(IQuantStrategyContext* _context) noexcept
 	{
