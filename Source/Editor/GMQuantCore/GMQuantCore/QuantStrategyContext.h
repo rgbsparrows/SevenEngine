@@ -23,9 +23,10 @@ __interface IQuantStrategyContext
 	std::vector<SBar> GetHistoryNBar(const std::string& _symbol, uint64_t _n, std::chrono::system_clock::time_point _endTime, EFrequency _frequency = EFrequency::FREQUENCY_1DAY, EAdjustMode _adjustMode = EAdjustMode::ADJUST_BACKWARD) noexcept;
 	std::vector<SBar> GetLastestNBar(const std::string& _symbol, uint64_t _n, EFrequency _frequency = EFrequency::FREQUENCY_1DAY, EAdjustMode _adjustMode = EAdjustMode::ADJUST_BACKWARD) noexcept;
 
-	void BuyVolume(const std::string& _symbol, uint64_t _volume, float _price = 0) noexcept;
-	void SellVolume(const std::string& _symbol, uint64_t _volume, float _price = 0) noexcept;
+	void BuyVolume(const std::string& _symbol, uint64_t _volume, double _price = 0) noexcept;
+	void SellVolume(const std::string& _symbol, uint64_t _volume, double _price = 0) noexcept;
 
 	SCash GetCash() noexcept;
+	SPosition GetPosition(const std::string& _symbol) noexcept;
 	std::vector<SPosition> GetPositionList()noexcept;
 };

@@ -161,6 +161,9 @@ void SUIModuleImpl::InitImguiConfig() noexcept
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 	ImGui::GetIO().Fonts->AddFontFromFileTTF("c:/windows/fonts/simhei.ttf", 13.0f, NULL, ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+
+	ImPlot::GetStyle().FitPadding = ImVec2(0, 0.1f);
+
 	//ImGui::StyleColorsClassic();
 
 	// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.

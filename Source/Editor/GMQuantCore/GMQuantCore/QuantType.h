@@ -108,13 +108,13 @@ struct SCash
 struct SPosition
 {
 	std::string mSymbol; // 股票代码
-	double mMarketValue; // 持仓市值
+	double mMarketValue = 0; // 持仓市值
 
-	uint64_t mVolumeToday; // 今日持仓量
-	uint64_t mVolume; // 持仓量
+	uint64_t mVolumeToday = 0; // 今日持仓量
+	uint64_t mVolume = 0; // 持仓量
 	
-	double mPrice; // 现价
-	double mCost; // 成本
+	double mPrice = 0; // 现价
+	double mCost = 0; // 成本
 	
 	std::chrono::system_clock::time_point mCreateTime; // 建仓时间
 	std::chrono::system_clock::time_point mUpdateTime; // 更新时间

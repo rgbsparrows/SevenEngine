@@ -75,12 +75,12 @@ std::vector<SBar> SGMQuantStrategyContextImpl::GetLastestNBar(const std::string&
 	return GetHistoryNBar(_symbol, _n, GetNowTime(), _frequency, _adjustMode);
 }
 
-void SGMQuantStrategyContextImpl::BuyVolume(const std::string& _symbol, uint64_t _volume, float _price) noexcept
+void SGMQuantStrategyContextImpl::BuyVolume(const std::string& _symbol, uint64_t _volume, double _price) noexcept
 {
 	order_volume(_symbol.c_str(), static_cast<int>(_volume), OrderSide_Buy, OrderType_Limit, PositionEffect_Open, _price);
 }
 
-void SGMQuantStrategyContextImpl::SellVolume(const std::string& _symbol, uint64_t _volume, float _price) noexcept
+void SGMQuantStrategyContextImpl::SellVolume(const std::string& _symbol, uint64_t _volume, double _price) noexcept
 {
 	order_volume(_symbol.c_str(), static_cast<int>(_volume), OrderSide_Sell, OrderType_Limit, PositionEffect_Close, _price);
 }
@@ -98,6 +98,16 @@ SCash SGMQuantStrategyContextImpl::GetCash() noexcept
 	}
 
 	return SCash();
+}
+
+SPosition SGMQuantStrategyContextImpl::GetPosition(const std::string& _symbol) noexcept
+{
+	std::vector<SPosition> positionList = GetPositionList();
+	for (const SPosition& position : positionList)
+		if (position.mSymbol == _symbol)
+			return position;
+
+	return SPosition();
 }
 
 std::vector<SPosition> SGMQuantStrategyContextImpl::GetPositionList() noexcept

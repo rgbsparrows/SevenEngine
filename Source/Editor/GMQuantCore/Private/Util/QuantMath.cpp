@@ -7,7 +7,7 @@ std::vector<double> CalcMa(const std::vector<double>& _data, size_t _period) noe
 	std::vector<double> ma(_data.size(), 0.0f);
 
 	double sum = 0.0f;
-	for (size_t i = 0; i < _period; ++i)
+	for (size_t i = 0; i < _period && i < _data.size(); ++i)
 	{
 		sum += _data[i];
 		ma[i] = sum / (i + 1);

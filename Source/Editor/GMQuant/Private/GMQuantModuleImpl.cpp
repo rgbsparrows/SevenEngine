@@ -3,7 +3,7 @@
 #include "GMQuantMainWindow.h"
 #include "Core/Modules/ModuleManager.h"
 
-#include "Strategy/MA21Strategy.h"
+#include "Strategy/MAStrategy.h"
 
 SGMQuantModuleImpl* GGMQuantModuleImpl = nullptr;
 
@@ -28,11 +28,7 @@ bool SGMQuantModuleImpl::Init() noexcept
 
 	GetUIModule()->FindOrAddWindow<SGMQuantMainWindow>();
 
-	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"21日均线策略");
-	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"MACD策略");
-	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"KDJ策略");
-	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"自然之力策略");
-	RegisterQuantStrategy([]() {return new SMA21Strategy; }, u8"研究策略");
+	RegisterQuantStrategy([]() {return new SMAStrategy; }, u8"均线策略");
 
 	return true;
 }

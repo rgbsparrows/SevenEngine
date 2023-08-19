@@ -63,7 +63,7 @@ public:
 	void Reset() noexcept
 	{
 		RequireExit();
-		Thread::YieldUntilValue(mExecuteState, EStrategyExecuteState::Executed);
+		Thread::YieldUntil([&]() {return AvilableForExecute(); });
 
 		mExecuteState = EStrategyExecuteState::Unexecuted;
 		mRequireExit = false;

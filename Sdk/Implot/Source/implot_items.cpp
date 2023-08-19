@@ -354,6 +354,13 @@ ImVec4 GetLastItemColor() {
     return ImVec4();
 }
 
+ImVec4 GetCurrentItemColor() {
+	ImPlotContext& gp = *GImPlot;
+	if (gp.CurrentItem)
+		return ImGui::ColorConvertU32ToFloat4(gp.CurrentItem->Color);
+	return ImVec4();
+}
+
 void BustItemCache() {
     ImPlotContext& gp = *GImPlot;
     for (int p = 0; p < gp.Plots.GetBufSize(); ++p) {

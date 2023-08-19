@@ -55,6 +55,7 @@ void SGMQuantCoreModuleImpl::ExecuteBacktestQuantStrategy(SQuantStrategyBase* _s
 
 	std::lock_guard lock(mQuantTasksMutex);
 
+	_strategy->Reset();
 	_strategy->SetStrategyExecuteState(EStrategyExecuteState::WaitingForExecute);
 	mQuantTaskList.push_back(
 		[=](SGMQuantStrategyContextImpl* _strategyFramework) {
