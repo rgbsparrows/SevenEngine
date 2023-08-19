@@ -112,6 +112,8 @@ void SGMQuantMainWindow::ShowGMQuantStartupWindow() noexcept
 			GetGMQuantCoreModule()->StartupQuantitativeTerminal(quantTerminalPath, userToken);
 	}
 
+	ImGui::Separator();
+
 	ImGui::PushMultiItemsWidths(2, ImGui::CalcItemWidth());
 	if (ImGui::BeginCombo(u8"²ßÂÔToken", mGMQuantConfig.GetStrategyTokenDisplayName(mCurrentStrategyToken).c_str()))
 	{

@@ -231,8 +231,8 @@ void SUIInternalWindow::FlushImguiDrawData() noexcept
 		drawData.mVertexBuffer.reserve(imDrawDataRaw->TotalVtxCount);
 		drawData.mIndexBuffer.reserve(imDrawDataRaw->TotalIdxCount);
 
-		uint16_t indexOffset = 0;
-		uint16_t vertexOffset = 0;
+		uint32_t indexOffset = 0;
+		uint32_t vertexOffset = 0;
 
 		for (int i = 0; i != imDrawDataRaw->CmdListsCount; ++i)
 		{

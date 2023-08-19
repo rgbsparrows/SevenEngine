@@ -4,6 +4,7 @@
 #include "GMQuantStrategyFramework.h"
 #include "GMQuantCore/QuantStrategy.h"
 #include "GMQuantCore/Util/QuantMisc.h"
+#include "GMQuantCoreModuleImpl.h"
 
 #pragma comment(lib, "gmsdk.lib")
 
@@ -136,6 +137,9 @@ void SGMQuantStrategyContextImpl::ExecuteBacktestStrategy(SQuantStrategyBase* _s
 	set_strategy_id(_strategyId.c_str());
 
 	run();
+
+	mCurrentStrategy->SetStrategyExecuteState(EStrategyExecuteState::Executed);
+	mCurrentStrategy = nullptr;
 }
 
 void SGMQuantStrategyContextImpl::ExecuteRealtimeStrategy(SQuantStrategyBase* _strategy, const std::string& _strategyId) noexcept
@@ -150,6 +154,10 @@ void SGMQuantStrategyContextImpl::ExecuteRealtimeStrategy(SQuantStrategyBase* _s
 	set_strategy_id(_strategyId.c_str());
 
 	run();
+
+	mCurrentStrategy->SetStrategyExecuteState(EStrategyExecuteState::Executed);
+	mCurrentStrategy = nullptr;
+	mIsBacktestMode = true;
 }
 
 void SGMQuantStrategyContextImpl::on_init()
@@ -173,8 +181,11 @@ void SGMQuantStrategyContextImpl::on_tick(Tick*)
 	if (mCurrentStrategy == nullptr)
 		return;
 
-	if (mCurrentStrategy->IsRequireExit())
+	if (GetGMQuantCoreModuleImpl()->IsRequireExit() || mCurrentStrategy->IsRequireExit())
+	{
 		stop();
+		return;
+	}
 
 	mCurrentStrategy->Tick(this);
 }
@@ -184,8 +195,11 @@ void SGMQuantStrategyContextImpl::on_schedule(const char*, const char*)
 	if (mCurrentStrategy == nullptr)
 		return;
 
-	if (mCurrentStrategy->IsRequireExit())
+	if (GetGMQuantCoreModuleImpl()->IsRequireExit() || mCurrentStrategy->IsRequireExit())
+	{
 		stop();
+		return;
+	}
 
 	mCurrentStrategy->Schedule(this);
 }
@@ -198,10 +212,6 @@ void SGMQuantStrategyContextImpl::on_backtest_finished(Indicator*)
 	unsubscribe("SHSE.000001", "tick");
 
 	mCurrentStrategy->Stop(this);
-	mCurrentStrategy->SetStrategyExecuteState(EStrategyExecuteState::Executed);
-
-	mCurrentStrategy = nullptr;
-	mIsBacktestMode = true;
 }
 
 void SGMQuantStrategyContextImpl::on_stop()
@@ -212,10 +222,6 @@ void SGMQuantStrategyContextImpl::on_stop()
 	unsubscribe("SHSE.000001", "tick");
 
 	mCurrentStrategy->Stop(this);
-	mCurrentStrategy->SetStrategyExecuteState(EStrategyExecuteState::Executed);
-
-	mCurrentStrategy = nullptr;
-	mIsBacktestMode = true;
 }
 
 std::string SGMQuantStrategyContextImpl::FormatFrequency(EFrequency _frequency) const noexcept

@@ -15,6 +15,8 @@ public:
 	bool Init() noexcept override;
 	void Clear() noexcept override;
 
+	bool IsRequireExit() const noexcept { return mRequireExit; }
+
 	void StartupQuantitativeTerminal(const std::filesystem::path& _gmQuantTerminalPath, const std::string& _userToken) noexcept override;
 	void ExecuteBacktestQuantStrategy(SQuantStrategyBase* _strategy, const std::string& _strategyTokenName, const SBacktestConfig& _backtestConfig) noexcept override;
 	void ExecuteRealtimeQuantStrategy(SQuantStrategyBase* _strategy, const std::string& _strategyTokenName) noexcept override;

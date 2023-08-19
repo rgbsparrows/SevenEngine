@@ -20,7 +20,7 @@ struct RRenderWindowInfo
 {
 	RRenderProxy<RSwapChain>* mSwapChain = nullptr;
 	RRenderProxy<RImguiDrawData>* mImguiDrawData = nullptr;
-	bool mEnableVSync = false;
+	bool mEnableVSync = true;
 };
 
 struct RDeferFrameTask

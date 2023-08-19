@@ -1,3 +1,4 @@
+#include "GMQuantCore/Util/QuantUI.h"
 #include "GMQuantCore/QuantStrategy.h"
 #include "GMQuantCore/QuantStrategyContext.h"
 
@@ -38,28 +39,7 @@ public:
 
 			if (ImPlot::BeginItem(u8"KÏßÍ¼"))
 			{
-				if (ImPlot::FitThisFrame())
-				{
-					for (size_t i = 0; i != mDailyBarList.size(); ++i)
-					{
-						ImPlot::FitPointX(static_cast<double>(i));
-						ImPlot::FitPointY(mDailyBarList[i].mOpen);
-						ImPlot::FitPointY(mDailyBarList[i].mClose);
-					}
-				}
-
-				for (size_t i = 0; i != mDailyBarList.size(); ++i)
-				{
-					ImVec2 open_pos = ImPlot::PlotToPixels(i - 0.3, mDailyBarList[i].mOpen);
-					ImVec2 close_pos = ImPlot::PlotToPixels(i + 0.3, mDailyBarList[i].mClose);
-
-					if (mDailyBarList[i].mOpen > mDailyBarList[i].mClose)
-						ImPlot::GetPlotDrawList()->AddRectFilled(close_pos, open_pos, ImColor(0, 255, 0));
-					else
-						ImPlot::GetPlotDrawList()->AddRectFilled(close_pos, open_pos, ImColor(255, 0, 0));
-
-				}
-
+				ImPlotDrawBar(mDailyBarList);
 				ImPlot::EndItem();
 			}
 			ImPlot::EndPlot();

@@ -1,12 +1,12 @@
 #include "GMQuantCore/Util/QuantMath.h"
 
-std::vector<float> CalcMa(const std::vector<float>& _data, size_t _period) noexcept
+std::vector<double> CalcMa(const std::vector<double>& _data, size_t _period) noexcept
 {
 	if (_period <= 1 || _data.empty()) return _data;
 
-	std::vector<float> ma(_data.size(), 0.0f);
+	std::vector<double> ma(_data.size(), 0.0f);
 
-	float sum = 0.0f;
+	double sum = 0.0f;
 	for (size_t i = 0; i < _period; ++i)
 	{
 		sum += _data[i];
@@ -22,11 +22,11 @@ std::vector<float> CalcMa(const std::vector<float>& _data, size_t _period) noexc
 	return ma;
 }
 
-std::vector<float> CalcEma(const std::vector<float>& _data, size_t _period) noexcept
+std::vector<double> CalcEma(const std::vector<double>& _data, size_t _period) noexcept
 {
 	if (_period <= 1 || _data.empty()) return _data;
 
-	std::vector<float> ema(_data.size(), 0.0f);
+	std::vector<double> ema(_data.size(), 0.0f);
 
 	ema[0] = _data[0];
 
@@ -36,16 +36,16 @@ std::vector<float> CalcEma(const std::vector<float>& _data, size_t _period) noex
 	return ema;
 }
 
-std::vector<SMACD> CalcMacd(const std::vector<float>& _data, size_t _shortPeriod, size_t _longPeriod, size_t _signalPeriod) noexcept
+std::vector<SMACD> CalcMacd(const std::vector<double>& _data, size_t _shortPeriod, size_t _longPeriod, size_t _signalPeriod) noexcept
 {
 	if (_shortPeriod <= 1 || _longPeriod <= 1 || _signalPeriod <= 1 || _data.empty())
 		return std::vector<SMACD>(_data.size(), { 0.0f, 0.0f, 0.0f });
 
-	std::vector<float> shortEma = CalcEma(_data, _shortPeriod);
-	std::vector<float> longEma = CalcEma(_data, _longPeriod);
+	std::vector<double> shortEma = CalcEma(_data, _shortPeriod);
+	std::vector<double> longEma = CalcEma(_data, _longPeriod);
 
 	std::vector<SMACD> macd(_data.size(), { 0.0f, 0.0f, 0.0f });
-	std::vector<float> diff(_data.size(), 0.f);
+	std::vector<double> diff(_data.size(), 0.f);
 	for (size_t i = 0; i < _data.size(); ++i)
 	{
 		macd[i].mDiff = shortEma[i] - longEma[i];
@@ -53,7 +53,7 @@ std::vector<SMACD> CalcMacd(const std::vector<float>& _data, size_t _shortPeriod
 	}
 
 
-	std::vector<float> signal = CalcEma(diff, _signalPeriod);
+	std::vector<double> signal = CalcEma(diff, _signalPeriod);
 	for (size_t i = 0; i < _data.size(); ++i)
 	{
 		macd[i].mDea = signal[i];
@@ -61,4 +61,10 @@ std::vector<SMACD> CalcMacd(const std::vector<float>& _data, size_t _shortPeriod
 	}
 
 	return macd;
+}
+
+uint64_t CalcMaxPurchaseCount(double money, double _price, double _commission) noexcept
+{
+	double count = money / ((1 + _commission) * _price) / 100;
+	return static_cast<uint64_t>(count) * 100;
 }
