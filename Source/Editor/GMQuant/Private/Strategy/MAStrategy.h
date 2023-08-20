@@ -145,9 +145,16 @@ public:
 				{
 					ImPlotDrawCurve([&](size_t _index)->double
 						{
-							if (_index >= 0 && _index < mCashList.size())
-								return mCashList[_index].mBalance + mCashList[_index].mMarketValue;
-							return 0;
+							return mCashList[_index].mBalance + mCashList[_index].mMarketValue;
+						}, 0, mCashList.size(), ImPlot::GetCurrentItemColor());
+					ImPlot::EndItem();
+				}
+
+				if (ImPlot::BeginItem(u8"买入躺平模式资金总额"))
+				{
+					ImPlotDrawCurve([&](size_t _index)->double
+						{
+							return mInitCash.mBalance * mClosePriceList[_index] / mClosePriceList[0];
 						}, 0, mCashList.size(), ImPlot::GetCurrentItemColor());
 					ImPlot::EndItem();
 				}
@@ -229,6 +236,7 @@ private:
 	std::vector<double> mShortMaList;
 	std::vector<double> mLongMaList;
 	std::vector<SCash> mCashList;
+
 
 	std::string mSymbol = "SHSE.000016";
 	int mShortPeroid = 21;
