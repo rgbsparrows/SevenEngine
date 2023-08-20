@@ -77,12 +77,14 @@ std::vector<SBar> SGMQuantStrategyContextImpl::GetLastestNBar(const std::string&
 
 void SGMQuantStrategyContextImpl::BuyVolume(const std::string& _symbol, uint64_t _volume, double _price) noexcept
 {
-	order_volume(_symbol.c_str(), static_cast<int>(_volume), OrderSide_Buy, OrderType_Limit, PositionEffect_Open, _price);
+	if (_volume != 0)
+		order_volume(_symbol.c_str(), static_cast<int>(_volume), OrderSide_Buy, OrderType_Limit, PositionEffect_Open, _price);
 }
 
 void SGMQuantStrategyContextImpl::SellVolume(const std::string& _symbol, uint64_t _volume, double _price) noexcept
 {
-	order_volume(_symbol.c_str(), static_cast<int>(_volume), OrderSide_Sell, OrderType_Limit, PositionEffect_Close, _price);
+	if (_volume != 0)
+		order_volume(_symbol.c_str(), static_cast<int>(_volume), OrderSide_Sell, OrderType_Limit, PositionEffect_Close, _price);
 }
 
 SCash SGMQuantStrategyContextImpl::GetCash() noexcept
