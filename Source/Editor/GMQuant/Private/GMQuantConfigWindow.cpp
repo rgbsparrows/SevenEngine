@@ -20,7 +20,7 @@ void SGMQuantConfigWindow::OnGui() noexcept
 	std::string userToken = mGMQuantConfig.GetUserToken();
 	strcpy_s(textBuffer, userToken.c_str());
 	if (ImGui::InputText(u8"ÓÃ»§Token", textBuffer, 512))
-		mGMQuantConfig.SetUserToken(userToken);
+		mGMQuantConfig.SetUserToken(textBuffer);
 
 	std::vector<std::string> strategyTokenList = mGMQuantConfig.GetStrategyTokenList();
 	for (size_t i = 0, id = 0; i != strategyTokenList.size(); ++i, ++id)

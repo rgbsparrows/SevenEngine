@@ -150,7 +150,19 @@ void SGMQuantMainWindow::ShowStatsWindow() noexcept
 	ImGui::Begin(u8"统计面板");
 
 	if (mCurrentStrategy != nullptr)
+	{
+		switch (mCurrentStrategy->GetStrategyExecuteState())
+		{
+		case EStrategyExecuteState::Unexecuted: ImGui::Text(u8"策略未执行"); break;
+		case EStrategyExecuteState::WaitingForExecute: ImGui::Text(u8"等待执行"); break;
+		case EStrategyExecuteState::Executing: ImGui::Text(u8"策略执行中"); break;
+		case EStrategyExecuteState::Executed: ImGui::Text(u8"策略已执行"); break;
+		}
+
+		ImGui::Separator();
+
 		mCurrentStrategy->StatsGui();
+	}
 	else
 		ImGui::Text(u8"无选中策略");
 
