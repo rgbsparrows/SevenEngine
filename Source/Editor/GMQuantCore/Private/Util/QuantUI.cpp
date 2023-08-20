@@ -11,7 +11,7 @@ void ImPlotDrawCandlestick(const std::vector<SBar>& _barList)
 
 void ImPlotDrawCandlestick(SPlotGetBarFunc&& _getBarFunc, size_t _begin, size_t _end)
 {
-	for (size_t i = _begin; i != _end; ++i)
+	for (size_t i = _begin; i < _end; ++i)
 	{
 		SBar bar = _getBarFunc(i);
 
@@ -49,7 +49,7 @@ void ImPlotDrawCurve(SPlotGetValueFunc&& _getValueFunc, size_t _begin, size_t _e
 	if (ImPlot::FitThisFrame())
 		ImPlot::FitPointY(_getValueFunc(_begin));
 
-	for (size_t i = _begin + 1; i != _end; ++i)
+	for (size_t i = _begin + 1; i < _end; ++i)
 	{
 		double value1 = _getValueFunc(i - 1);
 		double value2 = _getValueFunc(i);
@@ -67,14 +67,14 @@ void ImPlotDrawCurve(SPlotGetValueFunc&& _getValueFunc, size_t _begin, size_t _e
 	}
 }
 
-void ImPlotDrawColorRange(const std::vector<ImColor>& _valueList, float _thickness)
+void ImPlotDrawColorRange(const std::vector<ImColor>& _valueList, float _yStart, float _yEnd)
 {
-	ImPlotDrawColorRange([&](size_t _index) { return _valueList[_index]; }, 0, _valueList.size(), _thickness);
+	ImPlotDrawColorRange([&](size_t _index) { return _valueList[_index]; }, 0, _valueList.size(), _yStart, _yEnd);
 }
 
-void ImPlotDrawColorRange(SPlotGetColorFunc&& _getColorFunc, size_t _begin, size_t _end, float _thickness)
+void ImPlotDrawColorRange(SPlotGetColorFunc&& _getColorFunc, size_t _begin, size_t _end, float _yStart, float _yEnd)
 {
-	for (size_t i = _begin; i != _end; ++i)
+	for (size_t i = _begin; i < _end; ++i)
 	{
 		ImColor color = _getColorFunc(i);
 
@@ -82,8 +82,8 @@ void ImPlotDrawColorRange(SPlotGetColorFunc&& _getColorFunc, size_t _begin, size
 		ImVec2 pos2 = ImPlot::PlotToPixels(i + 1.0, 0.0);
 
 		ImVec2 clipMax = ImPlot::GetPlotDrawList()->GetClipRectMax();
-		pos1.y = clipMax.y;
-		pos2.y = clipMax.y - _thickness;
+		pos1.y = clipMax.y - _yStart;
+		pos2.y = clipMax.y - _yEnd;
 
 		ImPlot::GetPlotDrawList()->AddRectFilled(pos1, pos2, color);
 	}
