@@ -113,7 +113,7 @@ public:
 				{
 					ImPlotDrawColorRange([&](size_t _index)->ImColor
 						{
-							return (mLongMaList[_index] > mLongMaList[_index - 1] && mShortMaList[_index] > mClosePriceList[_index]) ? ImColor(255, 223, 0) : ImColor(148, 0, 211);
+							return (mLongMaList[_index] > mLongMaList[_index - 1] && mClosePriceList[_index] > mShortMaList[_index]) ? ImColor(255, 223, 0) : ImColor(148, 0, 211);
 						}, 1, mShortMaList.size(), 5, 10);
 					ImPlot::EndItem();
 				}
@@ -165,7 +165,7 @@ public:
 				{
 					ImPlotDrawColorRange([&](size_t _index)->ImColor
 						{
-							return (mLongMaList[_index] > mLongMaList[_index - 1] && mShortMaList[_index] > mClosePriceList[_index]) ? ImColor(255, 223, 0) : ImColor(148, 0, 211);
+							return (mLongMaList[_index] > mLongMaList[_index - 1] && mClosePriceList[_index] > mShortMaList[_index]) ? ImColor(255, 223, 0) : ImColor(148, 0, 211);
 						}, 1, mShortMaList.size(), 5, 10);
 					ImPlot::EndItem();
 				}
@@ -207,6 +207,19 @@ public:
 		else
 		{
 			ImGui::Text(u8"标的暂未上市");
+		}
+
+		ImGui::Separator();
+
+		if (mDailyBarList.size() >= 2)
+		{
+			double longMa[2] = { mLongMaList[mLongMaList.size() - 1], mLongMaList[mLongMaList.size() - 2] };
+
+			double shortMa = mShortMaList.back();
+			if (mClosePriceList.back() > shortMa && longMa[0] > longMa[1])
+				ImGui::Text(u8"建议下个交易日建仓");
+			else if (mClosePriceList.back() < shortMa)
+				ImGui::Text(u8"建议下个交易日清仓");
 		}
 	}
 
