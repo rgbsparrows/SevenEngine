@@ -16,7 +16,17 @@
 
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
-//#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
+#include <assert.h>
+
+#if NDEBUG
+#define IM_ASSERT(_expr) void()
+#else
+#define IM_ASSERT(expression) (void)(                                                       \
+            (!!(expression)) ||                                                              \
+            (_wassert(_CRT_WIDE(#expression), _CRT_WIDE(__FILE__), (unsigned)(__LINE__)), 0) \
+        )
+#endif
+
 //#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows

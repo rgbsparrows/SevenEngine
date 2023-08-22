@@ -1,8 +1,8 @@
 #pragma once
 
+#include "GMQuantConfigFile.h"
 #include "UI/WindowInterface.h"
 #include "Core/Misc/ConfigFile.h"
-#include "GMQuantConfigFile.h"
 
 class SQuantStrategyBase;
 

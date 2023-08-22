@@ -1,9 +1,9 @@
 #include "UI/UIModule.h"
 #include "GMQuantModuleImpl.h"
 #include "GMQuantMainWindow.h"
-#include "Core/Modules/ModuleManager.h"
-
 #include "Strategy/MAStrategy.h"
+#include "Core/Class/ClassManager.h"
+#include "Core/Modules/ModuleManager.h"
 
 SGMQuantModuleImpl* GGMQuantModuleImpl = nullptr;
 
@@ -28,8 +28,6 @@ bool SGMQuantModuleImpl::Init() noexcept
 
 	GetUIModule()->FindOrAddWindow<SGMQuantMainWindow>();
 
-	RegisterQuantStrategy([]() {return new SMAStrategy; }, u8"¾ùÏß²ßÂÔ");
-
 	return true;
 }
 
@@ -39,4 +37,9 @@ void SGMQuantModuleImpl::Clear() noexcept
 	SModuleManager::Get().UnloadModule("UIModule");
 
 	GGMQuantModuleImpl = nullptr;
+}
+
+std::vector<SClassIdentifier> SGMQuantModuleImpl::GetCreateQuantStrategyInfoList() const
+{
+	return SClassManager::Get().GetAllDrivedClass(SQuantStrategyBase::StaticGetClassObject()->GetClassHash());
 }

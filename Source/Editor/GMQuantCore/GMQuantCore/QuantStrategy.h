@@ -31,7 +31,7 @@ public:
 	void RequireExit() noexcept { mRequireExit = true; }
 
 	std::string GetDisplayName() const noexcept { return mDisplayName; }
-	void SetDisplayName(const std::string& _displayName) noexcept { mDisplayName = _displayName; }
+	void SetDisplayName(std::string_view _displayName) noexcept { mDisplayName = _displayName; }
 
 	bool AvilableForExecute() const noexcept { return mExecuteState == EStrategyExecuteState::Unexecuted || mExecuteState == EStrategyExecuteState::Executed; }
 	bool IsExecuting() const noexcept { return mExecuteState == EStrategyExecuteState::WaitingForExecute || mExecuteState == EStrategyExecuteState::Executing; }

@@ -10,6 +10,7 @@
 #include <chrono>
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "Core/Class/ClassManager.h"
 
 void SGMQuantMainWindow::OnGui() noexcept
 {
@@ -53,16 +54,17 @@ void SGMQuantMainWindow::ShowAllStrategyList() noexcept
 {
 	ImGui::Begin(u8"²ßÂÔÁÐ±í");
 
-	std::vector<SCreateQuantStrategyInfo> createQuantStrategyInfoList = GetGMQuantModuleImpl()->GetCreateQuantStrategyInfoList();
+	std::vector<SClassIdentifier> createQuantStrategyInfoList = GetGMQuantModuleImpl()->GetCreateQuantStrategyInfoList();
 
 	for (size_t i = 0; i != createQuantStrategyInfoList.size(); ++i)
 	{
-		if (ImGui::Selectable(std::format(u8"{0}###{0}_{1}", createQuantStrategyInfoList[i].mStrategyName.c_str(), i).c_str(), false, ImGuiSelectableFlags_AllowDoubleClick) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+		std::string_view strategyName = SClassManager::Get().GetClassObject(createQuantStrategyInfoList[i])->GetClassFullName();
+		if (ImGui::Selectable(std::format(u8"{0}###{0}_{1}", strategyName, i).c_str(), false, ImGuiSelectableFlags_AllowDoubleClick) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 		{
-			SQuantStrategyBase* strategy = createQuantStrategyInfoList[i].mCreateQuantStrategy();
+			SQuantStrategyBase* strategy = SClassManager::Get().ConstructObject<SQuantStrategyBase>(createQuantStrategyInfoList[i]);
 			if (strategy)
 			{
-				strategy->SetDisplayName(createQuantStrategyInfoList[i].mStrategyName);
+				strategy->SetDisplayName(strategyName);
 				mCurrentStrategy = strategy;
 				mStrategyList.push_back(strategy);
 			}

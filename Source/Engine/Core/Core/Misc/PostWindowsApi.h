@@ -1,5 +1,3 @@
-#pragma once
-
 #undef GetCommandLine
 #undef CreateEvent
 #undef CreateEventEx

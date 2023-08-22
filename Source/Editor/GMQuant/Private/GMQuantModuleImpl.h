@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GMQuant/GMQuantModule.h"
+#include "Core/Class/ClassObject.h"
 
 struct SCreateQuantStrategyInfo
 {
@@ -14,12 +15,7 @@ public:
 	bool Init() noexcept override;
 	void Clear() noexcept override;
 
-	void RegisterQuantStrategy(SCreateQuantStrategyType&& _createQuantStrategy, const std::string& _strategyName) noexcept override
-	{
-		mCreateQuantStrategyInfoList.push_back(SCreateQuantStrategyInfo{ std::move(_createQuantStrategy), _strategyName });
-	}
-
-	const std::vector<SCreateQuantStrategyInfo>& GetCreateQuantStrategyInfoList() const { return mCreateQuantStrategyInfoList; }
+	std::vector<SClassIdentifier> GetCreateQuantStrategyInfoList() const;
 
 private:
 	std::vector<SCreateQuantStrategyInfo> mCreateQuantStrategyInfoList;

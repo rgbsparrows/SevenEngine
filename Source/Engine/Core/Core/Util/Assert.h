@@ -9,5 +9,5 @@
 #if WITH_DEBUG_CODE
 #define ASSERT(_expr) CHECK(_expr)
 #else
-#define ASSERT(_expr)
+#define ASSERT(_expr) void()
 #endif
