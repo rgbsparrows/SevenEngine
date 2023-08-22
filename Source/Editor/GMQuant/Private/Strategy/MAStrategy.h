@@ -124,8 +124,6 @@ public:
 			if (ImPlot::BeginPlot(u8"资金曲线"))
 			{
 				ImPlot::SetupAxes(u8"时间", u8"金额", 0, ImPlotAxisFlags_RangeFit);
-				if (mUseLogAxisForCash)
-					ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
 				ImPlot::SetupAxisFormat(ImAxis_Y1, "%.2f");
 				ImPlot::SetupAxisLinks(ImAxis_X1, &mXRange[0], &mXRange[1]);
 				ImPlot::SetupAxisFormat(ImAxis_X1, [&](double value, char* buff, int size, void* user_data) -> int
@@ -196,8 +194,6 @@ public:
 
 		ImGui::InputInt(u8"长均线周期", &mLongPeroid);
 		mLongPeroid = Math::Max(mShortPeroid, mLongPeroid);
-
-		ImGui::Checkbox(u8"使用对数坐标", &mUseLogAxisForCash);
 	}
 
 	void OnStatsGui() noexcept override
@@ -243,7 +239,6 @@ private:
 	int mLongPeroid = 60;
 	
 	SCash mInitCash;
-	bool mUseLogAxisForCash = true;
 
 	Math::SDouble2 mXRange = Math::SDouble2(0, 1);
 };
