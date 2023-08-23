@@ -23,13 +23,13 @@ std::chrono::system_clock::time_point SGMQuantStrategyContextImpl::GetNowTime() 
 	return std::chrono::system_clock::from_time_t(static_cast<std::time_t>(now()));
 }
 
-std::vector<std::string> SGMQuantStrategyContextImpl::GetAllStockSymbols(std::chrono::system_clock::time_point _time) noexcept
+std::vector<std::string> SGMQuantStrategyContextImpl::GetAllStockSymbols() noexcept
 {
 	std::vector<std::string> symbolList;
-	DataArray<SymbolContent>* res = get_symbols_by_date(1010, 101001, nullptr, nullptr, true, false, FormatTime_yy_mm_dd_hh_mm_ss(_time).c_str());
+	DataArray<SymbolInfo>* res = get_symbol_infos(1010, 101001);
 	if (res->status() == 0)
 		for (int i = 0; i != res->count(); ++i)
-			symbolList.push_back(res->at(i).info.symbol);
+			symbolList.push_back(res->at(i).symbol);
 
 	Sort(symbolList);
 	DedupForSortedRange(symbolList);

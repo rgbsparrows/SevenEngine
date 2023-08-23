@@ -17,7 +17,7 @@ public:
 	std::chrono::system_clock::time_point GetLatestBacktestTime() noexcept override;
 	std::chrono::system_clock::time_point GetNowTime() noexcept override;
 
-	std::vector<std::string> GetAllStockSymbols(std::chrono::system_clock::time_point _time) noexcept override;
+	std::vector<std::string> GetAllStockSymbols() noexcept override;
 
 	std::vector<STick> GetHistoryTick(const std::string& _symbol, std::chrono::system_clock::time_point _startTime, std::chrono::system_clock::time_point _endTime, EAdjustMode _adjustMode = EAdjustMode::ADJUST_BACKWARD) noexcept override;
 	std::vector<STick> GetHistoryNTick(const std::string& _symbol, uint64_t _n, std::chrono::system_clock::time_point _endTime, EAdjustMode _adjustMode = EAdjustMode::ADJUST_BACKWARD) noexcept override;

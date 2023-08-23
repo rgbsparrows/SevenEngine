@@ -1,8 +1,8 @@
 #include "UI/UIModule.h"
 #include "GMQuantModuleImpl.h"
 #include "GMQuantMainWindow.h"
-#include "Strategy/MAStrategy.h"
 #include "Core/Class/ClassManager.h"
+#include "GMQuantCore/QuantStrategy.h"
 #include "Core/Modules/ModuleManager.h"
 
 SGMQuantModuleImpl* GGMQuantModuleImpl = nullptr;

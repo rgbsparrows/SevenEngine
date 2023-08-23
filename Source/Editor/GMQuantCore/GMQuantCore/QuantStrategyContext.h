@@ -13,7 +13,7 @@ __interface IQuantStrategyContext
 
 	std::chrono::system_clock::time_point GetNowTime() noexcept;
 
-	std::vector<std::string> GetAllStockSymbols(std::chrono::system_clock::time_point _time) noexcept;
+	std::vector<std::string> GetAllStockSymbols() noexcept;
 
 	std::vector<STick> GetHistoryTick(const std::string& _symbol, std::chrono::system_clock::time_point _startTime, std::chrono::system_clock::time_point _endTime, EAdjustMode _adjustMode = EAdjustMode::ADJUST_BACKWARD) noexcept;
 	std::vector<STick> GetHistoryNTick(const std::string& _symbol, uint64_t _n, std::chrono::system_clock::time_point _endTime, EAdjustMode _adjustMode = EAdjustMode::ADJUST_BACKWARD) noexcept;

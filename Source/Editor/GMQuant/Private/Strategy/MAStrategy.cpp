@@ -237,7 +237,7 @@ private:
 	std::string mSymbol = "SHSE.000016";
 	int mShortPeroid = 21;
 	int mLongPeroid = 60;
-	
+
 	SCash mInitCash;
 
 	Math::SDouble2 mXRange = Math::SDouble2(0, 1);
