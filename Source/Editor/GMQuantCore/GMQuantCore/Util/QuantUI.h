@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GMQuantCore/Util/QuantMath.h"
 #include "GMQuantCore/QuantType.h"
 
 #include "imgui.h"
@@ -18,3 +19,5 @@ void ImPlotDrawCurve(SPlotGetValueFunc&& _getValueFunc, size_t _begin, size_t _e
 
 void ImPlotDrawColorRange(const std::vector<ImColor>& _valueList, float _yStart = 0.f, float _yEnd = 5.f);
 void ImPlotDrawColorRange(SPlotGetColorFunc&& _getColorFunc, size_t _begin, size_t _end, float _yStart = 0.f, float _yEnd = 5.f);
+
+void ImPlotDrawZTLevel(const SZTLevel& _ztLevel);

@@ -559,7 +559,7 @@ struct ImPlotStyle {
 #define ImGuiMod_Alt        ImGuiModFlags_Alt
 #define ImGuiMod_Super      ImGuiModFlags_Super
 #endif
-
+ 
 // Input mapping structure. Default values listed. See also MapInputDefault, MapInputReverse.
 struct ImPlotInputMap {
     ImGuiMouseButton Pan;           // LMB    enables panning when held,

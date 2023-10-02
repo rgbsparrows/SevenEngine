@@ -50,6 +50,7 @@ public:
 		mCashList.push_back(_context->GetCash());
 		mShortMaList = CalcMa(mClosePriceList, mShortPeroid);
 		mLongMaList = CalcMa(mClosePriceList, mLongPeroid);
+		mZTContent = CalcZT(mDailyBarList, false);
 	}
 
 	void OnReset() noexcept override
@@ -82,7 +83,7 @@ public:
 						}
 						return 0;
 					});
-				if (ImPlot::BeginItem(u8"K线"))
+				if (ImPlot::BeginItem(u8"K线"/*, ImPlotItemFlags_NoLegend*/))
 				{
 					ImPlotDrawCandlestick(mDailyBarList);
 					ImPlot::EndItem();
@@ -97,6 +98,13 @@ public:
 				if (ImPlot::BeginItem(u8"长周期均线"))
 				{
 					ImPlotDrawCurve(mLongMaList, ImPlot::GetCurrentItemColor());
+					ImPlot::EndItem();
+				}
+
+				if (ImPlot::BeginItem(u8"笔", ImPlotItemFlags_NoLegend))
+				{
+					if (mZTContent.mLevelList.empty() == false)
+						ImPlotDrawZTLevel(mZTContent.mLevelList[0]);
 					ImPlot::EndItem();
 				}
 
@@ -231,6 +239,7 @@ private:
 	std::vector<double> mClosePriceList;
 	std::vector<double> mShortMaList;
 	std::vector<double> mLongMaList;
+	SZTContent mZTContent;
 	std::vector<SCash> mCashList;
 
 

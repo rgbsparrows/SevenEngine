@@ -8,7 +8,7 @@
 
 struct SBasicPath
 {
-	static std::filesystem::path GetBinariesPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / "Binaries" / SBuildConfiguation::GBuildConfig; }
+	static std::filesystem::path GetBinarieSZTPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / "Binaries" / SBuildConfiguation::GBuildConfig; }
 
 	static std::filesystem::path GetConfigPath(const std::filesystem::path& _basicPath) noexcept { return _basicPath / "Config"; }
 
@@ -22,7 +22,7 @@ struct SBasicPath
 
 	static std::filesystem::path GetEnginePluginPath() noexcept { return GetPluginPath(GetEnginePath()); }
 
-	static std::filesystem::path GetEngineBinariesPath() noexcept { return GetBinariesPath(GetEnginePath()); }
+	static std::filesystem::path GetEngineBinarieSZTPath() noexcept { return GetBinarieSZTPath(GetEnginePath()); }
 
 	static std::filesystem::path GetEngineConfigPath() noexcept { return GetConfigPath(GetEnginePath()); }
 
@@ -34,7 +34,7 @@ struct SBasicPath
 
 	static std::filesystem::path GetProjectPluginPath() noexcept { return GetPluginPath(GetProjectPath()); }
 									
-	static std::filesystem::path GetProjectBinariesPath() noexcept { return GetBinariesPath(GetProjectPath()); }
+	static std::filesystem::path GetProjectBinarieSZTPath() noexcept { return GetBinarieSZTPath(GetProjectPath()); }
 									
 	static std::filesystem::path GetProjectConfigPath() noexcept { return GetConfigPath(GetProjectPath()); }
 									

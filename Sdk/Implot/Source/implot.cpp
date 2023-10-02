@@ -1047,7 +1047,7 @@ ImPlotTime CombineDateTime(const ImPlotTime& date_part, const ImPlotTime& tod_pa
 }
 
 // TODO: allow users to define these
-static const char* MONTH_NAMES[]  = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+static const char* MONTH_NAMES[]  = { u8"一月", u8"二月", u8"三月", u8"四月", u8"五月", u8"六月", u8"七月", u8"八月", u8"九月", u8"十月", u8"十一月", u8"十二月"};
 static const char* WD_ABRVS[]     = {"Su","Mo","Tu","We","Th","Fr","Sa"};
 static const char* MONTH_ABRVS[]  = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
 
