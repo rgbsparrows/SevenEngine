@@ -19,21 +19,22 @@ private:
 		SModuleCreateFuncType* mModuleCreateFunc = nullptr;
 		IModuleInterface* mModule = nullptr;
 		uint32_t mRefCount = 0;
+		bool mEnableDefault = true;
 	};
 
 public:
-	void RegistModule(std::string_view _moduleName, SModuleCreateFuncType* _moduleCreateFunc) noexcept
+	void RegistModule(std::string_view _moduleName, SModuleCreateFuncType* _moduleCreateFunc, bool _enableDefault) noexcept
 	{
 		ASSERT(_moduleName != "" && _moduleCreateFunc!= nullptr);
 
-		mModuleInfoMap[_moduleName] = SModuleInfo{ _moduleCreateFunc, nullptr, 0 };
+		mModuleInfoMap[_moduleName] = SModuleInfo{ _moduleCreateFunc, nullptr, 0, _enableDefault };
 	}
 
-	void Init() noexcept {}
+	void Init() noexcept;
 	void Clear() noexcept;
 
-	void LoadAllModule() noexcept;
-	void UnloadAllModule() noexcept;
+	void LoadAllEnableModule() noexcept;
+	void UnloadAllEnableModule() noexcept;
 
 	bool LoadModule(std::string_view _moduleName) noexcept;
 	template<typename _moduleClass = IModuleInterface> auto GetModule(std::string_view _moduleName) noexcept { return static_cast<_moduleClass>(GetRawModule(_moduleName)); }
@@ -42,8 +43,6 @@ public:
 private:
 	SModuleInfo* GetModuleInfo(std::string_view _moduleName) noexcept
 	{
-		ASSERT(mModuleInfoMap.count(_moduleName) == 1);
-
 		auto it = mModuleInfoMap.find(_moduleName);
 		if (it == mModuleInfoMap.end()) return nullptr;
 		else return &it->second;

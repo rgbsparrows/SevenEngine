@@ -18,8 +18,9 @@ namespace ModuleDetail
 {
 	struct SModuleRegister
 	{
-		SModuleRegister(std::string_view _moduleName, IModuleInterface* (*_moduleCreateFunc)() noexcept) noexcept;
+		SModuleRegister(std::string_view _moduleName, IModuleInterface* (*_moduleCreateFunc)() noexcept, bool _enableDefault) noexcept;
 	};
 }
 
-#define REGIST_MODULE(_moduleName, _moduleClass) ModuleDetail::SModuleRegister __##_moduleClass##_Register(_moduleName, []() noexcept->IModuleInterface* {return new _moduleClass;});
+#define REGIST_MODULE(_moduleName, _moduleClass) ModuleDetail::SModuleRegister __##_moduleClass##_Register(_moduleName, []() noexcept->IModuleInterface* {return new _moduleClass;}, true);
+#define REGIST_DISABLE_MODULE(_moduleName, _moduleClass) ModuleDetail::SModuleRegister __##_moduleClass##_Register(_moduleName, []() noexcept->IModuleInterface* {return new _moduleClass;}, false);

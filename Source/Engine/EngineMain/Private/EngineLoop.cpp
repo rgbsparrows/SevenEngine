@@ -21,7 +21,7 @@ void SEngineLoop::PreInit() noexcept
 void SEngineLoop::Init() noexcept
 {
 	GetRenderModule()->BeginFrame_GameThread();
-	SModuleManager::Get().LoadAllModule();
+	SModuleManager::Get().LoadAllEnableModule();
 	GetRenderModule()->EndFrame_GameThread();
 }
 
@@ -43,7 +43,7 @@ void SEngineLoop::Run() noexcept
 void SEngineLoop::Clear() noexcept
 {
 	GetRenderModule()->BeginFrame_GameThread();
-	SModuleManager::Get().UnloadAllModule();
+	SModuleManager::Get().UnloadAllEnableModule();
 	GetRenderModule()->EndFrame_GameThread();
 
 	SModuleManager::Get().UnloadModule("RenderModule");

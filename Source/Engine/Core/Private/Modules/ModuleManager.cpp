@@ -1,10 +1,39 @@
 #include "Core/Util/Assert.h"
-#include "Core/ProgramConfiguation/BasicPath.h"
+#include "Core/Misc/ConfigFile.h"
 #include "Core/Modules/ModuleManager.h"
 #include "Core/Modules/ModuleInterface.h"
+#include "Core/ProgramConfiguation/BasicPath.h"
 #include "Core/ProgramConfiguation/ProgramConfiguation.h"
 
 #include <fstream>
+
+void SModuleManager::Init() noexcept
+{
+	if (std::shared_ptr<SConfigFile> moduleConfig = SConfigFile::LoadConfigFile(SBasicPath::GetEngineConfigPath() / "ModuleConfig.json"))
+	{
+		std::vector<std::string> enableModuleList;
+		std::vector<std::string> disableModuleList;
+
+		moduleConfig->GetValue("Module", "EnableModuleList", enableModuleList);
+		moduleConfig->GetValue("Module", "DisableModuleList", disableModuleList);
+
+		for (const std::string& enableModuleName : enableModuleList)
+		{
+			if (SModuleInfo* moduleInfo = GetModuleInfo(enableModuleName))
+			{
+				moduleInfo->mEnableDefault = true;
+			}
+		}
+
+		for (const std::string& disableModuleName : disableModuleList)
+		{
+			if (SModuleInfo* moduleInfo = GetModuleInfo(disableModuleName))
+			{
+				moduleInfo->mEnableDefault = false;
+			}
+		}
+	}
+}
 
 void SModuleManager::Clear() noexcept
 {
@@ -15,16 +44,22 @@ void SModuleManager::Clear() noexcept
 	}
 }
 
-void SModuleManager::LoadAllModule() noexcept
+void SModuleManager::LoadAllEnableModule() noexcept
 {
 	for (const auto& module : mModuleInfoMap)
-		LoadModule(module.first);
+	{
+		if (module.second.mEnableDefault)
+			LoadModule(module.first);
+	}
 }
 
-void SModuleManager::UnloadAllModule() noexcept
+void SModuleManager::UnloadAllEnableModule() noexcept
 {
 	for (const auto& module : mModuleInfoMap)
-		UnloadModule(module.first);
+	{
+		if (module.second.mEnableDefault)
+			UnloadModule(module.first);
+	}
 }
 
 bool SModuleManager::LoadModule(std::string_view _moduleName) noexcept
@@ -61,7 +96,7 @@ void SModuleManager::UnloadModule(std::string_view _moduleName) noexcept
 	seModule->mRefCount--;
 }
 
-ModuleDetail::SModuleRegister::SModuleRegister(std::string_view _moduleName, IModuleInterface* (*_moduleCreateFunc)() noexcept) noexcept
+ModuleDetail::SModuleRegister::SModuleRegister(std::string_view _moduleName, IModuleInterface* (*_moduleCreateFunc)() noexcept, bool _enableDefault) noexcept
 {
-	SModuleManager::Get().RegistModule(_moduleName, _moduleCreateFunc);
+	SModuleManager::Get().RegistModule(_moduleName, _moduleCreateFunc, _enableDefault);
 }
