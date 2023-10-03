@@ -17,8 +17,12 @@ SGMQuantCoreModuleImpl* GetGMQuantCoreModuleImpl() noexcept
 	return GGMQuantCoreModuleImpl;
 }
 
+REGIST_MODULE("GMQuantCoreModule", SGMQuantCoreModuleImpl)
+
 bool SGMQuantCoreModuleImpl::Init() noexcept
 {
+	GGMQuantCoreModuleImpl = this;
+
 	mQuantThread = std::thread(std::mem_fn(&SGMQuantCoreModuleImpl::QuantThreadMain), this);
 	return true;
 }
@@ -27,6 +31,8 @@ void SGMQuantCoreModuleImpl::Clear() noexcept
 {
 	if (mQuantThread.joinable())
 		mQuantThread.join();
+
+	GGMQuantCoreModuleImpl = nullptr;
 }
 
 void SGMQuantCoreModuleImpl::StartupQuantitativeTerminal(const std::filesystem::path& _gmQuantTerminalPath) const noexcept
