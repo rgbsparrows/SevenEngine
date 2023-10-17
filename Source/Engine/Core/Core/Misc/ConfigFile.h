@@ -18,12 +18,16 @@ public:
 	bool GetValue(const std::string& _category, const std::string& _key, std::string& _value) const noexcept;
 	bool GetValue(const std::string& _category, const std::string& _key, bool& _value) const noexcept;
 	bool GetValue(const std::string& _category, const std::string& _key, std::vector<std::string>& _value) const noexcept;
+	bool GetValue(const std::string& _category, const std::string& _key, nlohmann::json& _value) const noexcept;
 
+	void SetValue(const std::string& _category, const std::string& _key, const std::filesystem::path& _value) noexcept;
+	void SetValue(const std::string& _category, const std::string& _key, const char* _value) noexcept;
 	void SetValue(const std::string& _category, const std::string& _key, int32_t _value) noexcept;
 	void SetValue(const std::string& _category, const std::string& _key, float _value) noexcept;
 	void SetValue(const std::string& _category, const std::string& _key, const std::string& _value) noexcept;
 	void SetValue(const std::string& _category, const std::string& _key, bool _value) noexcept;
 	void SetValue(const std::string& _category, const std::string& _key, const std::vector<std::string>& _value) noexcept;
+	void SetValue(const std::string& _category, const std::string& _key, const nlohmann::json& _value) noexcept;
 
 	void SaveConfig() noexcept;
 

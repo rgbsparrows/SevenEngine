@@ -778,13 +778,13 @@ CODE
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
-#include "UI/Imgui/imgui.h"
+#include "imgui.h"
 #ifndef IMGUI_DISABLE
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
-#include "Imgui/imgui_internal.h"
+#include "imgui_internal.h"
 
 // System includes
 #include <ctype.h>      // toupper
@@ -1005,7 +1005,7 @@ ImGuiStyle::ImGuiStyle()
     WindowPadding           = ImVec2(8,8);      // Padding within a window
     WindowRounding          = 0.0f;             // Radius of window corners rounding. Set to 0.0f to have rectangular windows. Large values tend to lead to variety of artifacts and are not recommended.
     WindowBorderSize        = 1.0f;             // Thickness of border around windows. Generally set to 0.0f or 1.0f. Other values not well tested.
-    WindowMinSize           = ImVec2(500,375);    // Minimum window size
+    WindowMinSize           = ImVec2(20,10);    // Minimum window size
     WindowTitleAlign        = ImVec2(0.0f,0.5f);// Alignment for title bar text
     WindowMenuButtonPosition= ImGuiDir_Left;    // Position of the collapsing/docking button in the title bar (left/right). Defaults to ImGuiDir_Left.
     ChildRounding           = 0.0f;             // Radius of child window corners rounding. Set to 0.0f to have rectangular child windows

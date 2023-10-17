@@ -220,15 +220,15 @@ void RImguiRenderGraph::Render(std::vector<RRenderWindowInfo>& _renderWindowInfo
 		if (mDynamicVertexBufferList.size() <= i)
 			mDynamicVertexBufferList.push_back(RDynamicGPUBuffer());
 
-		if (mDynamicIndexBufferList[i].GetDesc().mBufferSize < drawData.mVertexBuffer.size() * sizeof(uint16_t))
+		if (mDynamicIndexBufferList[i].GetDesc().mBufferSize < drawData.mIndexBuffer.size() * sizeof(uint32_t))
 		{
 			_renderContext.SyncToGpuFrameEnd();
 
 			SRDIBufferResourceDesc ibDesc;
 			ibDesc.mHeapType = ERDIHeapType::Default;
 			ibDesc.mResourceUsage = ERDIResourceUsage::IndexBuffer;
-			ibDesc.mBufferSize = drawData.mIndexBuffer.size() * sizeof(uint16_t) * 2;
-			ibDesc.mElementStride = sizeof(uint16_t);
+			ibDesc.mBufferSize = drawData.mIndexBuffer.size() * sizeof(uint32_t) * 2;
+			ibDesc.mElementStride = sizeof(uint32_t);
 
 			mDynamicIndexBufferList[i] = RDynamicGPUBuffer::ConstructDynamicGPUResource(_renderContext.GetDevice(), &ibDesc);
 		}
@@ -248,7 +248,7 @@ void RImguiRenderGraph::Render(std::vector<RRenderWindowInfo>& _renderWindowInfo
 
 		void* ibData = nullptr;
 		mDynamicIndexBufferList[i].Map(&ibData);
-		memcpy_s(ibData, drawData.mIndexBuffer.size() * sizeof(uint16_t), drawData.mIndexBuffer.data(), drawData.mIndexBuffer.size() * sizeof(uint16_t));
+		memcpy_s(ibData, drawData.mIndexBuffer.size() * sizeof(uint32_t), drawData.mIndexBuffer.data(), drawData.mIndexBuffer.size() * sizeof(uint32_t));
 		mDynamicIndexBufferList[i].Unmap();
 
 		void* vbData = nullptr;

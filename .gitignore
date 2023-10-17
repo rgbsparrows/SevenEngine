@@ -24,6 +24,9 @@ CMakeFile/out/
 # binaryfile
 Binaries/
 
+# Sdk
+!/Sdk/**
+
 # Doc
 !/Doc/**
 
@@ -44,12 +47,6 @@ Binaries/
 !*.def
 !*.exp
 !*.natvis
-
-# C# source files
-!*.cs
-!*.cs.template
-!*.aspx
-!*.resx
 
 # Shader formats
 !*.hlsl

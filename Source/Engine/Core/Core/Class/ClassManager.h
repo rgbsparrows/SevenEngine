@@ -30,6 +30,21 @@ public:
 		else return it->second;
 	}
 
+	std::vector<SClassIdentifier> GetAllDrivedClass(SClassIdentifier _baseClass) const noexcept
+	{
+		std::vector<SClassIdentifier> result;
+
+		for (auto& [classHash, classObject] : mClassObjectMap)
+		{
+			if (classObject->IsDrivedFrom(_baseClass))
+			{
+				result.push_back(classHash);
+			}
+		}
+
+		return result;
+	}
+
 	template<typename _classType>
 	_classType* ConstructObject(SClassIdentifier _classHash)
 	{

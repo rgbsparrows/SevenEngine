@@ -23,8 +23,8 @@
 // ImPlot v0.14
 
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "UI/Imgui/implot.h"
-#include "Imgui/implot_internal.h"
+#include "implot.h"
+#include "implot_internal.h"
 
 //-----------------------------------------------------------------------------
 // [SECTION] Macros and Defines
@@ -352,6 +352,13 @@ ImVec4 GetLastItemColor() {
     if (gp.PreviousItem)
         return ImGui::ColorConvertU32ToFloat4(gp.PreviousItem->Color);
     return ImVec4();
+}
+
+ImVec4 GetCurrentItemColor() {
+	ImPlotContext& gp = *GImPlot;
+	if (gp.CurrentItem)
+		return ImGui::ColorConvertU32ToFloat4(gp.CurrentItem->Color);
+	return ImVec4();
 }
 
 void BustItemCache() {

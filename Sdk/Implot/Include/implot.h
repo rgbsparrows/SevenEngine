@@ -47,6 +47,8 @@
 #pragma once
 #include "imgui.h"
 
+#include <functional>
+
 //-----------------------------------------------------------------------------
 // [SECTION] Macros and Defines
 //-----------------------------------------------------------------------------
@@ -557,7 +559,7 @@ struct ImPlotStyle {
 #define ImGuiMod_Alt        ImGuiModFlags_Alt
 #define ImGuiMod_Super      ImGuiModFlags_Super
 #endif
-
+ 
 // Input mapping structure. Default values listed. See also MapInputDefault, MapInputReverse.
 struct ImPlotInputMap {
     ImGuiMouseButton Pan;           // LMB    enables panning when held,
@@ -580,7 +582,7 @@ struct ImPlotInputMap {
 //-----------------------------------------------------------------------------
 
 // Callback signature for axis tick label formatter.
-typedef int (*ImPlotFormatter)(double value, char* buff, int size, void* user_data);
+using ImPlotFormatter = std::function<int(double value, char* buff, int size, void* user_data)>;
 
 // Callback signature for data getter.
 typedef ImPlotPoint (*ImPlotGetter)(int idx, void* user_data);
@@ -1120,6 +1122,8 @@ IMPLOT_API void SetNextErrorBarStyle(const ImVec4& col = IMPLOT_AUTO_COL, float 
 
 // Gets the last item primary color (i.e. its legend icon color)
 IMPLOT_API ImVec4 GetLastItemColor();
+// Gets the current item primary color (i.e. its legend icon color)
+IMPLOT_API ImVec4 GetCurrentItemColor();
 
 // Returns the null terminated string name for an ImPlotCol.
 IMPLOT_API const char* GetStyleColorName(ImPlotCol idx);

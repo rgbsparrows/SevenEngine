@@ -62,7 +62,7 @@ struct RImguiDrawData
 {
 	std::vector<RImguiDrawCmd> mCmdBuffer;
 	std::vector<RImguiVertex> mVertexBuffer;
-	std::vector<uint16_t> mIndexBuffer;
+	std::vector<uint32_t> mIndexBuffer;
 	Math::SFloat2 mDisplayPos;
 	Math::SFloat2 mDisplaySize;
 

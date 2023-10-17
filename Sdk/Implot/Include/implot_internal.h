@@ -32,7 +32,8 @@
 #pragma once
 
 #include <time.h>
-#include "Imgui/imgui_internal.h"
+#include "implot.h"
+#include "imgui_internal.h"
 
 #ifndef IMPLOT_VERSION
 #error Must include implot.h before implot_internal.h
@@ -853,9 +854,20 @@ struct ImPlotAxis
     }
 
     inline void ApplyFit(float padding) {
-        const double ext_size = FitExtents.Size() * 0.5;
-        FitExtents.Min -= ext_size * padding;
-        FitExtents.Max += ext_size * padding;
+
+        if (TransformForward != nullptr && TransformInverse != nullptr) 
+        {
+            const ImPlotRange transformedExtents = ImPlotRange(TransformForward(FitExtents.Min, TransformData), TransformForward(FitExtents.Max, TransformData));
+            const double ext_size = transformedExtents.Size() * 0.5;
+            FitExtents.Min = TransformInverse(transformedExtents.Min - ext_size * padding, TransformData);
+            FitExtents.Max = TransformInverse(transformedExtents.Max + ext_size * padding, TransformData);
+        }
+        else
+        {
+            const double ext_size = FitExtents.Size() * 0.5;
+			FitExtents.Min -= ext_size * padding;
+			FitExtents.Max += ext_size * padding;
+        }
         if (!IsLockedMin() && !ImNanOrInf(FitExtents.Min))
             Range.Min = FitExtents.Min;
         if (!IsLockedMax() && !ImNanOrInf(FitExtents.Max))
