@@ -106,14 +106,14 @@ public:
 		}
 	}
 
-	void Map(void** _dataPtr) noexcept
+	SBufferView Map() noexcept
 	{
 		CHECK(mRDIResource && mRDIDevice);
 
 		if (mUploadBuffer[GetUploadBufferIndex()] == nullptr)
 			mUploadBuffer[GetUploadBufferIndex()] = CreateUploadBuffer();
 
-		mUploadBuffer[GetUploadBufferIndex()]->Map(_dataPtr);
+		return mUploadBuffer[GetUploadBufferIndex()]->Map();
 	}
 
 	void Unmap() noexcept

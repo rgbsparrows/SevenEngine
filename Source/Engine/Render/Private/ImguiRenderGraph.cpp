@@ -181,11 +181,10 @@ void RImguiRenderGraph::Render(std::vector<RRenderWindowInfo>& _renderWindowInfo
 	}
 
 	void* cbData = nullptr;
-	mDynamicConstantBuffer.Map(&cbData);
+	SBufferView dynamicConstantBufferView = mDynamicConstantBuffer.Map();
 	for (size_t i = 0; i != _renderWindowInfo.size(); ++i)
 	{
 		auto& drawData = _renderWindowInfo[i].mImguiDrawData->Get_RenderThread();
-		void* destMemory = static_cast<uint8_t*>(cbData) + 256 * i;
 
 		float L = drawData.mDisplayPos[0];
 		float R = drawData.mDisplayPos[0] + drawData.mDisplaySize[0];
@@ -200,7 +199,7 @@ void RImguiRenderGraph::Render(std::vector<RRenderWindowInfo>& _renderWindowInfo
 			{ (R + L) / (L - R),	(T + B) / (B - T),  0.5f,       1.0f },
 		};
 
-		memcpy_s(destMemory, 256, matrix.GetData(), 256);
+		Memcpy(SRange(256 * i, 256).GetBuffer(dynamicConstantBufferView), matrix.GetData(), 256);
 	}
 	mDynamicConstantBuffer.Unmap();
 
@@ -247,13 +246,13 @@ void RImguiRenderGraph::Render(std::vector<RRenderWindowInfo>& _renderWindowInfo
 		}
 
 		void* ibData = nullptr;
-		mDynamicIndexBufferList[i].Map(&ibData);
-		memcpy_s(ibData, drawData.mIndexBuffer.size() * sizeof(uint32_t), drawData.mIndexBuffer.data(), drawData.mIndexBuffer.size() * sizeof(uint32_t));
+		SBufferView ibBufferView = mDynamicIndexBufferList[i].Map();
+		Memcpy(ibBufferView, drawData.mIndexBuffer.data(), drawData.mIndexBuffer.size() * sizeof(uint32_t));
 		mDynamicIndexBufferList[i].Unmap();
 
 		void* vbData = nullptr;
-		mDynamicVertexBufferList[i].Map(&vbData);
-		memcpy_s(vbData, drawData.mVertexBuffer.size() * sizeof(RImguiVertex), drawData.mVertexBuffer.data(), drawData.mVertexBuffer.size() * sizeof(RImguiVertex));
+		SBufferView vbBufferView = mDynamicVertexBufferList[i].Map();
+		Memcpy(vbBufferView, drawData.mVertexBuffer.data(), drawData.mVertexBuffer.size() * sizeof(RImguiVertex));
 		mDynamicVertexBufferList[i].Unmap();
 
 		SRenderTaskIdentify updateImguiVBTask = _renderContext.AddRenderTask(u8"Render Imgui", [=, &drawData](IRDICommandList* _commandList)

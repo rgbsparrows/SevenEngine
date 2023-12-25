@@ -98,7 +98,7 @@ public:
 
 public:
 	void GetDesc(SRDIBufferResourceDesc* _desc)const noexcept override { *_desc = mDesc; }
-	void Map(void** _dataPtr) noexcept;
+	SBufferView Map() noexcept;
 	void Unmap() noexcept;
 	void Release() noexcept override;
 

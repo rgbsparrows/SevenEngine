@@ -99,10 +99,9 @@ void RBaseRenderer::Render(RWorld& _renderData, RCamera& _camera, RTexture2D& _c
 		mDynamicConstantBuffer = RDynamicGPUBuffer::ConstructDynamicGPUResource(_renderContext.GetDevice(), &desc);
 	}
 
-	void* data;
-	mDynamicConstantBuffer.Map(&data);
+	SBufferView constantBuffer = mDynamicConstantBuffer.Map();
 
-	uint8_t* dataPtr = static_cast<uint8_t*>(data);
+	//uint8_t* dataPtr = static_cast<uint8_t*>(data);
 
 	//memcpy_s(SRange(0, 256).GetBuffer(data), sizeof(Math::SFloat4x4), viewMatrix.GetData(), sizeof(Math::SFloat4x4));
 	//memcpy_s(SRange(sizeof(Math::SFloat4x4), 256).GetBuffer(data), sizeof(Math::SFloat4x4), projMatrix.GetData(), sizeof(Math::SFloat4x4));

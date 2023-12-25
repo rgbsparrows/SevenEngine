@@ -105,36 +105,38 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 
 			if (mTexture2DData.mSubresourceData.empty() == false)
 			{
-				IRDIBuffer* uploadBuffer = nullptr;
+				IRDIBuffer* uploadGPUBuffer = nullptr;
 				{
 					SRDIBufferResourceDesc desc;
 					desc.mHeapType = ERDIHeapType::Upload;
 					desc.mResourceUsage = ERDIResourceUsage::None;
 					desc.mBufferSize = SPixelFormatMeta::GetPixelFootprint(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, mTexture2DData.mDesc.mMipCount);
 
-					uploadBuffer = _renderContext.GetDevice()->CreateBuffer(&desc);
+					uploadGPUBuffer = _renderContext.GetDevice()->CreateBuffer(&desc);
 
-					void* dataPtr = nullptr;
-					uploadBuffer->Map(&dataPtr);
+					SBufferView uploadBufferView = uploadGPUBuffer->Map();
 
 					if constexpr (SBuildConfiguation::GIsDebugMode)
-						memset(dataPtr, 0, desc.mBufferSize);
+						memset(uploadBufferView.GetBuffer(), 0, desc.mBufferSize);
 
+					size_t offset = 0;
 					for (uint32_t i = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
 					{
-						if (mTexture2DData.mSubresourceData[i].IsEmpty() == false)
-							Memcpy(SBufferView(dataPtr, desc.mBufferSize), mTexture2DData.mSubresourceData[i].GetBuffer(mTexture2DData.mResourceData));
+						size_t pitchSize = SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
 
-						dataPtr = reinterpret_cast<uint8_t*>(dataPtr) + SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
+						if (mTexture2DData.mSubresourceData[i].IsEmpty() == false)
+							Memcpy(SRange(offset, pitchSize).GetBuffer(uploadBufferView), mTexture2DData.mSubresourceData[i].GetBuffer(mTexture2DData.mResourceData));
+
+						offset += pitchSize;
 					}
-					uploadBuffer->Unmap();
+					uploadGPUBuffer->Unmap();
 				}
 
 				_renderContext.AddRenderTask(u8"¸üÐÂÌùÍ¼", [&](IRDICommandList* _commandList)
 					{
 						for (uint32_t i = 0, offset = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
 						{
-							_commandList->CopyTexture2D(texture.mTexture, i, uploadBuffer, offset);
+							_commandList->CopyTexture2D(texture.mTexture, i, uploadGPUBuffer, offset);
 							offset += SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
 						}
 						_commandList->TranstionResourceState(texture.mTexture, ERDIResourceState::CopyDest, ERDIResourceState::Common);
@@ -143,7 +145,7 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 				_renderContext.ExecuteRenderGraph();
 				_renderContext.SyncToGpuFrameEnd(true);
 
-				uploadBuffer->Release();
+				uploadGPUBuffer->Release();
 			}
 		}
 	};
@@ -232,8 +234,8 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 			*_uploadBuffer = device->CreateBuffer(&uploadBufferDesc);
 
 			void* dataPtr = nullptr;
-			(*_uploadBuffer)->Map(&dataPtr);
-			memcpy_s(dataPtr, _indexCount * sizeof(uint32_t), _indexData, _indexCount * sizeof(uint32_t));
+			SBufferView uploadBufferView = (*_uploadBuffer)->Map();
+			Memcpy(uploadBufferView, _indexData, _indexCount * sizeof(uint32_t));
 			(*_uploadBuffer)->Unmap();
 
 			return indexBuffer;
@@ -258,8 +260,8 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 			*_uploadBuffer = device->CreateBuffer(&uploadBufferDesc);
 			 
 			void* dataPtr = nullptr;
-			(*_uploadBuffer)->Map(&dataPtr);
-			memcpy_s(dataPtr, _vertexCount * _vertexStride, _vertexData, _vertexCount * _vertexStride);
+			SBufferView uploadBufferView = (*_uploadBuffer)->Map();
+			Memcpy(uploadBufferView, _vertexData, _vertexCount * _vertexStride);
 			(*_uploadBuffer)->Unmap();
 
 			return vertexBuffer;

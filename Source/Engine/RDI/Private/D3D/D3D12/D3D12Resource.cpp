@@ -44,12 +44,15 @@ void SD3D12Buffer::Init(ID3D12Resource* _nativePtr, const SRDIBufferResourceDesc
 		mUAV = descriptorHeap->CreateUAV(this);
 }
 
-void SD3D12Buffer::Map(void** _dataPtr) noexcept
+SBufferView SD3D12Buffer::Map() noexcept
 {
 	CHECK(mDesc.mHeapType == ERDIHeapType::Upload || mDesc.mHeapType == ERDIHeapType::ReadBack);
 
-	D3D12_RANGE range(0, 0);
-	VERIFY_D3D_RETURN(mResourceNativePtr->Map(0, &range, _dataPtr));
+	void* dataPtr = nullptr;
+	D3D12_RANGE readRange(0, 0);
+
+	VERIFY_D3D_RETURN(mResourceNativePtr->Map(0, &readRange, &dataPtr));
+	return SBufferView(dataPtr, mDesc.mBufferSize);
 }
 
 void SD3D12Buffer::Unmap() noexcept

@@ -156,8 +156,10 @@ public:
 	size_t GetBegin() const noexcept { return mBegin; }
 	SConstBufferView GetBuffer(const void* _buffer) const noexcept { return SConstBufferView(_buffer, mBegin, mRangeSize); }
 	SConstBufferView GetBuffer(const SBlob& _blob) const noexcept { return SConstBufferView(_blob, mBegin, mRangeSize); }
+	SConstBufferView GetBuffer(SConstBufferView& _bufferView) const noexcept { return SConstBufferView(_bufferView, mBegin, mRangeSize); }
 	SBufferView GetBuffer(void* _buffer) const noexcept { return SBufferView(_buffer, mBegin, mRangeSize); }
 	SBufferView GetBuffer(SBlob& _blob) const noexcept { return SBufferView(_blob, mBegin, mRangeSize); }
+	SBufferView GetBuffer(SBufferView& _bufferView) const noexcept { return SBufferView(_bufferView, mBegin, mRangeSize); }
 
 	size_t GetSize() const noexcept { return mRangeSize; }
 	bool IsEmpty() const noexcept { return mRangeSize == 0; }
