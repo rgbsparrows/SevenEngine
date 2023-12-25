@@ -32,7 +32,7 @@ void RImguiRenderGraph::Init(SRenderContext& _renderContext) noexcept
 		"	float4 pos : SV_POSITION;										\n"
 		"};																	\n"
 		"																	\n"
-		"VsOutput main(VsInput _input)										\n"
+		"VsOutput VsMain(VsInput _input)									\n"
 		"{																	\n"
 		"	VsOutput output;												\n"
 		"	output.pos = mul(ProjectionMatrix, float4(_input.pos, 0, 1));	\n"
@@ -52,14 +52,14 @@ void RImguiRenderGraph::Init(SRenderContext& _renderContext) noexcept
 		"	float4 col : COLOR;												\n"
 		"};																	\n"
 		"																	\n"
-		"float4 main(PsInput _input) : SV_Target							\n"
+		"float4 PsMain(PsInput _input) : SV_Target							\n"
 		"{																	\n"
 		"	return _input.col * texture0.Sample(sampler0, _input.uv);		\n"
 		"}																	\n"
 		;
 
-	SBufferView vsBuffer(vertexShader, strlen(vertexShader));
-	SBufferView psBuffer(pixelShader, strlen(pixelShader));
+	SConstBufferView vsBuffer(vertexShader, strlen(vertexShader));
+	SConstBufferView psBuffer(pixelShader, strlen(pixelShader));
 
 	SRDIErrorInfo errorInfo;
 	IRDIVertexShader* vs = _renderContext.GetDevice()->CreateVertexShader(vsBuffer, nullptr, &errorInfo);

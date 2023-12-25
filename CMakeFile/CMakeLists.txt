@@ -30,7 +30,7 @@ add_compile_options("/Zc:char8_t-")
 add_compile_definitions("$<$<CONFIG:Debug>:SE_BUILD_DEBUG>$<$<CONFIG:Shipping>:SE_BUILD_SHIPPING>$<$<CONFIG:Profile>:SE_BUILD_PROFILE>$<$<CONFIG:Test>:SE_BUILD_TEST>=1")
 add_compile_definitions("SE_BUILD_CONFIG=$<CONFIGURATION>")
 
-include(SdkList.txt)
+include(../Sdk/SdkList.txt)
 
 set(ENGINE_FILES)
 set(ENGINE_INCLUDE)

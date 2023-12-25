@@ -111,26 +111,27 @@ const char* ConvertShaderTargetToStr(ED3DShaderTarget _shaderTarget) noexcept
 {
 	static constexpr const char* strMap[EnumToInt(ED3DShaderTarget::Num)] = 
 	{
-		"vs_5_0",
-		"hs_5_0",
-		"ds_5_0",
-		"gs_5_0",
-		"ps_5_0",
-		"cs_5_0",
+		"vs_5_1",
+		"hs_5_1",
+		"ds_5_1",
+		"gs_5_1",
+		"ps_5_1",
+		"cs_5_1",
+	};
 
-		"vs_6_0",
-		"hs_6_0",
-		"ds_6_0",
-		"gs_6_0",
-		"ps_6_0",
-		"cs_6_0",
+	return strMap[EnumToInt(_shaderTarget)];
+}
 
-		"vs_6_4",
-		"hs_6_4",
-		"ds_6_4",
-		"gs_6_4",
-		"ps_6_4",
-		"cs_6_4",
+const char* GetShaderEntryPoint(ED3DShaderTarget _shaderTarget) noexcept
+{
+	static constexpr const char* strMap[EnumToInt(ED3DShaderTarget::Num)] =
+	{
+		"VsMain",
+		"HsMain",
+		"DsMain",
+		"GsMain",
+		"PsMain",
+		"CsMain",
 	};
 
 	return strMap[EnumToInt(_shaderTarget)];

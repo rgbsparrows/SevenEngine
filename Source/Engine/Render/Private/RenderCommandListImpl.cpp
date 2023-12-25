@@ -123,7 +123,7 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 					for (uint32_t i = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
 					{
 						if (mTexture2DData.mSubresourceData[i].IsEmpty() == false)
-							memcpy_s(dataPtr, desc.mBufferSize, mTexture2DData.mSubresourceData[i].GetBuffer(mTexture2DData.mResourceData), mTexture2DData.mSubresourceData[i].GetSize());
+							Memcpy(SBufferView(dataPtr, desc.mBufferSize), mTexture2DData.mSubresourceData[i].GetBuffer(mTexture2DData.mResourceData));
 
 						dataPtr = reinterpret_cast<uint8_t*>(dataPtr) + SPixelFormatMeta::GetPixelSlicePitch(mTexture2DData.mDesc.mPixelFormat, mTexture2DData.mDesc.mSizeX, mTexture2DData.mDesc.mSizeY, i);
 					}

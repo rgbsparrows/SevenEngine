@@ -27,10 +27,10 @@ private:
 	void AddResource(const std::filesystem::path& _path, SResourceBase* _resource) noexcept;
 
 	bool LoadFile(const std::filesystem::path& _path, SBlob& _blob) noexcept;
-	bool SaveFile(SBufferView _content, const std::filesystem::path& _path, bool _overwrite) noexcept;
+	bool SaveFile(SConstBufferView _content, const std::filesystem::path& _path, bool _overwrite) noexcept;
 
 	std::filesystem::path ConvertPath(const std::filesystem::path& _path) noexcept;
-	bool IsRawResource(SBufferView _content) noexcept;
+	bool IsRawResource(SConstBufferView _content) noexcept;
 
 private:
 	//资源的持有权只由资源代理的持有者所拥有，所以资源模块内只存储资源指针，而不储存资源代理

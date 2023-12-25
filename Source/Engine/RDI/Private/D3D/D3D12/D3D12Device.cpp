@@ -109,7 +109,7 @@ void SD3D12Device::Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D1
 
 	//ShaderCompileInfo
 	{
-		mShaderCompileFlag = D3DCOMPILE_AVOID_FLOW_CONTROL | D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS;
+		mShaderCompileFlag = D3DCOMPILE_AVOID_FLOW_CONTROL | D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS | D3DCOMPILE_ALL_RESOURCES_BOUND;
 
 		if (SProgramConfiguation::UseDebugShader())
 			mShaderCompileFlag |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG_NAME_FOR_SOURCE | D3DCOMPILE_DEBUG_NAME_FOR_BINARY;
@@ -133,6 +133,11 @@ void SD3D12Device::Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D1
 	}
 }
 
+void SD3D12Device::Clear() noexcept
+{
+	TODO("SD3D12Device Clear");
+}
+
 IRDICommandAllocator* SD3D12Device::CreateCommandAllocator(ERDICommandListType _commandListType) noexcept
 {
 	ID3D12CommandAllocator* commandAllocatorNativePtr = nullptr;
@@ -148,7 +153,7 @@ IRDICommandList* SD3D12Device::CreateCommandList(ERDICommandListType _commandLis
 {
 	SD3D12CommandAllocator* commandAllocator = static_cast<SD3D12CommandAllocator*>(_commandAllocator);
 
-	ID3D12GraphicsCommandList* commandListNativePtr = nullptr;
+	ID3D12GraphicsCommandList* commandListNativePtr = nullptr; 
 	GetNativePtr()->CreateCommandList(0, ConvertCommandListTypeToD3D12(_commandListType), commandAllocator->GetNativePtr(), nullptr, IID_PPV_ARGS(&commandListNativePtr));
 
 	SD3D12CommandList* commandList = mCommandListPool.AllocateElement();
@@ -298,7 +303,7 @@ IRDIRootSignature* SD3D12Device::CreateRootSignature(const SRDIRootSignatureDesc
 	IRDIRootSignature* rootSignature = nullptr;
 
 	if (res == 0)
-		rootSignature = CreateRootSignature(SBufferView(serlizedBlob->GetBufferPointer(), serlizedBlob->GetBufferSize()));
+		rootSignature = CreateRootSignature(SConstBufferView(serlizedBlob->GetBufferPointer(), serlizedBlob->GetBufferSize()));
 	else
 		GenerateErrorInfo(errorBlob, _rootSignatureError);
 
@@ -310,7 +315,7 @@ IRDIRootSignature* SD3D12Device::CreateRootSignature(const SRDIRootSignatureDesc
 	return rootSignature;
 }
 
-IRDIRootSignature* SD3D12Device::CreateRootSignature(const SBufferView _serializedRootSignatureBlob) noexcept
+IRDIRootSignature* SD3D12Device::CreateRootSignature(const SConstBufferView _serializedRootSignatureBlob) noexcept
 {
 	ID3D12RootSignature* rootSignatureNativePtr = nullptr;
 	VERIFY_D3D_RETURN(GetNativePtr()->CreateRootSignature(0, _serializedRootSignatureBlob.GetBuffer(), _serializedRootSignatureBlob.GetBufferSize(), IID_PPV_ARGS(&rootSignatureNativePtr)));
@@ -653,10 +658,10 @@ IRDISamplerHeapRange* SD3D12Device::CreateDescriptorRange(uint16_t _samplerCount
 	return mShaderVisibleDescriptorHeap.AllocateSamplerHeapRange(_samplerCount);
 }
 
-IRDIVertexShader* SD3D12Device::CreateVertexShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+IRDIVertexShader* SD3D12Device::CreateVertexShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
 {
 	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::VS_5_0, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
+	bool res = CreateShader(_hlslShader, ED3DShaderTarget::VS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
 
 	if (!res)
 		return nullptr;
@@ -666,10 +671,10 @@ IRDIVertexShader* SD3D12Device::CreateVertexShader(SBufferView _hlslShader, cons
 	return vertexShader;
 }
 
-IRDIHullShader* SD3D12Device::CreateHullShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+IRDIHullShader* SD3D12Device::CreateHullShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
 {
 	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::HS_5_0, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
+	bool res = CreateShader(_hlslShader, ED3DShaderTarget::HS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
 
 	if (!res)
 		return nullptr;
@@ -679,10 +684,10 @@ IRDIHullShader* SD3D12Device::CreateHullShader(SBufferView _hlslShader, const SR
 	return hullShader;
 }
 
-IRDIDomainShader* SD3D12Device::CreateDomainShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+IRDIDomainShader* SD3D12Device::CreateDomainShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
 {
 	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::DS_5_0, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
+	bool res = CreateShader(_hlslShader, ED3DShaderTarget::DS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
 
 	if (!res)
 		return nullptr;
@@ -692,10 +697,10 @@ IRDIDomainShader* SD3D12Device::CreateDomainShader(SBufferView _hlslShader, cons
 	return domainShader;
 }
 
-IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
 {
 	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::GS_5_0, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
+	bool res = CreateShader(_hlslShader, ED3DShaderTarget::GS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
 
 	if (!res)
 		return nullptr;
@@ -705,10 +710,10 @@ IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SBufferView _hlslShader, 
 	return geometryShader;
 }
 
-IRDIPixelShader* SD3D12Device::CreatePixelShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+IRDIPixelShader* SD3D12Device::CreatePixelShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
 {
 	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::PS_5_0, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
+	bool res = CreateShader(_hlslShader, ED3DShaderTarget::PS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
 
 	if (!res)
 		return nullptr;
@@ -718,10 +723,10 @@ IRDIPixelShader* SD3D12Device::CreatePixelShader(SBufferView _hlslShader, const 
 	return pixelShader;
 }
 
-IRDIComputeShader* SD3D12Device::CreateComputeShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+IRDIComputeShader* SD3D12Device::CreateComputeShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
 {
 	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::CS_5_0, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
+	bool res = CreateShader(_hlslShader, ED3DShaderTarget::CS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
 
 	if (!res)
 		return nullptr;
@@ -731,42 +736,42 @@ IRDIComputeShader* SD3D12Device::CreateComputeShader(SBufferView _hlslShader, co
 	return computeShader;
 }
 
-IRDIVertexShader* SD3D12Device::CreateVertexShader(SBufferView _compiledShader) noexcept
+IRDIVertexShader* SD3D12Device::CreateVertexShader(SConstBufferView _compiledShader) noexcept
 {
 	SD3D12VertexShader* vertexShader = mVertexShaderPool.AllocateElement();
 	vertexShader->Init(_compiledShader, this);
 	return vertexShader;
 }
 
-IRDIHullShader* SD3D12Device::CreateHullShader(SBufferView _compiledShader) noexcept
+IRDIHullShader* SD3D12Device::CreateHullShader(SConstBufferView _compiledShader) noexcept
 {
 	SD3D12HullShader* hullShader = mHullShaderPool.AllocateElement();
 	hullShader->Init(_compiledShader, this);
 	return hullShader;
 }
 
-IRDIDomainShader* SD3D12Device::CreateDomainShader(SBufferView _compiledShader) noexcept
+IRDIDomainShader* SD3D12Device::CreateDomainShader(SConstBufferView _compiledShader) noexcept
 {
 	SD3D12DomainShader* domainShader = mDomainShaderPool.AllocateElement();
 	domainShader->Init(_compiledShader, this);
 	return domainShader;
 }
 
-IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SBufferView _compiledShader) noexcept
+IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SConstBufferView _compiledShader) noexcept
 {
 	SD3D12GeometryShader* geometryShader = mGeometryShaderPool.AllocateElement();
 	geometryShader->Init(_compiledShader, this);
 	return geometryShader;
 }
 
-IRDIPixelShader* SD3D12Device::CreatePixelShader(SBufferView _compiledShader) noexcept
+IRDIPixelShader* SD3D12Device::CreatePixelShader(SConstBufferView _compiledShader) noexcept
 {
 	SD3D12PixelShader* pixelShader = mPixelShaderPool.AllocateElement();
 	pixelShader->Init(_compiledShader, this);
 	return pixelShader;
 }
 
-IRDIComputeShader* SD3D12Device::CreateComputeShader(SBufferView _compiledShader) noexcept
+IRDIComputeShader* SD3D12Device::CreateComputeShader(SConstBufferView _compiledShader) noexcept
 {
 	SD3D12ComputeShader* computeShader = mComputeShaderPool.AllocateElement();
 	computeShader->Init(_compiledShader, this);
@@ -944,7 +949,7 @@ ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, co
 	return nativeResourcePtr;
 }
 
-bool SD3D12Device::CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept
+bool SD3D12Device::CreateShader(SConstBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept
 {
 	static D3D_SHADER_MACRO shaderMacro[64] = {};
 	static char macroBuffer[64][128] = {};
@@ -970,7 +975,7 @@ bool SD3D12Device::CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shade
 
 	ID3DBlob* shaderBlob;
 	ID3DBlob* errorBlob;
-	HRESULT res = D3DCompile(_hlslShader.GetBuffer(), _hlslShader.GetBufferSize(), nullptr, shaderMacro, &mD3DInclude, "main", ConvertShaderTargetToStr(_shaderTarget), mShaderCompileFlag, 0, &shaderBlob, &errorBlob);
+	HRESULT res = D3DCompile(_hlslShader.GetBuffer(), _hlslShader.GetBufferSize(), nullptr, shaderMacro, &mD3DInclude, GetShaderEntryPoint(_shaderTarget), ConvertShaderTargetToStr(_shaderTarget), mShaderCompileFlag, 0, &shaderBlob, &errorBlob);
 
 	if (res == 0)
 		_shaderBlob->ResizeBlob(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize());

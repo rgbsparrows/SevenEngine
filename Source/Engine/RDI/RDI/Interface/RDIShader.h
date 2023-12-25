@@ -1,10 +1,9 @@
 #pragma once
-
-class SBufferView;
+#include "Core/Container/Blob.h"
 
 __interface IRDIShader
 {
-	SBufferView GetCompiledShaderBlob() noexcept;
+	SConstBufferView GetCompiledShaderBlob() noexcept;
 	void Release() noexcept;
 };
 

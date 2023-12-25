@@ -12,6 +12,8 @@ class ACComponent;
 class SWorld
 {
 public:
+	static SWorld* MakeNewWorld() noexcept;
+
 	void Init() noexcept;
 	void Release() noexcept;
 
@@ -27,6 +29,8 @@ public:
 	AActor* SpawnActor(SClassIdentifier _actorClass) noexcept;
 
 	std::vector<AActor*> GetActorList() noexcept { return mActorList; }
+
+	RRenderProxy<RWorld>* GetRenderProxy() noexcept { return mRenderScene.GetRenderProxy(); }
 
 public:
 	void RegisterActor_Internal(AActor* _actor) noexcept;

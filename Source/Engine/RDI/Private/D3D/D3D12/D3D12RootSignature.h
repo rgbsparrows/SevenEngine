@@ -16,7 +16,7 @@ public:
 	ID3D12RootSignature* GetNativePtr() noexcept { return mRootSignatureNativePtr; }
 
 public:
-	SBufferView GetSerializedRootSignature() noexcept override { return SBufferView(mBlob); }
+	SConstBufferView GetSerializedRootSignature() noexcept override { return SConstBufferView(mBlob); }
 	void Release() noexcept override;
 
 private:

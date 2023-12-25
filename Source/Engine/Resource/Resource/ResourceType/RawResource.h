@@ -9,8 +9,9 @@ class SRawResource : public SResourceBase
 public:
 	virtual void Serialize(SWriteStream& _writeStream)const noexcept
 	{
-
+		_writeStream.WriteBuffer(mContent);
 	}
+
 	virtual bool Deserialize(SReadStream& _readStream)
 	{
 		mContent = SBlob(_readStream.GetContentSize());

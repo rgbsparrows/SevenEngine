@@ -103,7 +103,7 @@ public:
 	const std::vector<SSubMesh>& GetSubMeshList() noexcept { return mSubMeshList; }
 
 protected:
-	virtual void OnRelease() noexcept;
+	void OnRelease() noexcept override;
 
 public:
 	EVertexSemanticFlag mVertexSemantic = ConvertToEnumFlag({

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <stdint.h>
+#include "Core/Container/Blob.h"
 
-class SBufferView;
+#include <stdint.h>
 
 struct SRDIBufferResourceDesc;
 struct SRDITexture1DResourceDesc;
@@ -69,7 +69,7 @@ __interface IRDIDevice
 	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept;
 
 	IRDIRootSignature* CreateRootSignature(const SRDIRootSignatureDesc* _desc, SRDIErrorInfo* _rootSignatureError) noexcept;
-	IRDIRootSignature* CreateRootSignature(const SBufferView _serializedRootSignatureBlob) noexcept;
+	IRDIRootSignature* CreateRootSignature(const SConstBufferView _serializedRootSignatureBlob) noexcept;
 
 	IRDIGraphicsPipelineState* CreateGraphicsPipelineState(const SRDIGraphicsPipelineState* _desc) noexcept;
 	IRDIComputePipelineState* CreateComputePipelineState(const SRDIComputePipelineState* _desc) noexcept;
@@ -87,17 +87,17 @@ __interface IRDIDevice
 	IRDIDescriptorHeapRange* CreateDescriptorRange(uint16_t _srvCount, uint16_t _uavCount) noexcept;
 	IRDISamplerHeapRange* CreateDescriptorRange(uint16_t _samplerCount) noexcept;
 
-	IRDIVertexShader* CreateVertexShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIHullShader* CreateHullShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIDomainShader* CreateDomainShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIGeometryShader* CreateGeometryShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIPixelShader* CreatePixelShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIComputeShader* CreateComputeShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
+	IRDIVertexShader* CreateVertexShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
+	IRDIHullShader* CreateHullShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
+	IRDIDomainShader* CreateDomainShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
+	IRDIGeometryShader* CreateGeometryShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
+	IRDIPixelShader* CreatePixelShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
+	IRDIComputeShader* CreateComputeShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
 
-	IRDIVertexShader* CreateVertexShader(SBufferView _compiledShader) noexcept;
-	IRDIHullShader* CreateHullShader(SBufferView _compiledShader) noexcept;
-	IRDIDomainShader* CreateDomainShader(SBufferView _compiledShader) noexcept;
-	IRDIGeometryShader* CreateGeometryShader(SBufferView _compiledShader) noexcept;
-	IRDIPixelShader* CreatePixelShader(SBufferView _compiledShader) noexcept;
-	IRDIComputeShader* CreateComputeShader(SBufferView _compiledShader) noexcept;
+	IRDIVertexShader* CreateVertexShader(SConstBufferView _compiledShader) noexcept;
+	IRDIHullShader* CreateHullShader(SConstBufferView _compiledShader) noexcept;
+	IRDIDomainShader* CreateDomainShader(SConstBufferView _compiledShader) noexcept;
+	IRDIGeometryShader* CreateGeometryShader(SConstBufferView _compiledShader) noexcept;
+	IRDIPixelShader* CreatePixelShader(SConstBufferView _compiledShader) noexcept;
+	IRDIComputeShader* CreateComputeShader(SConstBufferView _compiledShader) noexcept;
 };

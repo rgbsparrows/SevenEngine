@@ -17,7 +17,7 @@ public:
 	ID3D12PipelineState* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
 
 public:
-	SBufferView GetCachedBlob() noexcept override { return SBufferView(mCachedBlob); }
+	SConstBufferView GetCachedBlob() noexcept override { return SConstBufferView(mCachedBlob); }
 	void Release() noexcept override;
 
 private:
@@ -34,7 +34,7 @@ public:
 	ID3D12PipelineState* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
 
 public:
-	SBufferView GetCachedBlob() noexcept override { return SBufferView(mCachedBlob); }
+	SConstBufferView GetCachedBlob() noexcept override { return SConstBufferView(mCachedBlob); }
 	void Release() noexcept override;
 
 private:

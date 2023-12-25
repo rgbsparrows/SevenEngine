@@ -6,14 +6,15 @@ __interface IUIWindowInterface;
 class IUIModule : public IModuleInterface
 {
 public:
-	template<std::derived_from<IUIWindowInterface> _uiWindowClass>
-	IUIWindowInterface* FindOrAddWindow(const std::string& _windowTag = std::string()) noexcept
+	// WindowTag为空是为匿名窗口
+	template<std::derived_from<IUIWindowInterface> _uiWindowClass, typename... _argts>
+	IUIWindowInterface* FindOrAddWindow(const std::string& _windowTag, _argts&&... _argvs) noexcept
 	{
 		using UIWindowClass = _uiWindowClass;
 		IUIWindowInterface* uiWindow = GetWindowByTag(_windowTag);
 		if (uiWindow == nullptr)
 		{
-			uiWindow = new UIWindowClass;
+			uiWindow = new UIWindowClass(std::forward<_argts>(_argvs)...);
 			AddWindow(uiWindow, _windowTag);
 		}
 		return uiWindow;

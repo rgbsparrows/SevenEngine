@@ -45,7 +45,7 @@ public:
 	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept override;
 
 	IRDIRootSignature* CreateRootSignature(const SRDIRootSignatureDesc* _desc, SRDIErrorInfo* _rootSignatureError) noexcept override;
-	IRDIRootSignature* CreateRootSignature(const SBufferView _serializedRootSignatureBlob) noexcept override;
+	IRDIRootSignature* CreateRootSignature(const SConstBufferView _serializedRootSignatureBlob) noexcept override;
 
 	IRDIGraphicsPipelineState* CreateGraphicsPipelineState(const SRDIGraphicsPipelineState* _desc) noexcept override;
 	IRDIComputePipelineState* CreateComputePipelineState(const SRDIComputePipelineState* _desc) noexcept override;
@@ -63,19 +63,19 @@ public:
 	IRDIDescriptorHeapRange* CreateDescriptorRange(uint16_t _srvCount, uint16_t _uavCount) noexcept;
 	IRDISamplerHeapRange* CreateDescriptorRange(uint16_t _samplerCount) noexcept;
 
-	IRDIVertexShader* CreateVertexShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIHullShader* CreateHullShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIDomainShader* CreateDomainShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIGeometryShader* CreateGeometryShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIPixelShader* CreatePixelShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIComputeShader* CreateComputeShader(SBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	IRDIVertexShader* CreateVertexShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	IRDIHullShader* CreateHullShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	IRDIDomainShader* CreateDomainShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	IRDIGeometryShader* CreateGeometryShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	IRDIPixelShader* CreatePixelShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	IRDIComputeShader* CreateComputeShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
 
-	IRDIVertexShader* CreateVertexShader(SBufferView _compiledShader) noexcept override;
-	IRDIHullShader* CreateHullShader(SBufferView _compiledShader) noexcept override;
-	IRDIDomainShader* CreateDomainShader(SBufferView _compiledShader) noexcept override;
-	IRDIGeometryShader* CreateGeometryShader(SBufferView _compiledShader) noexcept override;
-	IRDIPixelShader* CreatePixelShader(SBufferView _compiledShader) noexcept override;
-	IRDIComputeShader* CreateComputeShader(SBufferView _compiledShader) noexcept override;
+	IRDIVertexShader* CreateVertexShader(SConstBufferView _compiledShader) noexcept override;
+	IRDIHullShader* CreateHullShader(SConstBufferView _compiledShader) noexcept override;
+	IRDIDomainShader* CreateDomainShader(SConstBufferView _compiledShader) noexcept override;
+	IRDIGeometryShader* CreateGeometryShader(SConstBufferView _compiledShader) noexcept override;
+	IRDIPixelShader* CreatePixelShader(SConstBufferView _compiledShader) noexcept override;
+	IRDIComputeShader* CreateComputeShader(SConstBufferView _compiledShader) noexcept override;
 
 public:
 	void ReleaseCommandAllocator(SD3D12CommandAllocator* _commandAllocator) noexcept;
@@ -115,7 +115,7 @@ public:
 	D3D12_RESOURCE_FLAGS MakeD3D12ResourceFlag(ERDIResourceUsage _resourceUsage) noexcept;
 	D3D12_CLEAR_VALUE MakeD3D12ClearValue(ERDIResourceUsage _resourceUsage, ERDIPixelFormat _pixelFormat, ERDIPixelFormat _rtvPixelFormat, ERDIPixelFormat _dsvPixelFormat, Math::SFColor _clearColor, float _clearDepth, uint8_t _clearStencil) noexcept;
 	ID3D12Resource* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, const D3D12_CLEAR_VALUE* _clearValue) noexcept;
-	bool CreateShader(SBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept;
+	bool CreateShader(SConstBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept;
 	void GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _errorInfo);
 
 private:

@@ -298,6 +298,11 @@ namespace Math
 		);
 	}
 
+	inline SFloat4x4 CalcPerspectiveProjectMatrix(float _fov, float _near, float _far, uint32_t _width, uint32_t _height) noexcept
+	{
+		return CalcPerspectiveProjectMatrix(_fov, _near, _far, _width * 1.f, _height * 1.f);
+	}
+
 	constexpr inline SFloat4x4 CalcParallelProjectMatrix(float _near, float _far, float _width, float _height) noexcept
 	{
 		return SFloat4x4(
@@ -308,6 +313,11 @@ namespace Math
 				{0,					0,				_far / (_far - _near),	1},
 			}
 		);
+	}
+
+	constexpr inline SFloat4x4 CalcParallelProjectMatrix(float _near, float _far, uint32_t _width, uint32_t _height) noexcept
+	{
+		return CalcParallelProjectMatrix(_near, _far, _width * 1.f, _height * 1.f);
 	}
 
 	inline STransform ApplyTransform(const STransform& _parentTransform, const STransform& _localTransform) noexcept

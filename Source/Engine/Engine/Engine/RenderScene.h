@@ -9,6 +9,8 @@ struct SRenderScene
 	void Init(SWorld* _world) noexcept;
 	void Clear() noexcept;
 
+	RRenderProxy<RWorld>* GetRenderProxy() noexcept { return mRenderWorld; }
+
 	void UpdateRenderProxy() noexcept;
 
 	void RegistComponent(ACRenderComponent* _component) noexcept;

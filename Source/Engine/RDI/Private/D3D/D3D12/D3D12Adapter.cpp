@@ -42,3 +42,8 @@ void SD3D12Adapter::Init(IDXGIAdapter* _nativePtr) noexcept
 			mCachedOutputs[i] = &mOutputs[i];
 	}
 }
+
+void SD3D12Adapter::Clear() noexcept
+{
+	TODO("Adapter Clear");
+}

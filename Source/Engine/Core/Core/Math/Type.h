@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdlib.h>
 
 namespace Math
 {
@@ -360,6 +361,9 @@ namespace Math
 			struct { UnderlyingType r, g, b, a; };
 			struct { UnderlyingType R, G, B, A; };
 		};
+
+		static TColor RandomRGB() noexcept { return TColor(UnderlyingType(1) * rand() / RAND_MAX, UnderlyingType(1) * rand() / RAND_MAX, UnderlyingType(1) * rand() / RAND_MAX, 1); }
+		static TColor RandomRGBA() noexcept { return TColor(UnderlyingType(1) * rand() / RAND_MAX, UnderlyingType(1) * rand() / RAND_MAX, UnderlyingType(1) * rand() / RAND_MAX, UnderlyingType(1) * rand() / RAND_MAX, UnderlyingType(1) * rand() / RAND_MAX, UnderlyingType(1) * rand() / RAND_MAX); }
 
 		static constexpr TColor Black() noexcept { return TColor(0, 0, 0, 1); }
 		static constexpr TColor White() noexcept { return TColor(1, 1, 1, 1); }

@@ -25,8 +25,6 @@ struct RCamera
 	float mFov;
 	float mNearClip;
 	float mFarClip;
-
-	Math::SFloat4x4 mViewMatrix;
 };
 
 struct RWorld

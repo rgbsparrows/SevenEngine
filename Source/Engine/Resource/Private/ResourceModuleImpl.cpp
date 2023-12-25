@@ -196,7 +196,7 @@ bool SResourceModuleImpl::LoadFile(const std::filesystem::path& _path, SBlob& _b
 	return true;
 }
 
-bool SResourceModuleImpl::SaveFile(SBufferView _content, const std::filesystem::path& _path, bool _overwrite) noexcept
+bool SResourceModuleImpl::SaveFile(SConstBufferView _content, const std::filesystem::path& _path, bool _overwrite) noexcept
 {
 	std::filesystem::path path = ConvertPath(_path);
 
@@ -239,7 +239,7 @@ std::filesystem::path SResourceModuleImpl::ConvertPath(const std::filesystem::pa
 	return path;
 }
 
-bool SResourceModuleImpl::IsRawResource(SBufferView _content) noexcept
+bool SResourceModuleImpl::IsRawResource(SConstBufferView _content) noexcept
 {
 	SReadStream readStream(_content);
 

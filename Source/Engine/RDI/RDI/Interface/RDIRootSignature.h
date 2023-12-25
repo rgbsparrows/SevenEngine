@@ -4,6 +4,6 @@ class SBlob;
 
 __interface IRDIRootSignature
 {
-	SBufferView GetSerializedRootSignature() noexcept;
+	SConstBufferView GetSerializedRootSignature() noexcept;
 	void Release() noexcept;
 };

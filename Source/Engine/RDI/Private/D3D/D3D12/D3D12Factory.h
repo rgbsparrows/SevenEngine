@@ -25,8 +25,7 @@ public:
 	std::string_view GetFactoryDesc() noexcept { return "D3D12 RDI"; }
 
 	bool Create() noexcept override { return Init(); }
-	TODO("Release操作")
-	void Release() noexcept override { }
+	void Release() noexcept override;
 
 	IRDIDevice* GetDevice() noexcept override { return &mD3D12Device; }
 	const std::vector<IRDIAdapter*>& GetAdapters() noexcept override { return mCachedAdapters; }

@@ -3,6 +3,14 @@
 #include "Engine/Classes/Actor.h"
 #include "Core/Class/ClassManager.h"
 
+SWorld* SWorld::MakeNewWorld() noexcept
+{
+	SWorld* world = new SWorld;
+	world->Init();
+
+	return world;
+}
+
 void SWorld::Init() noexcept
 {
 	TODO("World Init");

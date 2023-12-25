@@ -7,6 +7,9 @@ void ACStaticMesh::EmitRenderProxy(RStaticMeshProxy& _renderProxy) noexcept
 	_renderProxy.mMesh = mStaticMeshResource->GetRenderProxy();
 
 	_renderProxy.mMeshColor.resize(mStaticMeshResource->GetSubMeshList().size());
-	for(size_t i = 0; i < mStaticMeshResource->GetSubMeshList().size(); ++i)
-		_renderProxy.mMeshColor[i] = Math::SFColor(1.0f, 1.0f, 1.0f, 1.0f);
+	for (size_t i = 0; i < mStaticMeshResource->GetSubMeshList().size(); ++i)
+	{
+		if (_renderProxy.mMeshColor[i] == Math::SFColor())
+			_renderProxy.mMeshColor[i] = Math::SFColor::RandomRGB();
+	}
 }

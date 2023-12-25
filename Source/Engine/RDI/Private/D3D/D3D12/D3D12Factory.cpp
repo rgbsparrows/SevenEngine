@@ -4,6 +4,10 @@
 
 #pragma comment(lib, "dxgi.lib")
 
+#if WITH_DEBUG_CODE
+#pragma comment(lib, "dxguid.lib")
+#endif
+
 bool SD3D12Factory::Init() noexcept
 {
 	//DebugLayer
@@ -64,4 +68,20 @@ bool SD3D12Factory::Init() noexcept
 	}
 
 	return true;
+}
+
+void SD3D12Factory::Release() noexcept
+{
+	mDXGIFactoryNativePtr->Release();
+
+	for (SD3D12Adapter& adapter : mAdpaters)
+		adapter.Clear();
+
+	mD3D12Device.Clear();
+
+	if constexpr (SBuildConfiguation::GIsDebugMode)
+	{
+		mDXGIDebugNativePtr->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+		mDXGIDebugNativePtr->Release();
+	}
 }

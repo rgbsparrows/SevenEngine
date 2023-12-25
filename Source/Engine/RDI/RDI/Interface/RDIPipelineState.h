@@ -4,12 +4,12 @@
 
 __interface IRDIGraphicsPipelineState
 {
-	SBufferView GetCachedBlob() noexcept;
+	SConstBufferView GetCachedBlob() noexcept;
 	void Release() noexcept;
 };
 
 __interface IRDIComputePipelineState
 {
-	SBufferView GetCachedBlob() noexcept;
+	SConstBufferView GetCachedBlob() noexcept;
 	void Release() noexcept;
 };

@@ -55,10 +55,10 @@ void SModuleManager::LoadAllEnableModule() noexcept
 
 void SModuleManager::UnloadAllEnableModule() noexcept
 {
-	for (const auto& module : mModuleInfoMap)
+	for (auto it = mModuleInfoMap.crbegin(); it != mModuleInfoMap.crend(); ++it)
 	{
-		if (module.second.mEnableDefault)
-			UnloadModule(module.first);
+		if (it->second.mEnableDefault)
+			UnloadModule(it->first);
 	}
 }
 

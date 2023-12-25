@@ -19,7 +19,7 @@ SBlob::SBlob(const void* _buffer, size_t _bufferSize) noexcept
 	mBuffer = operator new(_bufferSize);
 	mBufferSize = _bufferSize;
 
-	memcpy_s(mBuffer, mBufferSize, _buffer, _bufferSize);
+	Memcpy(SBufferView(*this), _buffer, _bufferSize);
 }
 
 SBlob::SBlob(SBlob&& _blob) noexcept

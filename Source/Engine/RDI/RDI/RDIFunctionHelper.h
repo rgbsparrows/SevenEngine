@@ -487,8 +487,8 @@ struct SRDIRootSignatureDesc
 struct SRDIVertexInputElememt
 {
 	std::string_view mSemanticName;
-	ERDIPixelFormat mFormat;
-	uint32_t mAlignedByteOffset;
+	ERDIPixelFormat mFormat = ERDIPixelFormat::R32G32B32A32_FLOAT;
+	uint32_t mAlignedByteOffset = 0;
 };
 
 struct SRDIVertexInputLayoutDesc
@@ -698,7 +698,7 @@ struct SRDIGraphicsPipelineState
 	uint32_t mRenderTargetCount = 1;
 	ERDIPixelFormat mRenderTargetFormat[8] = {};
 	ERDIPixelFormat mDepthStencilFormat = ERDIPixelFormat::D24_UNORM_S8_UINT;
-	SBufferView mCachedPSO;
+	SConstBufferView mCachedPSO;
 };
 
 enum class ERDIPrimitiveTopology
@@ -758,7 +758,7 @@ struct SRDIComputePipelineState
 {
 	IRDIRootSignature* mRootSignature = nullptr;
 	IRDIComputeShader* mComputeShader = nullptr;
-	SBufferView mCachedPSO;
+	SConstBufferView mCachedPSO;
 };
 
 #pragma endregion

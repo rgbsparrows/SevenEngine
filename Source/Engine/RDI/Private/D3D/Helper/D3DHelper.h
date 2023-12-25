@@ -13,24 +13,12 @@
 
 enum class ED3DShaderTarget
 {
-	VS_5_0,
-	HS_5_0,
-	DS_5_0,
-	GS_5_0,
-	PS_5_0,
-	CS_5_0,
-	VS_6_0,
-	HS_6_0,
-	DS_6_0,
-	GS_6_0,
-	PS_6_0,
-	CS_6_0,
-	VS_6_4,
-	HS_6_4,
-	DS_6_4,
-	GS_6_4,
-	PS_6_4,
-	CS_6_4,
+	VS,
+	HS,
+	DS,
+	GS,
+	PS,
+	CS,
 
 	Num,
 	Error = TErrorEnumValue<ED3DShaderTarget>
