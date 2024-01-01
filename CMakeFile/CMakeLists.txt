@@ -91,13 +91,11 @@ include_directories(SevenEngine ${ENGINE_INCLUDE})
 target_link_directories(SevenEngine PRIVATE $<$<CONFIG:Debug>:${ENGINE_DEBUG_LIB}>$<$<CONFIG:Shipping>:${ENGINE_RELEASE_LIB}>$<$<CONFIG:Profile>:${ENGINE_RELEASE_LIB}>$<$<CONFIG:Test>:${ENGINE_RELEASE_LIB}>)
 
 foreach(dllDir $<$<CONFIG:Debug>:${ENGINE_DEBUG_DLL}>$<$<CONFIG:Shipping>:${ENGINE_RELEASE_DLL}>$<$<CONFIG:Profile>:${ENGINE_RELEASE_DLL}>$<$<CONFIG:Test>:${ENGINE_RELEASE_DLL}>)
-    if (EXISTS dllDir)
-        add_custom_command(TARGET SevenEngine POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_directory
-                ${dllDir}
-                $<TARGET_FILE_DIR:SevenEngine>
-        )
-    endif()
+    add_custom_command(TARGET SevenEngine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${dllDir}
+            $<TARGET_FILE_DIR:SevenEngine>
+    )
 endforeach(dllDir)
 
 source_group(TREE ${ENGINE_DIR}/ FILES ${ENGINE_FILES} )

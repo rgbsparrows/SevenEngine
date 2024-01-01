@@ -25,7 +25,7 @@ void SUIWorldContentWindow::OnGui() noexcept
 	if (mIsWindowOpen == false)
 		return;
 
-	ImGui::Begin(std::format("WorldContentWindow [{0}]", static_cast<const void*>(this)).c_str(), &mIsWindowOpen);
+	ImGui::Begin(std::format("WorldContentWindow [{0}] ### WorldContentWindow", static_cast<const void*>(this)).c_str(), &mIsWindowOpen);
 	
 	if (ImGui::BeginMainMenuBar())
 	{

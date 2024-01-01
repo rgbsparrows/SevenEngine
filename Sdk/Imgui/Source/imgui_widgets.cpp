@@ -3514,6 +3514,17 @@ bool ImGui::InputText(const char* label, char* buf, size_t buf_size, ImGuiInputT
     return InputTextEx(label, NULL, buf, (int)buf_size, ImVec2(0, 0), flags, callback, user_data);
 }
 
+IMGUI_API bool ImGui::InputText(const char* label, std::string& inoutStr, size_t buf_size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
+{
+    char* buffer = new char[buf_size];
+    strcpy_s(buffer, buf_size, inoutStr.c_str());
+    bool ret = InputText(label, buffer, buf_size, flags, callback, user_data);
+    if (ret == true)
+       	inoutStr = buffer;
+    delete[] buffer;
+    return ret;
+}
+
 bool ImGui::InputTextMultiline(const char* label, char* buf, size_t buf_size, const ImVec2& size, ImGuiInputTextFlags flags, ImGuiInputTextCallback callback, void* user_data)
 {
     return InputTextEx(label, NULL, buf, (int)buf_size, size, flags | ImGuiInputTextFlags_Multiline, callback, user_data);

@@ -1,2 +1,0 @@
-Debug/** filter=lfs diff=lfs merge=lfs
-Release/** filter=lfs diff=lfs merge=lfs
