@@ -1,2 +1,0 @@
-Dll/** filter=lfs diff=lfs merge=lfs -text
-Lib/** filter=lfs diff=lfs merge=lfs -text
