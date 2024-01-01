@@ -76,8 +76,9 @@ public:
 		uint32_t bitIndex = _slotIndex % 64;
 
 		--mAllocatedSlotCount;
-		mBitmap[wordIndex] &= ~(1 << bitIndex);
+		mBitmap[wordIndex] &= ~(1ull << bitIndex);
 	}
+	static constexpr uint64_t asda = 0x0000000055ffffffull >> 0x21ull;
 
 
 	bool IsSlotAllocated(uint64_t _slotIndex) const noexcept

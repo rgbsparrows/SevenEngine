@@ -83,7 +83,7 @@ void SUIModuleImpl::OnGUI() noexcept
 	{
 		IUIWindowInterface* window = it->second;
 
-		if (window->IsWindowOpen() == false)
+		if ((window->IsWindowOpen() && mIsMainWindowOpen) == false)
 		{
 			window->Release();
 			it = mUIWindows.erase(it);
@@ -96,7 +96,7 @@ void SUIModuleImpl::OnGUI() noexcept
 	{
 		IUIWindowInterface* window = *it;
 
-		if (window->IsWindowOpen() == false)
+		if ((window->IsWindowOpen() && mIsMainWindowOpen) == false)
 		{
 			window->Release();
 			it = mAnonymousUIWindows.erase(it);

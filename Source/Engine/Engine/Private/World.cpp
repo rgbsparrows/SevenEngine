@@ -37,10 +37,12 @@ void SWorld::Tick() noexcept
 
 AActor* SWorld::SpawnActor(SClassIdentifier _actorClass) noexcept
 {
-	if (AActor* newActor = SClassManager::Get().ConstructObject<AActor>(_actorClass))
+	AActor* newActor = nullptr;
+	
+	if (newActor = SClassManager::Get().ConstructObject<AActor>(_actorClass))
 		newActor->Init(this);
 
-	return nullptr;
+	return newActor;
 }
 
 void SWorld::RegisterActor_Internal(AActor* _actor) noexcept

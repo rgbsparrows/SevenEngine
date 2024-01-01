@@ -112,4 +112,7 @@ file(WRITE ${ENGINE_DIR}/Intermediate/SevenEngine.vcxproj.user "<?xml version=\"
     <LocalDebuggerCommandArguments>EnginePath=\"$(SolutionDir)..\"</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup>
+    <LocalDebuggerWorkingDirectory>$(ProjectDir)..\\Binaries\\$(Configuration)</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
 </Project>")

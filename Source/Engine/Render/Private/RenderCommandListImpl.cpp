@@ -1,4 +1,4 @@
-#include "Core/Misc/Thread.h"
+ï»¿#include "Core/Misc/Thread.h"
 #include "Render/RenderContext.h"
 #include "RenderCommandListImpl.h"
 #include "RDI/Interface/RDIDevice.h"
@@ -132,7 +132,7 @@ void SRenderCommandListImpl::RefrashStaticTexture2D_I(RRenderProxy<RTexture2D>* 
 					uploadGPUBuffer->Unmap();
 				}
 
-				_renderContext.AddRenderTask(u8"¸üÐÂÌùÍ¼", [&](IRDICommandList* _commandList)
+				_renderContext.AddRenderTask(u8"æ›´æ–°è´´å›¾", [&](IRDICommandList* _commandList)
 					{
 						for (uint32_t i = 0, offset = 0; i != mTexture2DData.mDesc.mMipCount; ++i)
 						{
@@ -233,7 +233,6 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 
 			*_uploadBuffer = device->CreateBuffer(&uploadBufferDesc);
 
-			void* dataPtr = nullptr;
 			SBufferView uploadBufferView = (*_uploadBuffer)->Map();
 			Memcpy(uploadBufferView, _indexData, _indexCount * sizeof(uint32_t));
 			(*_uploadBuffer)->Unmap();
@@ -287,37 +286,37 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 			};
 
 			const void* vertexData[] = {
-				mMeshData.mPositionBuffer ? mMeshData.mPositionBuffer->data() : nullptr,
-				mMeshData.mColorBuffer ? mMeshData.mColorBuffer->data() : nullptr,
-				mMeshData.mNormalBuffer ? mMeshData.mNormalBuffer->data() : nullptr,
-				mMeshData.mTangentBuffer ? mMeshData.mTangentBuffer->data() : nullptr,
-				mMeshData.mBlendIndicesBuffer ? mMeshData.mBlendIndicesBuffer->data() : nullptr,
-				mMeshData.mBlendWeightBuffer ? mMeshData.mBlendWeightBuffer->data() : nullptr,
-				mMeshData.mUvBuffer[0] ? mMeshData.mUvBuffer[0]->data() : nullptr,
-				mMeshData.mUvBuffer[1] ? mMeshData.mUvBuffer[1]->data() : nullptr,
-				mMeshData.mUvBuffer[2] ? mMeshData.mUvBuffer[2]->data() : nullptr,
-				mMeshData.mUvBuffer[3] ? mMeshData.mUvBuffer[3]->data() : nullptr,
-				mMeshData.mUvBuffer[4] ? mMeshData.mUvBuffer[4]->data() : nullptr,
-				mMeshData.mUvBuffer[5] ? mMeshData.mUvBuffer[5]->data() : nullptr,
-				mMeshData.mUvBuffer[6] ? mMeshData.mUvBuffer[6]->data() : nullptr,
-				mMeshData.mUvBuffer[7] ? mMeshData.mUvBuffer[7]->data() : nullptr,
+				mMeshData.mPositionBuffer.data(),
+				mMeshData.mColorBuffer.data(),
+				mMeshData.mNormalBuffer.data(),
+				mMeshData.mTangentBuffer.data(),
+				mMeshData.mBlendIndicesBuffer.data(),
+				mMeshData.mBlendWeightBuffer.data(),
+				mMeshData.mUvBuffer[0].data(),
+				mMeshData.mUvBuffer[1].data(),
+				mMeshData.mUvBuffer[2].data(),
+				mMeshData.mUvBuffer[3].data(),
+				mMeshData.mUvBuffer[4].data(),
+				mMeshData.mUvBuffer[5].data(),
+				mMeshData.mUvBuffer[6].data(),
+				mMeshData.mUvBuffer[7].data(),
 			};
 
 			const size_t vertexCount[] = {
-				mMeshData.mPositionBuffer ? mMeshData.mPositionBuffer->size() : 0,
-				mMeshData.mColorBuffer ? mMeshData.mColorBuffer->size() : 0,
-				mMeshData.mNormalBuffer ? mMeshData.mNormalBuffer->size() : 0,
-				mMeshData.mTangentBuffer ? mMeshData.mTangentBuffer->size() : 0,
-				mMeshData.mBlendIndicesBuffer ? mMeshData.mBlendIndicesBuffer->size() : 0,
-				mMeshData.mBlendWeightBuffer ? mMeshData.mBlendWeightBuffer->size() : 0,
-				mMeshData.mUvBuffer[0] ? mMeshData.mUvBuffer[0]->size() : 0,
-				mMeshData.mUvBuffer[1] ? mMeshData.mUvBuffer[1]->size() : 0,
-				mMeshData.mUvBuffer[2] ? mMeshData.mUvBuffer[2]->size() : 0,
-				mMeshData.mUvBuffer[3] ? mMeshData.mUvBuffer[3]->size() : 0,
-				mMeshData.mUvBuffer[4] ? mMeshData.mUvBuffer[4]->size() : 0,
-				mMeshData.mUvBuffer[5] ? mMeshData.mUvBuffer[5]->size() : 0,
-				mMeshData.mUvBuffer[6] ? mMeshData.mUvBuffer[6]->size() : 0,
-				mMeshData.mUvBuffer[7] ? mMeshData.mUvBuffer[7]->size() : 0,
+				mMeshData.mPositionBuffer.size(),
+				mMeshData.mColorBuffer.size(),
+				mMeshData.mNormalBuffer.size(),
+				mMeshData.mTangentBuffer.size(),
+				mMeshData.mBlendIndicesBuffer.size(),
+				mMeshData.mBlendWeightBuffer.size(),
+				mMeshData.mUvBuffer[0].size(),
+				mMeshData.mUvBuffer[1].size(),
+				mMeshData.mUvBuffer[2].size(),
+				mMeshData.mUvBuffer[3].size(),
+				mMeshData.mUvBuffer[4].size(),
+				mMeshData.mUvBuffer[5].size(),
+				mMeshData.mUvBuffer[6].size(),
+				mMeshData.mUvBuffer[7].size(),
 			};
 
 			const uint32_t vertexStride[] = {
@@ -339,7 +338,7 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 
 			RMesh& mesh = mMeshProxy->Get_RenderThread();
 
-			IRDIBuffer* uploadBuffer[EnumToInt(EVertexSemantic::Num) + 1];
+			IRDIBuffer* uploadBuffer[EnumToInt(EVertexSemantic::Num) + 1] = {};
 
 			if (mesh.mIndexBuffer)
 				mesh.mIndexBuffer->Release();
@@ -352,8 +351,8 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 
 			mesh.mVertexSemantic = mMeshData.mVertexSemantic;
 
-			if (mMeshData.mIndexBuffer)
-				mesh.mIndexBuffer = CreateIndexBuffer(_renderContext, mMeshData.mIndexBuffer->data(), mMeshData.mIndexBuffer->size(), &uploadBuffer[0]);
+			if (mMeshData.mIndexBuffer.size() != 0)
+				mesh.mIndexBuffer = CreateIndexBuffer(_renderContext, mMeshData.mIndexBuffer.data(), mMeshData.mIndexBuffer.size(), &uploadBuffer[0]);
 
 			for (size_t i = 0; i != ArraySize(vertexData); ++i)
 			{
@@ -364,15 +363,23 @@ void SRenderCommandListImpl::RefrashMesh_I(RRenderProxy<RMesh>* _mesh, RMeshData
 			mesh.mSubMeshRange = mMeshData.mSubMeshRange;
 			mesh.mVertexSemantic = mMeshData.mVertexSemantic;
 
-			_renderContext.AddRenderTask("¸üÐÂ¶¥µãÊý¾Ý", [&](IRDICommandList* _commandList) 
+			_renderContext.AddRenderTask("æ›´æ–°é¡¶ç‚¹æ•°æ®", [&](IRDICommandList* _commandList) 
 				{
-					if (mMeshData.mIndexBuffer)
+					if (mMeshData.mIndexBuffer.size() != 0)
+					{
+						_commandList->TranstionResourceState(mesh.mIndexBuffer, ERDIResourceState::Common, ERDIResourceState::CopyDest);
 						_commandList->CopyBuffer(mesh.mIndexBuffer, uploadBuffer[0]);
+						_commandList->TranstionResourceState(mesh.mIndexBuffer, ERDIResourceState::CopyDest, ERDIResourceState::Common);
+					}
 
 					for (size_t i = 0; i != ArraySize(vertexData); ++i)
 					{
 						if (vertexData[i])
-							_commandList->CopyBuffer(mesh.mIndexBuffer, uploadBuffer[i + 1]);
+						{
+							_commandList->TranstionResourceState(mesh.mVertexBuffer[i], ERDIResourceState::Common, ERDIResourceState::CopyDest);
+							_commandList->CopyBuffer(mesh.mVertexBuffer[i], uploadBuffer[i + 1]);
+							_commandList->TranstionResourceState(mesh.mVertexBuffer[i], ERDIResourceState::CopyDest, ERDIResourceState::Common);
+						}
 					}
 				});
 

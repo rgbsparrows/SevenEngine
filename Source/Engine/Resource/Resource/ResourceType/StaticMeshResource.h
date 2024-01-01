@@ -38,6 +38,12 @@ struct SMeshTriangle
 
 struct SSubMesh
 {
+	SSubMesh() noexcept = default;
+	SSubMesh(SRange _subMeshRange, const std::string& _subMeshName)
+		: mSubMeshRange(_subMeshRange), mSubMeshName(_subMeshName)
+	{
+	}
+
 	SRange mSubMeshRange;
 	std::string mSubMeshName;
 };
@@ -76,11 +82,15 @@ public:
 
 	void ResizeVertexCount(size_t _vertexCount) noexcept;
 	void ResizeTriangleCount(size_t _triangleCount) noexcept;
+	void ResizeSubMeshCount(size_t _subMeshCount) noexcept;
 
 	void SetVertex(const SFullVertex& _vertex, size_t _vertexIndex) noexcept;
 	SFullVertex GetVertex(size_t _vertexIndex)const noexcept;
 	void SetTriangle(const SMeshTriangle& _triangle, size_t _triangleIndex) noexcept;
 	SMeshTriangle GetTriangle(size_t _triangleIndex) const noexcept;
+
+	void SetSubMesh(const SSubMesh& _subMesh, size_t _subMeshIndex) noexcept;
+	SSubMesh GetSubMesh(size_t _subMeshIndex) const noexcept;
 
 	uint32_t* GetIndexBuffer() noexcept { return &mIndexBuffer[0]; }
 	Math::SFloat3* GetPositionBuffer() noexcept;

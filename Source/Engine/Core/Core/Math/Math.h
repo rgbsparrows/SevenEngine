@@ -273,15 +273,15 @@ namespace Math
 	inline SFloat4x4 CalcTransformViewMatrix(const SFloat3& _position, const SFloat3& _rotation) noexcept
 	{
 		SFloat3 forward = CalcForwardDirection(_rotation);
-		SFloat3 right = CalcForwardDirection(_rotation);
-		SFloat3 up = CalcForwardDirection(_rotation);
+		SFloat3 right = CalcRightDirection(_rotation);
+		SFloat3 up = CalcUpDirection(_rotation);
 
 		return SFloat4x4(
 			SFloat4x4Raw{
-				{right[0],		forward[0],		up[0],			0},
-				{right[1],		forward[1],		up[1],			0},
-				{right[2],		forward[2],		up[2],			0},
-				{-_position[0],	-_position[1],	-_position[2],	1},
+				{up[0],			right[0],		forward[0],			0},
+				{up[1],			right[1],		forward[1],			0},
+				{up[2],			right[2],		forward[2],			0},
+				{-_position[2],	-_position[1],	-_position[0],		1},
 			}
 		);
 	}

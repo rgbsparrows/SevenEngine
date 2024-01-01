@@ -43,50 +43,57 @@ void SStaticMeshResource::RefrashContent() noexcept
 	RMeshData meshData;
 	meshData.mVertexSemantic = mVertexSemantic;
 
+	meshData.mIndexBuffer = mIndexBuffer;
+
 	for (size_t i = 0; i != mSubMeshList.size(); ++i)
 		meshData.mSubMeshRange.push_back(mSubMeshList[i].mSubMeshRange);
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Position)) != EVertexSemanticFlag::None)
-		meshData.mPositionBuffer = &mPositionBuffer;
+		meshData.mPositionBuffer = mPositionBuffer;
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Color)) != EVertexSemanticFlag::None)
-		meshData.mColorBuffer = &mColorBuffer;
+		meshData.mColorBuffer = mColorBuffer;
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Normal)) != EVertexSemanticFlag::None)
-		meshData.mNormalBuffer = &mNormalBuffer;
+		meshData.mNormalBuffer = mNormalBuffer;
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Tangent)) != EVertexSemanticFlag::None)
-		meshData.mTangentBuffer = &mTangentBuffer;
+		meshData.mTangentBuffer = mTangentBuffer;
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendIndices)) != EVertexSemanticFlag::None)
-		meshData.mBlendIndicesBuffer = &mBlendIndicesBuffer;
+		meshData.mBlendIndicesBuffer = mBlendIndicesBuffer;
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendWeight)) != EVertexSemanticFlag::None)
-		meshData.mBlendWeightBuffer = &mBlendWeightBuffer;
+		meshData.mBlendWeightBuffer = mBlendWeightBuffer;
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv0)) != EVertexSemanticFlag::None)
-		meshData.mUvBuffer[0] = &mUvBuffer[0];
+		meshData.mUvBuffer[0] = mUvBuffer[0];
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv1)) != EVertexSemanticFlag::None)
-		meshData.mUvBuffer[1] = &mUvBuffer[1];
+		meshData.mUvBuffer[1] = mUvBuffer[1];
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv2)) != EVertexSemanticFlag::None)
-		meshData.mUvBuffer[2] = &mUvBuffer[2];
+		meshData.mUvBuffer[2] = mUvBuffer[2];
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv3)) != EVertexSemanticFlag::None)
-		meshData.mUvBuffer[3] = &mUvBuffer[3];
+		meshData.mUvBuffer[3] = mUvBuffer[3];
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv4)) != EVertexSemanticFlag::None)
-		meshData.mUvBuffer[4] = &mUvBuffer[4];
+		meshData.mUvBuffer[4] = mUvBuffer[4];
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv5)) != EVertexSemanticFlag::None)
-		meshData.mUvBuffer[5] = &mUvBuffer[5];
+		meshData.mUvBuffer[5] = mUvBuffer[5];
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv6)) != EVertexSemanticFlag::None)
-		meshData.mUvBuffer[6] = &mUvBuffer[6];
+		meshData.mUvBuffer[6] = mUvBuffer[6];
 
 	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv7)) != EVertexSemanticFlag::None)
-		meshData.mUvBuffer[7] = &mUvBuffer[7];
+		meshData.mUvBuffer[7] = mUvBuffer[7];
+
+	meshData.mSubMeshRange.resize(mSubMeshList.size());
+
+	for (size_t i = 0; i != mSubMeshList.size(); ++i)
+		meshData.mSubMeshRange[i] = mSubMeshList[i].mSubMeshRange;
 
 	GetRenderCommandList()->RefrashMesh_I(mMeshProxy, meshData);
 }
@@ -202,6 +209,11 @@ void SStaticMeshResource::ResizeVertexCount(size_t _vertexCount) noexcept
 void SStaticMeshResource::ResizeTriangleCount(size_t _triangleCount) noexcept
 {
 	mIndexBuffer.resize(_triangleCount * 3);
+}
+
+void SStaticMeshResource::ResizeSubMeshCount(size_t _subMeshCount) noexcept
+{
+	mSubMeshList.resize(_subMeshCount);
 }
 
 void SStaticMeshResource::SetVertex(const SFullVertex& _vertex, size_t _vertexIndex) noexcept
@@ -321,6 +333,20 @@ SMeshTriangle SStaticMeshResource::GetTriangle(size_t _triangleIndex) const noex
 	triangle[2] = mIndexBuffer[2];
 
 	return triangle;
+}
+
+void SStaticMeshResource::SetSubMesh(const SSubMesh& _subMesh, size_t _subMeshIndex) noexcept
+{
+	CHECK(_subMeshIndex < mSubMeshList.size());
+
+	mSubMeshList[_subMeshIndex] = _subMesh;
+}
+
+SSubMesh SStaticMeshResource::GetSubMesh(size_t _subMeshIndex) const noexcept
+{
+	CHECK(_subMeshIndex < mSubMeshList.size());
+
+	return mSubMeshList[_subMeshIndex];
 }
 
 Math::SFloat3* SStaticMeshResource::GetPositionBuffer() noexcept

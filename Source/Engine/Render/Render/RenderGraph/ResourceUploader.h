@@ -86,6 +86,7 @@ public:
 
 	void operator= (TDynamicGPUResrouce&& _resource) noexcept
 	{
+		this->~TDynamicGPUResrouce();
 		new(this) TDynamicGPUResrouce(std::move(_resource));
 		_resource.~TDynamicGPUResrouce();
 	}

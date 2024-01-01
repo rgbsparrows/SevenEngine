@@ -38,7 +38,7 @@ REGIST_ENUM_FLAG_FORM_ENUM(EVertexSemanticFlag, EVertexSemantic)
 
 struct RMesh
 {
-	EVertexSemanticFlag mVertexSemantic;
+	EVertexSemanticFlag mVertexSemantic = EVertexSemanticFlag::None;
 
 	IRDIBuffer* mIndexBuffer = nullptr;
 	IRDIBuffer* mVertexBuffer[EnumToInt(EVertexSemantic::Num)] = {};
@@ -51,15 +51,15 @@ struct RMeshData
 {
 	EVertexSemanticFlag mVertexSemantic;
 
-	const std::vector<uint32_t>* mIndexBuffer = nullptr;
+	std::vector<uint32_t> mIndexBuffer;
 
-	const std::vector<Math::SFloat3>* mPositionBuffer = nullptr;
-	const std::vector<Math::SFColor>* mColorBuffer = nullptr;
-	const std::vector<Math::SFloat3>* mNormalBuffer = nullptr;
-	const std::vector<Math::SFloat4>* mTangentBuffer = nullptr;
-	const std::vector<Math::SUShort4>* mBlendIndicesBuffer = nullptr;
-	const std::vector<Math::SFloat4>* mBlendWeightBuffer = nullptr;
-	const std::vector<Math::SFloat2>* mUvBuffer[8] = {};
+	std::vector<Math::SFloat3> mPositionBuffer;
+	std::vector<Math::SFColor> mColorBuffer;
+	std::vector<Math::SFloat3> mNormalBuffer;
+	std::vector<Math::SFloat4> mTangentBuffer;
+	std::vector<Math::SUShort4> mBlendIndicesBuffer;
+	std::vector<Math::SFloat4> mBlendWeightBuffer;
+	std::vector<Math::SFloat2> mUvBuffer[8];
 
 	std::vector<SRange> mSubMeshRange;
 };

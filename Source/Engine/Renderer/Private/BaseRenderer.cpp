@@ -8,27 +8,15 @@
 
 void RBaseRenderer::Init(SRenderContext& _renderContext) noexcept
 {
-	SBlob ShaderVSCodeBuffer;
+	SBlob ShaderCodeBuffer;
 	{
 		FILE* fp;
-		fopen_s(&fp, "D:/Project/SevenEngine/Shaders/hlslvs.shader", "rb");
+		fopen_s(&fp, "D:/Project/SevenEngine/Shaders/simple.shader", "rb");
 		fseek(fp, 0, SEEK_END);
 		long len = ftell(fp);
 		fseek(fp, 0, SEEK_SET);
-		ShaderVSCodeBuffer.ResizeBlob(len);
-		fread(ShaderVSCodeBuffer.GetBuffer(), 1, len, fp);
-		fclose(fp);
-	}
-
-	SBlob ShaderPSCodeBuffer;
-	{
-		FILE* fp;
-		fopen_s(&fp, "D:/Project/SevenEngine/Shaders/hlslps.shader", "rb");
-		fseek(fp, 0, SEEK_END);
-		long len = ftell(fp);
-		fseek(fp, 0, SEEK_SET);
-		ShaderPSCodeBuffer.ResizeBlob(len);
-		fread(ShaderPSCodeBuffer.GetBuffer(), 1, len, fp);
+		ShaderCodeBuffer.ResizeBlob(len);
+		fread(ShaderCodeBuffer.GetBuffer(), 1, len, fp);
 		fclose(fp);
 	}
 
@@ -48,12 +36,12 @@ void RBaseRenderer::Init(SRenderContext& _renderContext) noexcept
 	SRDIErrorInfo vserrror;
 	SRDIErrorInfo pserrror;
 
-	IRDIVertexShader* vertexShader = _renderContext.GetDevice()->CreateVertexShader(ShaderVSCodeBuffer, nullptr, &vserrror);
-	IRDIPixelShader* pixelShader = _renderContext.GetDevice()->CreatePixelShader(ShaderPSCodeBuffer, nullptr, &pserrror);
+	IRDIVertexShader* vertexShader = _renderContext.GetDevice()->CreateVertexShader(ShaderCodeBuffer, nullptr, &vserrror);
+	IRDIPixelShader* pixelShader = _renderContext.GetDevice()->CreatePixelShader(ShaderCodeBuffer, nullptr, &pserrror);
 
 	SRDIVertexInputElememt VertexInputElement;
 	VertexInputElement.mSemanticName = "POSITION";
-	VertexInputElement.mFormat = ERDIPixelFormat::R32G32B32A32_FLOAT;
+	VertexInputElement.mFormat = ERDIPixelFormat::R32G32B32_FLOAT;
 	VertexInputElement.mAlignedByteOffset = 0;
 
 	SRDIVertexInputLayoutDesc VertexInputLayoutDesc;
@@ -66,8 +54,10 @@ void RBaseRenderer::Init(SRenderContext& _renderContext) noexcept
 	PipelineState.mPixelShader = pixelShader;
 
 	PipelineState.mInputLayout = inputLayout;
+	PipelineState.mRasterizationState.mCullMode = ERDICullMode::None;
 	PipelineState.mPrimitiveTopologyType = ERDIPrimitiveTopologyType::TRIANGLE;
 	PipelineState.mRenderTargetFormat[0] = ERDIPixelFormat::R8G8B8A8_UNORM;
+	PipelineState.mDepthStencilFormat = ERDIPixelFormat::UNKNOWN;
 	PipelineState.mRootSignature = mRootSignature;
 
 	mPipelineState = _renderContext.GetDevice()->CreateGraphicsPipelineState(&PipelineState);
@@ -78,7 +68,6 @@ void RBaseRenderer::Init(SRenderContext& _renderContext) noexcept
 
 void RBaseRenderer::Render(RWorld& _renderData, RCamera& _camera, RTexture2D& _canvas, SRenderContext& _renderContext) noexcept
 {
-	return;
 	SRDITexture2DResourceDesc canvasTextureDesc;
 	_canvas.mTexture->GetDesc(&canvasTextureDesc);
 
@@ -88,48 +77,91 @@ void RBaseRenderer::Render(RWorld& _renderData, RCamera& _camera, RTexture2D& _c
 	viewMatrix = Math::TransposeMatrix(viewMatrix);
 	projMatrix = Math::TransposeMatrix(projMatrix);
 
-	if (mDynamicConstantBuffer.GetDesc().mBufferSize / 256 < _renderData.mStaticMeshList.size())
+	if (mDynamicConstantBuffer.GetDesc().mBufferSize < _renderData.mStaticMeshList.size() * 10 * 256 + 256)
 	{
 		_renderContext.SyncToGpuFrameEnd();
 
 		SRDIBufferResourceDesc desc;
 		desc.mResourceUsage = ERDIResourceUsage::ConstantBuffer;
-		desc.mBufferSize = _renderData.mStaticMeshList.size() * 256 + 256;
+		desc.mBufferSize = _renderData.mStaticMeshList.size() * 10 * 256 + 256;
 
 		mDynamicConstantBuffer = RDynamicGPUBuffer::ConstructDynamicGPUResource(_renderContext.GetDevice(), &desc);
 	}
 
 	SBufferView constantBuffer = mDynamicConstantBuffer.Map();
 
-	//uint8_t* dataPtr = static_cast<uint8_t*>(data);
+	Memcpy(SRange(0, sizeof(Math::SFloat4x4)).GetBuffer(constantBuffer), viewMatrix.GetData(), sizeof(Math::SFloat4x4));
+	Memcpy(SRange(sizeof(Math::SFloat4x4), 2 * sizeof(Math::SFloat4x4)).GetBuffer(constantBuffer), projMatrix.GetData(), sizeof(Math::SFloat4x4));
 
-	//memcpy_s(SRange(0, 256).GetBuffer(data), sizeof(Math::SFloat4x4), viewMatrix.GetData(), sizeof(Math::SFloat4x4));
-	//memcpy_s(SRange(sizeof(Math::SFloat4x4), 256).GetBuffer(data), sizeof(Math::SFloat4x4), projMatrix.GetData(), sizeof(Math::SFloat4x4));
-
+	size_t dcIndex = 0;
 	for (size_t i = 0; i != _renderData.mStaticMeshList.size(); ++i)
 	{
-		
+		RStaticMeshProxy& meshProxy = _renderData.mStaticMeshList[i];
+
+		RMesh& Mesh = meshProxy.mMesh->Get_RenderThread();
+
+		for (size_t j = 0; j != meshProxy.mMeshColor.size(); ++j)
+		{
+			SBufferView info1BufferView = SRange(dcIndex * 256 + 256, sizeof(Math::SFColor) + sizeof(Math::SFloat4x4)).GetBuffer(constantBuffer);
+
+			Memcpy(SRange(0, sizeof(Math::SFColor)).GetBuffer(info1BufferView), &meshProxy.mMeshColor[j], sizeof(Math::SFColor));
+			Memcpy(SRange(sizeof(Math::SFColor), sizeof(Math::SFloat4x4)).GetBuffer(info1BufferView), Math::TransposeMatrix(meshProxy.mWorldMatrix).GetData(), sizeof(Math::SFloat4x4));
+
+			++dcIndex;
+		}
 	}
 
 	mDynamicConstantBuffer.Unmap();
 
-	_renderContext.AddRenderTask(u8"CB 更新", [=](IRDICommandList* _commandList)
+	SRenderTaskIdentify updateCbTask = _renderContext.AddRenderTask(u8"CB 更新", [=](IRDICommandList* _commandList)
 		{
 			mDynamicConstantBuffer.Upload(_commandList);
 		}
 	);
 
-	_renderContext.AddRenderTask(u8"前向绘制", [=](IRDICommandList* _commandList)
+	_renderContext.AddRenderTask(u8"前向绘制", [=, &_renderData](IRDICommandList* _commandList)
 		{
+			_commandList->TranstionResourceState(_canvas.mTexture, ERDIResourceState::Common, ERDIResourceState::RenderTarget);
 			_commandList->ClearRenderTargetView(_canvas.mTexture->GetRTV(0));
 
-			_commandList->SetGraphicsPipelineState(mPipelineState);
-			_commandList->SetGraphicsRootSignature(mRootSignature);
-			//_commandList->SetGraphicsRootConstantBuffer(0, mDynamicConstantBuffer.GetRDIResource(), );
-			_commandList->SetGraphicsRootConstantBuffer(1, mDynamicConstantBuffer.GetRDIResource(), 0);
-		}
+			size_t dcIndex = 0;
+			for (size_t i = 0; i != _renderData.mStaticMeshList.size(); ++i)
+			{
+				RStaticMeshProxy& meshProxy = _renderData.mStaticMeshList[i];
+
+				RMesh& Mesh = meshProxy.mMesh->Get_RenderThread();
+
+				for (size_t j = 0; j != Mesh.mSubMeshRange.size(); ++j)
+				{
+					SRange subMeshRange = Mesh.mSubMeshRange[j];
+
+					_commandList->SetGraphicsPipelineState(mPipelineState);
+					_commandList->SetGraphicsRootSignature(mRootSignature);
+					_commandList->SetGraphicsRootConstantBuffer(0, mDynamicConstantBuffer.GetRDIResource(), dcIndex * 256 + 256);
+					_commandList->SetGraphicsRootConstantBuffer(1, mDynamicConstantBuffer.GetRDIResource(), 0);
+
+					IRDIRenderTargetView* rtvs[] = { _canvas.mTexture->GetRTV(0) };
+					_commandList->OMSetRenderTargets(1, rtvs, nullptr);
+					Math::SFloatBox viewport = Math::SFloatBox(0.f, 0.f, 0.f, canvasTextureDesc.mSizeX * 1.f, canvasTextureDesc.mSizeY * 1.f, 1.f);
+					Math::SIntRect scissorRect = Math::SIntRect(0, 0, canvasTextureDesc.mSizeX, canvasTextureDesc.mSizeY);
+					_commandList->RSSetViewports(1, &viewport);
+					_commandList->RSSetScissorRects(1, &scissorRect);
+
+					IRDIVertexBufferView* vbvList[] = { Mesh.mVertexBuffer[EnumToInt(EVertexSemantic::Position)]->GetVBV() };
+
+					_commandList->IASetVertexBuffer(0, 1, vbvList);
+					_commandList->IASetIndexBuffer(Mesh.mIndexBuffer->GetIBV());
+					_commandList->IASetPrimitiveTopology(ERDIPrimitiveTopology::TRIANGLELIST);
+
+					_commandList->DrawIndexedInstanced(static_cast<uint32_t>(subMeshRange.GetSize()), 1, static_cast<uint32_t>(subMeshRange.GetBegin()), 0);
+
+					++dcIndex;
+				}
+			}
+
+			_commandList->TranstionResourceState(_canvas.mTexture, ERDIResourceState::RenderTarget, ERDIResourceState::Common);
+		}, { updateCbTask }
 	);
 
-	_renderContext.SyncToGpuFrameEnd();
 	_renderContext.ExecuteRenderGraph();
 }

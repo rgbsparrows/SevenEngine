@@ -49,7 +49,7 @@ Binaries/
 !*.natvis
 
 # Shader formats
-!*.hlsl
+!*.shader
 
 # Text files
 !*.txt
