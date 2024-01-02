@@ -1,3 +1,4 @@
+#include "UI/UIModule.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "WorldContentWindow.h"
@@ -9,6 +10,8 @@
 #include <format>
 #include "imgui.h"
 #include "Core/Clock/Clock.h"
+
+DECLEAR_DEFAULT_WINDOW(SUIWorldContentWindow, , "WorldContent");
 
 SUIWorldContentWindow::SUIWorldContentWindow() noexcept
 {

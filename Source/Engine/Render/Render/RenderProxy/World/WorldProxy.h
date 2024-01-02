@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "Core/Math/Type.h"
 #include "Core/Math/Math.h"
@@ -15,7 +15,7 @@ struct RStaticMeshProxy
 
 	RRenderProxy<RMesh>* mMesh = nullptr;
 
-	TODO("ºóĞøÓÃ²ÄÖÊÌæ»»")
+	TODO("åç»­ç”¨æè´¨æ›¿æ¢")
 	std::vector<Math::SFColor> mMeshColor;
 };
 

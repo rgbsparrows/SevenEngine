@@ -9,6 +9,8 @@
 
 #pragma comment(lib, "libfbxsdk.lib")
 
+DECLEAR_DEFAULT_WINDOW(SUIFbxImporterMenuWindow, , "FbxImporterMenu"); 
+
 void SUIFbxImporterMenuWindow::OnGui() noexcept
 {
 	if (ImGui::BeginMainMenuBar())
@@ -62,8 +64,6 @@ bool SUIFbxImporterWindow::LoadFbxMesh(const std::filesystem::path& fbxPath, con
 
 	FbxScene* fbxScene = FbxScene::Create(fbxManager, "Scene");
 	importer->Import(fbxScene);
-
-	TODO("明天装下Max")
 
 
 	importer->Destroy();

@@ -22,6 +22,8 @@ public:
 private:
 	bool LoadFbxMesh(const std::filesystem::path& fbxPath, const std::filesystem::path& destResourcePath) noexcept;
 
+	void RecursiveFbxNode();
+
 private:
 	std::filesystem::path mFbxPath;
 	std::filesystem::path mDestResourcePath;

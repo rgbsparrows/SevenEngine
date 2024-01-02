@@ -32,6 +32,17 @@ SUIModuleImpl* GetUIModuleImpl() noexcept
 
 REGIST_MODULE("UIModule", SUIModuleImpl)
 
+std::vector<std::function<void()>>& GGetDefaultAddWindowFuncList() noexcept
+{
+	static std::vector<std::function<void()>> GAddWindowFuncList;
+	return GAddWindowFuncList;
+}
+
+void RegisterDefaultWindowFunc_Internal(std::function<void()> _addWindowFunc) noexcept
+{
+	GGetDefaultAddWindowFuncList().push_back(_addWindowFunc);
+}
+
 bool SUIModuleImpl::Init() noexcept
 {
 	GUIModuleImpl = this;
@@ -39,6 +50,9 @@ bool SUIModuleImpl::Init() noexcept
 	RegistWindowClass();
 
 	InitImgui();
+
+	for (std::function<void()>& registWindowFunc : GGetDefaultAddWindowFuncList())
+		registWindowFunc();
 
 	return true;
 }

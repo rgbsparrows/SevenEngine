@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/Modules/ModuleInterface.h"
 
+#include <functional>
+
 __interface IUIWindowInterface;
 
 class IUIModule : public IModuleInterface
@@ -30,3 +32,7 @@ public:
 };
 
 IUIModule* GetUIModule() noexcept;
+
+void RegisterDefaultWindowFunc_Internal(std::function<void()> _addWindowFunc) noexcept;
+
+#define DECLEAR_DEFAULT_WINDOW(_windowClass, _windowIdentify, _windowName, ...)	struct _windowClass##_##_windowIdentify##_##Register { _windowClass##_##_windowIdentify##_##Register() noexcept { RegisterDefaultWindowFunc_Internal([](){ GetUIModule()->FindOrAddWindow<_windowClass>(_windowName, __VA_ARGS__); }); } } _windowClass##_##_windowIdentify##_##RegisterInstance;

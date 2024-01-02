@@ -3,6 +3,7 @@
 
 #include <format>
 #include "imgui.h"
+#include "UI/UIModule.h"
 
 void SUIMessageBoxWindow::OnGui() noexcept
 {
