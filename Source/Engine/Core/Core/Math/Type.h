@@ -33,6 +33,13 @@ namespace Math
 				mValue[i] = UnderlyingType();
 		}
 
+		template<typename _otherArrayType> requires requires(const _otherArrayType& _other) { _other[0]; }
+		explicit constexpr TTypeArrayBase(const _otherArrayType& _other) noexcept
+		{
+			for (size_t i = 0; i < Dimension; ++i)
+				mValue[i] = static_cast<UnderlyingType>(_other[static_cast<int32_t>(i)]);
+		}
+
 		constexpr UnderlyingType operator[](size_t _index) const noexcept { return mValue[_index]; }
 		constexpr UnderlyingType& operator[](size_t _index) noexcept { return mValue[_index]; }
 
@@ -59,6 +66,12 @@ namespace Math
 
 		template<typename _underlyingType2, size_t _dimension2>
 		explicit constexpr TTypeArray(const TTypeArray<_underlyingType2, _dimension2>& _other) noexcept
+			: BaseType(_other)
+		{
+		}
+
+		template<typename _otherArrayType> requires requires(const _otherArrayType& _other) { _other[0]; }
+		explicit constexpr TTypeArray(const _otherArrayType& _other) noexcept
 			: BaseType(_other)
 		{
 		}
@@ -89,6 +102,12 @@ namespace Math
 		{
 			BaseType::mValue[0] = _v0;
 		}
+
+		template<typename _otherArrayType> requires requires(const _otherArrayType& _other) { _other[0]; }
+		explicit constexpr TTypeArray(const _otherArrayType& _other) noexcept
+			: BaseType(_other)
+		{
+		}
 	};
 
 	template<typename _underlyingType>
@@ -116,6 +135,12 @@ namespace Math
 		{
 			BaseType::mValue[0] = _v0;
 			BaseType::mValue[1] = _v1;
+		}
+
+		template<typename _otherArrayType> requires requires(const _otherArrayType& _other) { _other[0]; }
+		explicit constexpr TTypeArray(const _otherArrayType& _other) noexcept
+			: BaseType(_other)
+		{
 		}
 	};
 
@@ -146,6 +171,12 @@ namespace Math
 			BaseType::mValue[1] = _v1;
 			BaseType::mValue[2] = _v2;
 		}
+
+		template<typename _otherArrayType> requires requires(const _otherArrayType& _other) { _other[0]; }
+		explicit constexpr TTypeArray(const _otherArrayType& _other) noexcept
+			: BaseType(_other)
+		{
+		}
 	};
 
 	template<typename _underlyingType>
@@ -175,6 +206,12 @@ namespace Math
 			BaseType::mValue[1] = _v1;
 			BaseType::mValue[2] = _v2;
 			BaseType::mValue[3] = _v3;
+		}
+
+		template<typename _otherArrayType> requires requires(const _otherArrayType& _other) { _other[0]; }
+		explicit constexpr TTypeArray(const _otherArrayType& _other) noexcept
+			: BaseType(_other)
+		{
 		}
 	};
 
@@ -330,17 +367,24 @@ namespace Math
 		{
 		}
 
-		TColor(const UnderlyingType* _data)
+		explicit TColor(const UnderlyingType* _data)
 			:TColor(_data[0], _data[1], _data[2], _data[3])
 		{
 		}
 
-		TColor(UnderlyingType _r, UnderlyingType _g, UnderlyingType _b, UnderlyingType _a)
+		explicit TColor(UnderlyingType _r, UnderlyingType _g, UnderlyingType _b, UnderlyingType _a)
 		{
 			r = _r;
 			g = _g;
 			b = _b;
 			a = _a;
+		}
+
+		template<typename _otherArrayType> requires requires(const _otherArrayType& _other) { _other[0]; }
+		explicit constexpr TColor(const _otherArrayType& _other) noexcept
+		{
+			for (size_t i = 0; i < 4; ++i)
+				Color[i] = static_cast<UnderlyingType>(_other[static_cast<int32_t>(i)]);
 		}
 
 		constexpr UnderlyingType operator[](size_t _index) const noexcept { return Color[_index]; }

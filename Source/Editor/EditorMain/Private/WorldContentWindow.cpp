@@ -20,7 +20,7 @@ SUIWorldContentWindow::SUIWorldContentWindow() noexcept
 
 	mRenderGraph = GetRenderCommandList()->CreateRenderGraph<RBaseRenderer>();
 
-	mCamera.mPosition = Math::SFloat3(-10.f, 0.f, 0.f);
+	mCamera.mPosition = Math::SFloat3(-100.f, 0.f, 0.f);
 }
 
 void SUIWorldContentWindow::OnGui() noexcept
@@ -58,8 +58,8 @@ void SUIWorldContentWindow::OnGui() noexcept
 		if (ImGui::IsMouseDragging(1))
 		{
 			ImVec2 delta = ImGui::GetIO().MouseDelta;
-			mCamera.mRotation[1] += delta[0];
-			mCamera.mRotation[2] += delta[1];
+			mCamera.mRotation[0] += delta[0] * Math::PI / 180.f;
+			mCamera.mRotation[2] += delta[1] * Math::PI / 180.f;
 		}
 
 		Math::SFloat3 forward = Math::CalcForwardDirection(mCamera.mRotation);
@@ -73,10 +73,10 @@ void SUIWorldContentWindow::OnGui() noexcept
 			mCamera.mPosition -= forward * SClock::Get().GetDeltaTime();
 
 		if (ImGui::IsKeyDown('A'))
-			mCamera.mPosition -= right * SClock::Get().GetDeltaTime() * Math::PI / 180.f;
+			mCamera.mPosition -= right * SClock::Get().GetDeltaTime();
 
 		if (ImGui::IsKeyDown('D'))
-			mCamera.mPosition += right * SClock::Get().GetDeltaTime() * Math::PI / 180.f;
+			mCamera.mPosition += right * SClock::Get().GetDeltaTime();
 	}
 
 	RenderWorld();
@@ -89,10 +89,9 @@ void SUIWorldContentWindow::OnGui() noexcept
 void SUIWorldContentWindow::HandleWindowResize()
 {
 	ImVec2 size = ImGui::GetWindowSize();
-	if (size.x != mLastWindowSize[0] || size.y != mLastWindowSize[1])
+	if (Math::SFloat2(size) != mLastWindowSize)
 	{
-		mLastWindowSize[0] = size.x;
-		mLastWindowSize[1] = size.y;
+		mLastWindowSize = Math::SFloat2(size);
 		OnResize();
 	}
 }
@@ -108,7 +107,7 @@ void SUIWorldContentWindow::OnResize()
 		texData.mDesc.mPixelFormat = ERDIPixelFormat::R8G8B8A8_UNORM;
 		texData.mDesc.mSizeX = static_cast<uint32_t>(windowSize.x);
 		texData.mDesc.mSizeY = static_cast<uint32_t>(windowSize.y);
-		texData.mDesc.mClearColor = Math::SFColor(0.5f, 0, 0, 1);
+		texData.mDesc.mClearColor = Math::SFColor(0.1f, 0.3f, 0.5f, 1);
 		GetRenderCommandList()->RefrashStaticTexture2D_I(mRT, std::move(texData));
 		GetRenderCommandList()->RefrashImTexture2D_I(mRT, mImTex);
 	}
@@ -124,7 +123,7 @@ void SUIWorldContentWindow::ConstructWorld()
 	ACComponent* component = actor->SpawnComponent(nullptr, ACStaticMesh::StaticGetClassObject()->GetClassHash());
 	ACStaticMesh* smComponent = static_cast<ACStaticMesh*>(component);
 
-	SStaticMeshRP defaultMesh = GetResourceModule()->LoadResource<SStaticMeshResource>(L"Engine/Content/DefaultResource/a.mesh");
+	SStaticMeshRP defaultMesh = GetResourceModule()->LoadResource<SStaticMeshResource>(L"Engine/Content/Mesh/SM_TableRound");
 
 	smComponent->SetStaticMesh(defaultMesh);
 }

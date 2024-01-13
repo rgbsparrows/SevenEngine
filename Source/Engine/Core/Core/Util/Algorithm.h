@@ -1,6 +1,8 @@
 #pragma once
-#include <algorithm>
+
 #include <vector>
+#include <algorithm>
+#include <intsafe.h>
 
 template<typename _rangeType>
 concept CRange = requires(_rangeType & _range) { std::begin(_range); std::end(_range); ++std::begin(_range); };
@@ -30,14 +32,18 @@ template<CRange _rangeType, typename _valueType>
 constexpr inline size_t FindIndex(_rangeType& _range, const _valueType& _value) noexcept
 {
 	auto it = std::find(std::begin(_range), std::end(_range), _value);
-	return std::distance(std::begin(_range), it);
+	if (it != std::end(_range))
+		return std::distance(std::begin(_range), it);
+	else return SIZE_T_ERROR;
 }
 
 template<CRange _rangeType, typename _predType>
 constexpr inline size_t FindIndexIf(_rangeType& _range, _predType _pred) noexcept
 {
 	auto it = std::find_if(std::begin(_range), std::end(_range), _pred);
-	return std::distance(std::begin(_range), it);
+	if (it != std::end(_range))
+		return std::distance(std::begin(_range), it);
+	else return SIZE_T_ERROR;
 }
 
 template<CRange _rangeType, typename _valueType>

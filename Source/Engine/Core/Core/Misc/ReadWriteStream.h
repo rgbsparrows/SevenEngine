@@ -140,7 +140,7 @@ private:
 			return;
 
 		SBlob newBlob = SBlob(Math::CalcBlockCount<size_t>(_size + mContentSize + mContentSize / 2, 4096) * 4096);
-		Memcpy(newBlob, SConstBufferView(mBlob, mContentSize));
+		Memcpy(newBlob, SConstBufferView(mBlob, 0, mContentSize));
 		mBlob = std::move(newBlob);
 	}
 
@@ -324,15 +324,15 @@ struct TSerialize<std::vector<_type>, _serializeFlags...>
 
 	void Serialize(SWriteStream& _writeStream, const ValueType& _value) noexcept
 	{
-		uint16_t strLen = static_cast<uint16_t>(_value.size());
-		_writeStream.WriteBuffer(SConstBufferView(&strLen, sizeof(uint16_t)));
+		uint64_t vecSize = _value.size();
+		_writeStream.WriteBuffer(SConstBufferView(&vecSize, sizeof(uint64_t)));
 		for (size_t i = 0; i != _value.size(); ++i)
 			_writeStream.Write<_type, _serializeFlags...>(_value[i]);
 	}
 
 	void Deserialize(SReadStream& _readStream, ValueType& _value) noexcept
 	{
-		uint16_t vecSize = _readStream.Read<uint16_t>();
+		uint64_t vecSize = _readStream.Read<uint64_t>();
 		_value.resize(vecSize);
 		for (size_t i = 0; i != _value.size(); ++i)
 			_readStream.Read<_type, _serializeFlags...>(_value[i]);

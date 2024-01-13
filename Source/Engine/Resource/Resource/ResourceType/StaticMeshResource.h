@@ -18,6 +18,8 @@ struct SFullVertex
 	Math::SUShort4 mBlendIndices;
 	Math::SFloat4 mBlendWeight;
 	Math::SFloat2 mUv[8];
+
+	bool operator== (const SFullVertex&)const = default;
 };
 
 struct SMeshTriangle

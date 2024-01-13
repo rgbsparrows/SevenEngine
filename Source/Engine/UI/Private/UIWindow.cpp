@@ -274,8 +274,8 @@ void SUIInternalWindow::FlushImguiDrawData() noexcept
 			vertexOffset += drawList->VtxBuffer.size();
 		}
 
-		drawData.mDisplayPos = Math::SFloat2(imDrawDataRaw->DisplayPos.x, imDrawDataRaw->DisplayPos.y);
-		drawData.mDisplaySize = Math::SFloat2(imDrawDataRaw->DisplaySize.x, imDrawDataRaw->DisplaySize.y);
+		drawData.mDisplayPos = Math::SFloat2(imDrawDataRaw->DisplayPos);
+		drawData.mDisplaySize = Math::SFloat2(imDrawDataRaw->DisplaySize);
 
 		GetRenderCommandList()->RenderWindow_D(mSwapChain, mDrawData);
 	}

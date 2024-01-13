@@ -295,7 +295,7 @@ void SUIModuleImpl::InitImguiCallBack() noexcept
 	ImGui::GetPlatformIO().Platform_SetWindowPos = [](ImGuiViewport* _viewport, ImVec2 _pos)
 	{
 		SUIInternalWindow* window = reinterpret_cast<SUIInternalWindow*>(_viewport->PlatformUserData);
-		window->SetWindowPos(Math::SFloat2(_pos.x, _pos.y));
+		window->SetWindowPos(Math::SFloat2(_pos));
 	};
 
 	ImGui::GetPlatformIO().Platform_GetWindowPos = [](ImGuiViewport* _viewport)
@@ -308,7 +308,7 @@ void SUIModuleImpl::InitImguiCallBack() noexcept
 	ImGui::GetPlatformIO().Platform_SetWindowSize = [](ImGuiViewport* _viewport, ImVec2 _size)
 	{
 		SUIInternalWindow* window = reinterpret_cast<SUIInternalWindow*>(_viewport->PlatformUserData);
-		window->SetWindowSize(Math::SFloat2(_size.x, _size.y));
+		window->SetWindowSize(Math::SFloat2(_size));
 	};
 
 	ImGui::GetPlatformIO().Platform_GetWindowSize = [](ImGuiViewport* _viewport)
@@ -461,9 +461,9 @@ void SUIModuleImpl::ImguiEndFrame() noexcept
 	Math::SFloat2 mainWindowSize = mMainWindow->GetWindowSize();
 
 	if (mainWindowPos[0] != imMainWindowPos[0] || mainWindowPos[1] != imMainWindowPos[1])
-		mMainWindow->SetWindowPos(Math::SFloat2(imMainWindowPos.x, imMainWindowPos.y));
+		mMainWindow->SetWindowPos(Math::SFloat2(imMainWindowPos));
 	if (mainWindowSize[0] != imMainWindowSize[0] || mainWindowSize[1] != imMainWindowSize[1])
-		mMainWindow->SetWindowSize(Math::SFloat2(imMainWindowSize.x, imMainWindowSize.y));
+		mMainWindow->SetWindowSize(Math::SFloat2(imMainWindowSize));
 
 	mMainWindow->FlushImguiDrawData();
 

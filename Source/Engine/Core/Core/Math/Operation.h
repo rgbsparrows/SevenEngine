@@ -15,6 +15,16 @@ namespace Math
 		return res;
 	}
 
+	template<typename _underlyingType>
+	constexpr inline TTypeArray<_underlyingType, 3> Cross(const TTypeArray<_underlyingType, 3>& _left, const TTypeArray<_underlyingType, 3>& _right) noexcept
+	{
+		return TTypeArray<_underlyingType, 3> {
+			_left[1] * _right[2] - _left[2] * _right[1],
+			_left[2] * _right[0] - _left[0] * _right[2],
+			_left[0] * _right[1] - _left[1] * _right[0]
+		};
+	}
+
 	template<typename _underlyingType, size_t _dimension>
 	constexpr inline auto operator += (TTypeArray<_underlyingType, _dimension>& _left, _underlyingType _right) noexcept
 	{
@@ -192,6 +202,22 @@ namespace Math
 		}
 
 		return matrix;
+	}
+
+	template<typename _underlyingType, size_t _dimension>
+	constexpr inline bool operator != (const TTypeArray<_underlyingType, _dimension>& _left, const TTypeArray<_underlyingType, _dimension>& _right) noexcept
+	{
+		for (size_t i = 0; i != _dimension; ++i)
+			if (_left[i] != _right[i])
+				return true;
+
+		return false;
+	}
+
+	template<typename _underlyingType, size_t _dimension>
+	constexpr inline bool operator == (const TTypeArray<_underlyingType, _dimension>& _left, const TTypeArray<_underlyingType, _dimension>& _right) noexcept
+	{
+		return !(_left != _right);
 	}
 
 	template<typename _underlyingType, size_t _row, size_t _col>
