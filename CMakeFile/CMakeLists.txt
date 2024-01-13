@@ -7,7 +7,7 @@ if(NOT MSVC)
     message(FATAL_ERROR "需要使用vs进行编译")
 endif()
 
-if(MSVC_VERSION LESS 1920)
+if(MSVC_VERSION LESS 1930)
     message(FATAL_ERROR "vs版本过低(至少应使用vs2019版本)")
 endif()
 
