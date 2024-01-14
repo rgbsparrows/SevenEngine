@@ -10,16 +10,6 @@
 #include <string_view>
 #include <filesystem>
 
-__interface IRDIRootSignature;
-__interface IRDIInputLayout;
-
-__interface IRDIVertexShader;
-__interface IRDIHullShader;
-__interface IRDIDomainShader;
-__interface IRDIGeometryShader;
-__interface IRDIPixelShader;
-__interface IRDIComputeShader;
-
 class SBlob;
 
 #pragma region RDICommon
@@ -474,7 +464,7 @@ struct SRDIStaticSamplerDesc
 	ERDIShaderVisibility mShaderVisibility;
 };
 
-struct SRDIRootSignatureDesc
+struct SRDIRootSignature
 {
 	std::vector<SRDIRootParameter> mRootParameters;
 	std::vector<SRDIStaticSamplerDesc> mStaticSamplerDescs;
@@ -486,12 +476,12 @@ struct SRDIRootSignatureDesc
 
 struct SRDIVertexInputElememt
 {
-	std::string_view mSemanticName;
+	std::string mSemanticName;
 	ERDIPixelFormat mFormat = ERDIPixelFormat::R32G32B32A32_FLOAT;
 	uint32_t mAlignedByteOffset = 0;
 };
 
-struct SRDIVertexInputLayoutDesc
+struct SRDIVertexInputLayout
 {
 	std::vector<SRDIVertexInputElememt> mInputElements;
 };
@@ -682,15 +672,15 @@ enum class ERDIPrimitiveTopologyType
 	Error = TErrorEnumValue<ERDIPrimitiveTopologyType>
 };
 
-struct SRDIGraphicsPipelineState
+struct SRDIGraphicsPipelineStateDesc
 {
-	IRDIRootSignature* mRootSignature = nullptr;
-	IRDIVertexShader* mVertexShader = nullptr;
-	IRDIHullShader* mHullShader = nullptr;
-	IRDIDomainShader* mDomainShader = nullptr;
-	IRDIGeometryShader* mGeometryShader = nullptr;
-	IRDIPixelShader* mPixelShader = nullptr;
-	IRDIInputLayout* mInputLayout = nullptr;
+	SRDIRootSignature mRootSignature;
+	SConstBufferView mVertexShader;
+	SConstBufferView mHullShader;
+	SConstBufferView mDomainShader;
+	SConstBufferView mGeometryShader;
+	SConstBufferView mPixelShader;
+	SRDIVertexInputLayout mInputLayout;
 	ERDIPrimitiveTopologyType mPrimitiveTopologyType = ERDIPrimitiveTopologyType::TRIANGLE;
 	SRDIBlendState mBlendState;
 	SRDIRasterizationState mRasterizationState;
@@ -754,10 +744,10 @@ enum class ERDIPrimitiveTopology
 
 #pragma region compute pipeline
 
-struct SRDIComputePipelineState
+struct SRDIComputePipelineStateDesc
 {
-	IRDIRootSignature* mRootSignature = nullptr;
-	IRDIComputeShader* mComputeShader = nullptr;
+	SRDIRootSignature mRootSignature;
+	SConstBufferView mComputeShader;
 	SConstBufferView mCachedPSO;
 };
 

@@ -4,7 +4,6 @@
 #include "D3D/D3D12/D3D12Resource.h"
 #include "D3D/D3D12/D3D12CommandList.h"
 #include "D3D/Helper/D3DEnumConvertor.h"
-#include "D3D/D3D12/D3D12RootSignature.h"
 #include "D3D/D3D12/D3D12PipelineState.h"
 #include "D3D/D3D12/D3D12DescriptorHeap.h"
 #include "D3D/D3D12/Helper/D3D12EnumConvertor.h"
@@ -472,6 +471,7 @@ void SD3D12CommandList::SetGraphicsPipelineState(IRDIGraphicsPipelineState* _pip
 	SD3D12GraphicsPipelineState* pipelineState = static_cast<SD3D12GraphicsPipelineState*>(_pipelineState);
 
 	GetNativePtr()->SetPipelineState(pipelineState->GetNativePtr());
+	GetNativePtr()->SetGraphicsRootSignature(pipelineState->GetRootSignatureNativePtr());
 }
 
 void SD3D12CommandList::SetComputePipelineState(IRDIComputePipelineState* _pipelineState) noexcept
@@ -479,20 +479,7 @@ void SD3D12CommandList::SetComputePipelineState(IRDIComputePipelineState* _pipel
 	SD3D12ComputePipelineState* pipelineState = static_cast<SD3D12ComputePipelineState*>(_pipelineState);
 
 	GetNativePtr()->SetPipelineState(pipelineState->GetNativePtr());
-}
-
-void SD3D12CommandList::SetGraphicsRootSignature(IRDIRootSignature* _rootSignature) noexcept
-{
-	SD3D12RootSignature* rootSignature = static_cast<SD3D12RootSignature*>(_rootSignature);
-
-	GetNativePtr()->SetGraphicsRootSignature(rootSignature->GetNativePtr());
-}
-
-void SD3D12CommandList::SetComputeRootSignature(IRDIRootSignature* _rootSignature) noexcept
-{
-	SD3D12RootSignature* rootSignature = static_cast<SD3D12RootSignature*>(_rootSignature);
-
-	GetNativePtr()->SetComputeRootSignature(rootSignature->GetNativePtr());
+	GetNativePtr()->SetComputeRootSignature(pipelineState->GetRootSignatureNativePtr());
 }
 
 void SD3D12CommandList::SetGraphicsRootConstantBuffer(uint32_t _rootParameterIndex, IRDIBuffer* _buffer, uint64_t _offset) noexcept

@@ -9,7 +9,6 @@ enum class ERDIPrimitiveTopology;
 enum class ERDITextureCubeFace;
 
 
-__interface IRDIRootSignature;
 __interface IRDICommandAllocator;
 __interface IRDIDescriptorHeapRange;
 __interface IRDISamplerHeapRange;
@@ -92,9 +91,6 @@ __interface IRDICommandList
 
 	void SetGraphicsPipelineState(IRDIGraphicsPipelineState* _pipelineState) noexcept;
 	void SetComputePipelineState(IRDIComputePipelineState* _pipelineState) noexcept;
-
-	void SetGraphicsRootSignature(IRDIRootSignature* _rootSignature) noexcept;
-	void SetComputeRootSignature(IRDIRootSignature* _rootSignature) noexcept;
 
 	void SetGraphicsRootConstantBuffer(uint32_t _rootParameterIndex, IRDIBuffer* _buffer, uint64_t _offset) noexcept;
 	void SetComputeRootConstantBuffer(uint32_t _rootParameterIndex, IRDIBuffer* _buffer, uint64_t _offset) noexcept;

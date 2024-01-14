@@ -16,7 +16,6 @@ private:
 	IRDIGraphicsPipelineState* mImguiSDRPipelineState = nullptr;
 	IRDIGraphicsPipelineState* mImguiHDR10PipelineState = nullptr;
 	IRDIGraphicsPipelineState* mImguiHDR1000PipelineState = nullptr;
-	IRDIRootSignature* mImguiRootSignature = nullptr;
 
 	RDynamicGPUBuffer mDynamicConstantBuffer;
 	std::vector<RDynamicGPUBuffer> mDynamicIndexBufferList;

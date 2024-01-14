@@ -1,12 +1,11 @@
 #include "DeferFrameTask.h"
 #include "Core/Math/Type.h"
+#include "RDI/RDIModule.h"
 #include "ImguiRenderGraph.h"
 #include "Render/RenderContext.h"
 #include "RDI/RDIFunctionHelper.h"
-#include "RDI/Interface/RDIShader.h"
+#include "RDI/Interface/RDIFactory.h"
 #include "RDI/Interface/RDISwapChain.h"
-#include "RDI/Interface/RDIInputLayout.h"
-#include "RDI/Interface/RDIRootSignature.h"
 #include "RDI/Interface/RDIPipelineState.h"
 #include "Render/RenderProxy/RenderProxy.h"
 
@@ -61,46 +60,50 @@ void RImguiRenderGraph::Init(SRenderContext& _renderContext) noexcept
 	SConstBufferView vsBuffer(vertexShader, strlen(vertexShader));
 	SConstBufferView psBuffer(pixelShader, strlen(pixelShader));
 
-	SRDIErrorInfo errorInfo;
-	IRDIVertexShader* vs = _renderContext.GetDevice()->CreateVertexShader(vsBuffer, nullptr, &errorInfo);
-	IRDIPixelShader* ps = _renderContext.GetDevice()->CreatePixelShader(psBuffer, nullptr, &errorInfo);
+	SRDIGraphicsPipelineStateDesc pipelineStateDesc;
 
-	SRDIRootParameter cbParameter;
-	cbParameter.mType = ERDIRootParameterType::CBV;
-	cbParameter.mShaderVisibility = ERDIShaderVisibility::VERTEX_VISABLE;
-	cbParameter.mRegisterSpace = 0;
-	cbParameter.mCbvRootParameter.mCbvShaderRegister = 0;
+	// Root Signature
+	{
+		SRDIRootParameter cbParameter;
+		cbParameter.mType = ERDIRootParameterType::CBV;
+		cbParameter.mShaderVisibility = ERDIShaderVisibility::VERTEX_VISABLE;
+		cbParameter.mRegisterSpace = 0;
+		cbParameter.mCbvRootParameter.mCbvShaderRegister = 0;
 
-	SRDIRootParameter texParameter;
-	texParameter.mType = ERDIRootParameterType::DescriptorTable;
-	texParameter.mShaderVisibility = ERDIShaderVisibility::PIXEL_VISABLE;
-	texParameter.mRegisterSpace = 0;
-	texParameter.mDescriptorTableRootParameter.mSrvStartShaderRegister = 0;
-	texParameter.mDescriptorTableRootParameter.mSrvNumDescriptors = 1;
-	texParameter.mDescriptorTableRootParameter.mUavStartShaderRegister = 0;
-	texParameter.mDescriptorTableRootParameter.mUavNumDescriptors = 0;
+		SRDIRootParameter texParameter;
+		texParameter.mType = ERDIRootParameterType::DescriptorTable;
+		texParameter.mShaderVisibility = ERDIShaderVisibility::PIXEL_VISABLE;
+		texParameter.mRegisterSpace = 0;
+		texParameter.mDescriptorTableRootParameter.mSrvStartShaderRegister = 0;
+		texParameter.mDescriptorTableRootParameter.mSrvNumDescriptors = 1;
+		texParameter.mDescriptorTableRootParameter.mUavStartShaderRegister = 0;
+		texParameter.mDescriptorTableRootParameter.mUavNumDescriptors = 0;
 
-	SRDIStaticSamplerDesc staticSampler;
-	staticSampler.mFilter = ERDIFilter::MIN_POINT | ERDIFilter::MAG_POINT | ERDIFilter::MIP_POINT;
-	staticSampler.mAddressU = ERDIAddressMode::MIRROR;
-	staticSampler.mAddressV = ERDIAddressMode::MIRROR;
-	staticSampler.mAddressW = ERDIAddressMode::MIRROR;
-	staticSampler.mMipLODBias = 0.f;
-	staticSampler.mMaxAnisotropy = 0;
-	staticSampler.mComparisonFunc = ERDIComparisonFunc::ALWAYS;
-	staticSampler.mBorderColor = ERDIStaticBorderColor::TRANSPARENT_BLACK;
-	staticSampler.mMinLod = 0.f;
-	staticSampler.mMaxLod = 0.f;
-	staticSampler.mShaderRegister = 0;
-	staticSampler.mRegisterSpace = 0;
-	staticSampler.mShaderVisibility = ERDIShaderVisibility::PIXEL_VISABLE;
+		SRDIStaticSamplerDesc staticSampler;
+		staticSampler.mFilter = ERDIFilter::MIN_POINT | ERDIFilter::MAG_POINT | ERDIFilter::MIP_POINT;
+		staticSampler.mAddressU = ERDIAddressMode::MIRROR;
+		staticSampler.mAddressV = ERDIAddressMode::MIRROR;
+		staticSampler.mAddressW = ERDIAddressMode::MIRROR;
+		staticSampler.mMipLODBias = 0.f;
+		staticSampler.mMaxAnisotropy = 0;
+		staticSampler.mComparisonFunc = ERDIComparisonFunc::ALWAYS;
+		staticSampler.mBorderColor = ERDIStaticBorderColor::TRANSPARENT_BLACK;
+		staticSampler.mMinLod = 0.f;
+		staticSampler.mMaxLod = 0.f;
+		staticSampler.mShaderRegister = 0;
+		staticSampler.mRegisterSpace = 0;
+		staticSampler.mShaderVisibility = ERDIShaderVisibility::PIXEL_VISABLE;
 
-	SRDIRootSignatureDesc rootSignatureDesc;
-	rootSignatureDesc.mRootParameters.push_back(cbParameter);
-	rootSignatureDesc.mRootParameters.push_back(texParameter);
-	rootSignatureDesc.mStaticSamplerDescs.push_back(staticSampler);
+		pipelineStateDesc.mRootSignature.mRootParameters.push_back(cbParameter);
+		pipelineStateDesc.mRootSignature.mRootParameters.push_back(texParameter);
+		pipelineStateDesc.mRootSignature.mStaticSamplerDescs.push_back(staticSampler);
+	}
 
-	mImguiRootSignature = _renderContext.GetDevice()->CreateRootSignature(&rootSignatureDesc, nullptr);
+	SBlob vsBlob = GetRDIModule()->GetRDIFactory()->CompileVertexShader(vsBuffer);
+	SBlob psBlob = GetRDIModule()->GetRDIFactory()->CompilePixelShader(psBuffer);
+	pipelineStateDesc.mVertexShader = vsBlob;
+	pipelineStateDesc.mPixelShader = psBlob;
+
 
 	SRDIVertexInputElememt inputLayoutElement[3];
 
@@ -116,16 +119,8 @@ void RImguiRenderGraph::Init(SRenderContext& _renderContext) noexcept
 	inputLayoutElement[2].mFormat = ERDIPixelFormat::R8G8B8A8_UNORM;
 	inputLayoutElement[2].mAlignedByteOffset = 16;
 
-	SRDIVertexInputLayoutDesc inputLayoutDesc;
-	inputLayoutDesc.mInputElements.insert(inputLayoutDesc.mInputElements.begin(), std::begin(inputLayoutElement), std::end(inputLayoutElement));
+	pipelineStateDesc.mInputLayout.mInputElements.insert(pipelineStateDesc.mInputLayout.mInputElements.begin(), std::begin(inputLayoutElement), std::end(inputLayoutElement));
 
-	IRDIInputLayout* inputLayout = _renderContext.GetDevice()->CreateInputLayout(&inputLayoutDesc);
-
-	SRDIGraphicsPipelineState pipelineStateDesc;
-	pipelineStateDesc.mRootSignature = mImguiRootSignature;
-	pipelineStateDesc.mVertexShader = vs;
-	pipelineStateDesc.mPixelShader = ps;
-	pipelineStateDesc.mInputLayout = inputLayout;
 	pipelineStateDesc.mPrimitiveTopologyType = ERDIPrimitiveTopologyType::TRIANGLE;
 	pipelineStateDesc.mBlendState.mBlendEnable = true;
 	pipelineStateDesc.mRasterizationState.mCullMode = ERDICullMode::None;
@@ -141,15 +136,10 @@ void RImguiRenderGraph::Init(SRenderContext& _renderContext) noexcept
 
 	pipelineStateDesc.mRenderTargetFormat[0] = ERDIPixelFormat::R16G16B16A16_FLOAT;
 	mImguiHDR1000PipelineState = _renderContext.GetDevice()->CreateGraphicsPipelineState(&pipelineStateDesc);
-
-	vs->Release();
-	ps->Release();
-	inputLayout->Release();
 }
 
 void RImguiRenderGraph::Clear(SRenderContext& _renderContext) noexcept
 {
-	mImguiRootSignature->Release();
 	mImguiSDRPipelineState->Release();
 	mImguiHDR10PipelineState->Release();
 	mImguiHDR1000PipelineState->Release();
@@ -282,8 +272,6 @@ void RImguiRenderGraph::Render(std::vector<RRenderWindowInfo>& _renderWindowInfo
 				default:
 					CHECK(false && "²»Ç¡µ±µÄPipelineState");
 				}
-
-				_commandList->SetGraphicsRootSignature(mImguiRootSignature);
 
 				IRDIVertexBufferView* vbv = mDynamicVertexBufferList[i].GetRDIResource()->GetVBV();
 				_commandList->IASetVertexBuffer(0, 1, &vbv);

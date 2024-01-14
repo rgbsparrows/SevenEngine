@@ -13,8 +13,9 @@ class SD3D12Device;
 class SD3D12GraphicsPipelineState : public IRDIGraphicsPipelineState
 {
 public:
-	void Init(ID3D12PipelineState* _nativePtr, SD3D12Device* _device) noexcept;
+	void Init(ID3D12PipelineState* _nativePtr, ID3D12RootSignature* _rootSignatureNativePtr, SD3D12Device* _device) noexcept;
 	ID3D12PipelineState* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
+	ID3D12RootSignature* GetRootSignatureNativePtr() noexcept { return mRootSignatureNativePtr; }
 
 public:
 	SConstBufferView GetCachedBlob() noexcept override { return SConstBufferView(mCachedBlob); }
@@ -23,6 +24,7 @@ public:
 private:
 	SD3D12Device* mDevice = nullptr;
 	SBlob mCachedBlob;
+	ID3D12RootSignature* mRootSignatureNativePtr = nullptr;
 	ID3D12PipelineState* mPipelineStateNativePtr = nullptr;
 };
 
@@ -30,8 +32,9 @@ private:
 class SD3D12ComputePipelineState : public IRDIComputePipelineState
 {
 public:
-	void Init(ID3D12PipelineState* _nativePtr, SD3D12Device* _device) noexcept;
+	void Init(ID3D12PipelineState* _nativePtr, ID3D12RootSignature* _rootSignatureNativePtr, SD3D12Device* _device) noexcept;
 	ID3D12PipelineState* GetNativePtr() noexcept { return mPipelineStateNativePtr; }
+	ID3D12RootSignature* GetRootSignatureNativePtr() noexcept { return mRootSignatureNativePtr; }
 
 public:
 	SConstBufferView GetCachedBlob() noexcept override { return SConstBufferView(mCachedBlob); }
@@ -40,5 +43,6 @@ public:
 private:
 	SD3D12Device* mDevice = nullptr;
 	SBlob mCachedBlob;
+	ID3D12RootSignature* mRootSignatureNativePtr = nullptr;
 	ID3D12PipelineState* mPipelineStateNativePtr = nullptr;
 };

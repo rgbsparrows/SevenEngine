@@ -13,7 +13,6 @@ public:
 
 private:
 	IRDIGraphicsPipelineState* mPipelineState;
-	IRDIRootSignature* mRootSignature;
 	RDynamicGPUBuffer mDynamicConstantBuffer;
 
 };

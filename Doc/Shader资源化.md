@@ -206,6 +206,13 @@
             * 相关信息应该有两个
                 * 当前引用数量
                 * 距离死亡的帧数
+        * 现在的Inputlayout，Shader是以资源形式存在的
+            * 不保留这样的形式，如果后面要做多底层API支持的话，把这些东西都存在PipelineState中隐式储存
     * ShaderManager
     ``` cpp
     ```
+* RDI部分简化
+    * 移除InputLayout，Rootsignature，Shder对象
+        * 创建与Set
+    * 一些可缓存的相关机制需要提前确认
+    * Shader编译行为交给Factory进行

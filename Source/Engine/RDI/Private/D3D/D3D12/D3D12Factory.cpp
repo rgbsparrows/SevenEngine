@@ -1,6 +1,9 @@
 #include "D3D/D3DUtil.h"
 #include "D3D/D3D12/D3D12Factory.h"
+#include "D3D/Helper/D3DEnumConvertor.h"
+#include "Core/ProgramConfiguation/BasicPath.h"
 #include "Core/ProgramConfiguation/BuildConfiguation.h"
+#include "Core/ProgramConfiguation/ProgramConfiguation.h"
 
 #pragma comment(lib, "dxgi.lib")
 
@@ -67,6 +70,31 @@ bool SD3D12Factory::Init() noexcept
 		mD3D12Device.Init(d3d12DeviceNativePtr, &mAdpaters[0], this);
 	}
 
+	// Shader Compile
+	{
+		mShaderCompileFlag = D3DCOMPILE_AVOID_FLOW_CONTROL | D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS | D3DCOMPILE_ALL_RESOURCES_BOUND;
+
+		if (SProgramConfiguation::UseDebugShader())
+			mShaderCompileFlag |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG_NAME_FOR_SOURCE | D3DCOMPILE_DEBUG_NAME_FOR_BINARY;
+		else
+			mShaderCompileFlag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
+
+		mD3DInclude.Init(
+			[](const std::filesystem::path& _includeFile)
+			{
+				auto filePath = SBasicPath::GetEngineShaderPath() / _includeFile;
+				if (std::filesystem::exists(filePath))
+					return filePath;
+
+				filePath = SBasicPath::GetProjectShaderPath() / _includeFile;
+				if (std::filesystem::exists(filePath))
+					return filePath;
+
+				return std::filesystem::path();
+			}
+		);
+	}
+
 	return true;
 }
 
@@ -84,4 +112,77 @@ void SD3D12Factory::Release() noexcept
 		mDXGIDebugNativePtr->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
 		mDXGIDebugNativePtr->Release();
 	}
+}
+
+SBlob SD3D12Factory::CompileVertexShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+{
+	return CompileShader(_hlslShader, ED3DShaderTarget::VS, _shaderMacro, _shaderCompileError);
+}
+
+SBlob SD3D12Factory::CompileHullShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+{
+	return CompileShader(_hlslShader, ED3DShaderTarget::HS, _shaderMacro, _shaderCompileError);
+}
+
+SBlob SD3D12Factory::CompileDomainShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+{
+	return CompileShader(_hlslShader, ED3DShaderTarget::DS, _shaderMacro, _shaderCompileError);
+}
+
+SBlob SD3D12Factory::CompileGeometryShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+{
+	return CompileShader(_hlslShader, ED3DShaderTarget::GS, _shaderMacro, _shaderCompileError);
+}
+
+SBlob SD3D12Factory::CompilePixelShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+{
+	return CompileShader(_hlslShader, ED3DShaderTarget::PS, _shaderMacro, _shaderCompileError);
+}
+
+SBlob SD3D12Factory::CompileComputeShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+{
+	return CompileShader(_hlslShader, ED3DShaderTarget::CS, _shaderMacro, _shaderCompileError);
+}
+
+SBlob SD3D12Factory::CompileShader(SConstBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
+{
+	static D3D_SHADER_MACRO shaderMacro[64] = {};
+	static char macroBuffer[64][128] = {};
+	static SRDIShaderMacro emptyShaderMacros;
+
+	SBlob shaderBlob;
+
+	if (_shaderMacro == nullptr)
+		_shaderMacro = &emptyShaderMacros;
+
+	for (size_t i = 0; i != _shaderMacro->mDefinedMacro.size(); ++i)
+	{
+		std::string_view macro = _shaderMacro->mDefinedMacro[i];
+
+		for (size_t j = 0; j != macro.size(); ++j)
+			macroBuffer[i][j] = macro[j];
+		macroBuffer[i][macro.size()] = '\0';
+
+		shaderMacro[i].Name = macroBuffer[i];
+		shaderMacro[i].Definition = nullptr;
+	}
+
+	shaderMacro[_shaderMacro->mDefinedMacro.size()].Name = nullptr;
+	shaderMacro[_shaderMacro->mDefinedMacro.size()].Definition = nullptr;
+
+	ID3DBlob* shaderD3DBlob;
+	ID3DBlob* errorD3DBlob;
+	HRESULT res = D3DCompile(_hlslShader.GetBuffer(), _hlslShader.GetBufferSize(), nullptr, shaderMacro, &mD3DInclude, GetShaderEntryPoint(_shaderTarget), ConvertShaderTargetToStr(_shaderTarget), mShaderCompileFlag, 0, &shaderD3DBlob, &errorD3DBlob);
+
+	if (res == 0)
+		shaderBlob = SBlob(shaderD3DBlob->GetBufferPointer(), shaderD3DBlob->GetBufferSize());
+	else
+		GenerateErrorInfo(errorD3DBlob, _shaderCompileError);
+
+	if (shaderD3DBlob != nullptr)
+		shaderD3DBlob->Release();
+	if (errorD3DBlob != nullptr)
+		errorD3DBlob->Release();
+
+	return shaderBlob;
 }

@@ -1,10 +1,11 @@
+#include "RDI/RDIModule.h"
 #include "Render/RenderContext.h"
 #include "Renderer/BaseRenderer.h"
-#include "RDI/Interface/RDICommandList.h"
-#include "Render/RenderProxy/Resource/RenderResource.h"
-#include "Render/RenderProxy/World/WorldProxy.h"
 #include "RDI/Interface/RDIDevice.h"
-#include "RDI/Interface/RDIShader.h"
+#include "RDI/Interface/RDIFactory.h"
+#include "RDI/Interface/RDICommandList.h"
+#include "Render/RenderProxy/World/WorldProxy.h"
+#include "Render/RenderProxy/Resource/RenderResource.h"
 
 void RBaseRenderer::Init(SRenderContext& _renderContext) noexcept
 {
@@ -20,50 +21,39 @@ void RBaseRenderer::Init(SRenderContext& _renderContext) noexcept
 		fclose(fp);
 	}
 
-	SRDIRootSignatureDesc rootSignatureDesc;
-	rootSignatureDesc.mRootParameters.resize(2);
+	SRDIGraphicsPipelineStateDesc pipelineStateDesc;
 
-	rootSignatureDesc.mRootParameters[0].mType = ERDIRootParameterType::CBV;
-	rootSignatureDesc.mRootParameters[0].mRegisterSpace = 0;
-	rootSignatureDesc.mRootParameters[0].mCbvRootParameter.mCbvShaderRegister = 0;
+	pipelineStateDesc.mRootSignature.mRootParameters.resize(2);
+
+	pipelineStateDesc.mRootSignature.mRootParameters[0].mType = ERDIRootParameterType::CBV;
+	pipelineStateDesc.mRootSignature.mRootParameters[0].mRegisterSpace = 0;
+	pipelineStateDesc.mRootSignature.mRootParameters[0].mCbvRootParameter.mCbvShaderRegister = 0;
 	
-	rootSignatureDesc.mRootParameters[1].mType = ERDIRootParameterType::CBV;
-	rootSignatureDesc.mRootParameters[1].mRegisterSpace = 0;
-	rootSignatureDesc.mRootParameters[1].mCbvRootParameter.mCbvShaderRegister = 1;
-
-	mRootSignature = _renderContext.GetDevice()->CreateRootSignature(&rootSignatureDesc, nullptr);
+	pipelineStateDesc.mRootSignature.mRootParameters[1].mType = ERDIRootParameterType::CBV;
+	pipelineStateDesc.mRootSignature.mRootParameters[1].mRegisterSpace = 0;
+	pipelineStateDesc.mRootSignature.mRootParameters[1].mCbvRootParameter.mCbvShaderRegister = 1;
 
 	SRDIErrorInfo vserrror;
 	SRDIErrorInfo pserrror;
 
-	IRDIVertexShader* vertexShader = _renderContext.GetDevice()->CreateVertexShader(ShaderCodeBuffer, nullptr, &vserrror);
-	IRDIPixelShader* pixelShader = _renderContext.GetDevice()->CreatePixelShader(ShaderCodeBuffer, nullptr, &pserrror);
+	SBlob vsBlob = GetRDIModule()->GetRDIFactory()->CompileVertexShader(ShaderCodeBuffer);
+	SBlob psBlob = GetRDIModule()->GetRDIFactory()->CompilePixelShader(ShaderCodeBuffer);
+	pipelineStateDesc.mVertexShader = vsBlob;
+	pipelineStateDesc.mPixelShader = psBlob;
 
 	SRDIVertexInputElememt VertexInputElement;
 	VertexInputElement.mSemanticName = "POSITION";
 	VertexInputElement.mFormat = ERDIPixelFormat::R32G32B32_FLOAT;
 	VertexInputElement.mAlignedByteOffset = 0;
 
-	SRDIVertexInputLayoutDesc VertexInputLayoutDesc;
-	VertexInputLayoutDesc.mInputElements.push_back(VertexInputElement);
+	pipelineStateDesc.mInputLayout.mInputElements.push_back(VertexInputElement);
 
-	IRDIInputLayout* inputLayout = _renderContext.GetDevice()->CreateInputLayout(&VertexInputLayoutDesc);
+	pipelineStateDesc.mRasterizationState.mCullMode = ERDICullMode::None;
+	pipelineStateDesc.mPrimitiveTopologyType = ERDIPrimitiveTopologyType::TRIANGLE;
+	pipelineStateDesc.mRenderTargetFormat[0] = ERDIPixelFormat::R8G8B8A8_UNORM;
+	pipelineStateDesc.mDepthStencilFormat = ERDIPixelFormat::UNKNOWN;
 
-	SRDIGraphicsPipelineState PipelineState;
-	PipelineState.mVertexShader = vertexShader;
-	PipelineState.mPixelShader = pixelShader;
-
-	PipelineState.mInputLayout = inputLayout;
-	PipelineState.mRasterizationState.mCullMode = ERDICullMode::None;
-	PipelineState.mPrimitiveTopologyType = ERDIPrimitiveTopologyType::TRIANGLE;
-	PipelineState.mRenderTargetFormat[0] = ERDIPixelFormat::R8G8B8A8_UNORM;
-	PipelineState.mDepthStencilFormat = ERDIPixelFormat::UNKNOWN;
-	PipelineState.mRootSignature = mRootSignature;
-
-	mPipelineState = _renderContext.GetDevice()->CreateGraphicsPipelineState(&PipelineState);
-
-	vertexShader->Release();
-	pixelShader->Release();
+	mPipelineState = _renderContext.GetDevice()->CreateGraphicsPipelineState(&pipelineStateDesc);
 }
 
 void RBaseRenderer::Render(RWorld& _renderData, RCamera& _camera, RTexture2D& _canvas, SRenderContext& _renderContext) noexcept
@@ -136,7 +126,6 @@ void RBaseRenderer::Render(RWorld& _renderData, RCamera& _camera, RTexture2D& _c
 					SRange subMeshRange = Mesh.mSubMeshRange[j];
 
 					_commandList->SetGraphicsPipelineState(mPipelineState);
-					_commandList->SetGraphicsRootSignature(mRootSignature);
 					_commandList->SetGraphicsRootConstantBuffer(0, mDynamicConstantBuffer.GetRDIResource(), dcIndex * 256 + 256);
 					_commandList->SetGraphicsRootConstantBuffer(1, mDynamicConstantBuffer.GetRDIResource(), 0);
 

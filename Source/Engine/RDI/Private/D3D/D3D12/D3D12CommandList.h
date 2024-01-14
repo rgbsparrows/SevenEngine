@@ -76,9 +76,6 @@ public:
 	void SetGraphicsPipelineState(IRDIGraphicsPipelineState* _pipelineState) noexcept override;
 	void SetComputePipelineState(IRDIComputePipelineState* _pipelineState) noexcept override;
 
-	void SetGraphicsRootSignature(IRDIRootSignature* _rootSignature) noexcept override;
-	void SetComputeRootSignature(IRDIRootSignature* _rootSignature) noexcept override;
-
 	void SetGraphicsRootConstantBuffer(uint32_t _rootParameterIndex, IRDIBuffer* _buffer, uint64_t _offset) noexcept override;
 	void SetComputeRootConstantBuffer(uint32_t _rootParameterIndex, IRDIBuffer* _buffer, uint64_t _offset) noexcept override;
 	void SetGraphicsRootDescriptorTable(uint32_t _rootParameterIndex, IRDIDescriptorHeapRange* _descriptorRange) noexcept override;

@@ -30,6 +30,16 @@ public:
 	IRDIDevice* GetDevice() noexcept override { return &mD3D12Device; }
 	const std::vector<IRDIAdapter*>& GetAdapters() noexcept override { return mCachedAdapters; }
 
+	SBlob CompileVertexShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	SBlob CompileHullShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	SBlob CompileDomainShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	SBlob CompileGeometryShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	SBlob CompilePixelShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	SBlob CompileComputeShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
+	
+private:
+	SBlob CompileShader(SConstBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
+
 private:
 	std::vector<IRDIAdapter*> mCachedAdapters;
 
@@ -42,4 +52,7 @@ private:
 	std::vector<SD3D12Adapter> mAdpaters;
 
 	SRDIFutureSupport mFutureSupport = {};
+
+	uint32_t mShaderCompileFlag = 0;
+	D3DInclude mD3DInclude;
 };

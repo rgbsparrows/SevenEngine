@@ -106,31 +106,6 @@ void SD3D12Device::Init(ID3D12Device* _nativePtr, SD3D12Adapter* _adapter, SD3D1
 			mDescriptorHandleIncrement[i] = GetNativePtr()->GetDescriptorHandleIncrementSize(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(i));
 		}
 	}
-
-	//ShaderCompileInfo
-	{
-		mShaderCompileFlag = D3DCOMPILE_AVOID_FLOW_CONTROL | D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS | D3DCOMPILE_ALL_RESOURCES_BOUND;
-
-		if (SProgramConfiguation::UseDebugShader())
-			mShaderCompileFlag |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG_NAME_FOR_SOURCE | D3DCOMPILE_DEBUG_NAME_FOR_BINARY;
-		else
-			mShaderCompileFlag |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
-
-		mD3DInclude.Init(
-			[](const std::filesystem::path& _includeFile)
-			{
-				auto filePath = SBasicPath::GetEngineShaderPath() / _includeFile;
-				if (std::filesystem::exists(filePath))
-					return filePath;
-
-				filePath = SBasicPath::GetProjectShaderPath() / _includeFile;
-				if (std::filesystem::exists(filePath))
-					return filePath;
-
-				return std::filesystem::path();
-			}
-		);
-	}
 }
 
 void SD3D12Device::Clear() noexcept
@@ -193,223 +168,132 @@ IRDISwapChain* SD3D12Device::CreateSwapChain(const SRDISwapChainDesc* _swapChain
 	return swapChain;
 }
 
-IRDIInputLayout* SD3D12Device::CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept
-{
-	SD3D12InputLayout* inputLayout = mInputLayoutPool.AllocateElement();
-	inputLayout->Init(_desc, this);
-
-	return inputLayout;
-}
-
-IRDIRootSignature* SD3D12Device::CreateRootSignature(const SRDIRootSignatureDesc* _desc, SRDIErrorInfo* _rootSignatureError) noexcept
-{
-	static D3D12_DESCRIPTOR_RANGE descriptorRange[30] = {};
-	static D3D12_ROOT_PARAMETER rootParameters[10] = {};
-	static D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[30] = {};
-
-	D3D12_ROOT_SIGNATURE_DESC desc = {};
-
-	for (size_t i = 0, j = 0; i != _desc->mRootParameters.size(); ++i)
-	{
-		auto& _ele = _desc->mRootParameters[i];
-		switch (_ele.mType)
-		{
-		case ERDIRootParameterType::CBV:
-			rootParameters[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_CBV;
-			rootParameters[i].Descriptor.RegisterSpace = _ele.mRegisterSpace;
-			rootParameters[i].Descriptor.ShaderRegister = _ele.mCbvRootParameter.mCbvShaderRegister;
-			break;
-		case ERDIRootParameterType::DescriptorTable:
-		{
-			CHECK(_ele.mDescriptorTableRootParameter.mSrvNumDescriptors != 0 || _ele.mDescriptorTableRootParameter.mUavNumDescriptors != 0);
-
-			uint32_t rangeCount = 0;
-
-			rootParameters[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rootParameters[i].DescriptorTable.pDescriptorRanges = &descriptorRange[j];
-			if (_ele.mDescriptorTableRootParameter.mSrvNumDescriptors != 0)
-			{
-				descriptorRange[j].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-				descriptorRange[j].RegisterSpace = _ele.mRegisterSpace;
-				descriptorRange[j].NumDescriptors = _ele.mDescriptorTableRootParameter.mSrvNumDescriptors;
-				descriptorRange[j].BaseShaderRegister = _ele.mDescriptorTableRootParameter.mSrvStartShaderRegister;
-				descriptorRange[j].OffsetInDescriptorsFromTableStart = 0;
-				++j;
-				++rangeCount;
-			}
-
-			if (_ele.mDescriptorTableRootParameter.mUavNumDescriptors != 0)
-			{
-				descriptorRange[j].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-				descriptorRange[j].RegisterSpace = _ele.mRegisterSpace;
-				descriptorRange[j].NumDescriptors = _ele.mDescriptorTableRootParameter.mUavNumDescriptors;
-				descriptorRange[j].BaseShaderRegister = _ele.mDescriptorTableRootParameter.mUavStartShaderRegister;
-				descriptorRange[j].OffsetInDescriptorsFromTableStart = _ele.mDescriptorTableRootParameter.mSrvStartShaderRegister;
-				++j;
-				++rangeCount;
-			}
-			rootParameters[i].DescriptorTable.NumDescriptorRanges = rangeCount;
-			break;
-		}
-		case ERDIRootParameterType::SamplerTable:
-		{
-			CHECK(_ele.mSamplerTableRootParameter.mSamplerNumDescriptors != 0);
-
-			rootParameters[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			rootParameters[i].DescriptorTable.pDescriptorRanges = &descriptorRange[j];
-			rootParameters[i].DescriptorTable.NumDescriptorRanges = 1;
-			descriptorRange[j].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
-			descriptorRange[j].RegisterSpace = _ele.mRegisterSpace;
-			descriptorRange[j].NumDescriptors = _ele.mSamplerTableRootParameter.mSamplerNumDescriptors;
-			descriptorRange[j].BaseShaderRegister = _ele.mSamplerTableRootParameter.mSamplerStartShaderRegister;
-			descriptorRange[j].OffsetInDescriptorsFromTableStart = 0;
-			++j;
-			break;
-		}
-		}
-		rootParameters[i].ShaderVisibility = ConvertShaderVisibilityToD3D12(_ele.mShaderVisibility);
-	}
-
-	for (size_t i = 0; i != _desc->mStaticSamplerDescs.size(); ++i)
-	{
-		auto& _ele = _desc->mStaticSamplerDescs[i];
-
-		staticSamplerDesc[i].Filter = ConvertFilterToD3D12(_ele.mFilter);
-		staticSamplerDesc[i].AddressU = ConvertAddressModeToD3D12(_ele.mAddressU);
-		staticSamplerDesc[i].AddressV = ConvertAddressModeToD3D12(_ele.mAddressV);
-		staticSamplerDesc[i].AddressW = ConvertAddressModeToD3D12(_ele.mAddressW);
-		staticSamplerDesc[i].MipLODBias = _ele.mMipLODBias;
-		staticSamplerDesc[i].MaxAnisotropy = _ele.mMaxAnisotropy;
-		staticSamplerDesc[i].ComparisonFunc = ConvertComparisonFuncToD3D12(_ele.mComparisonFunc);
-		staticSamplerDesc[i].BorderColor = ConvertStaticBorderColorToD3D12(_ele.mBorderColor);
-		staticSamplerDesc[i].MinLOD = _ele.mMinLod;
-		staticSamplerDesc[i].MaxLOD = _ele.mMaxLod;
-		staticSamplerDesc[i].ShaderRegister = _ele.mShaderRegister;
-		staticSamplerDesc[i].RegisterSpace = _ele.mRegisterSpace;
-		staticSamplerDesc[i].ShaderVisibility = ConvertShaderVisibilityToD3D12(_ele.mShaderVisibility);
-	}
-
-	desc.NumParameters = static_cast<uint32_t>(_desc->mRootParameters.size());
-	desc.pParameters = rootParameters;
-	desc.NumStaticSamplers = static_cast<uint32_t>(_desc->mStaticSamplerDescs.size());
-	desc.pStaticSamplers = staticSamplerDesc;
-	desc.Flags = D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-	ID3DBlob* serlizedBlob = nullptr;
-	ID3DBlob* errorBlob = nullptr;
-
-	HRESULT res = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &serlizedBlob, &errorBlob);
-
-	IRDIRootSignature* rootSignature = nullptr;
-
-	if (res == 0)
-		rootSignature = CreateRootSignature(SConstBufferView(serlizedBlob->GetBufferPointer(), serlizedBlob->GetBufferSize()));
-	else
-		GenerateErrorInfo(errorBlob, _rootSignatureError);
-
-	if (serlizedBlob != nullptr)
-		serlizedBlob->Release();
-	if (errorBlob != nullptr)
-		errorBlob->Release();
-
-	return rootSignature;
-}
-
-IRDIRootSignature* SD3D12Device::CreateRootSignature(const SConstBufferView _serializedRootSignatureBlob) noexcept
-{
-	ID3D12RootSignature* rootSignatureNativePtr = nullptr;
-	VERIFY_D3D_RETURN(GetNativePtr()->CreateRootSignature(0, _serializedRootSignatureBlob.GetBuffer(), _serializedRootSignatureBlob.GetBufferSize(), IID_PPV_ARGS(&rootSignatureNativePtr)));
-
-	SD3D12RootSignature* rootSignature = mRootSignaturePool.AllocateElement();
-	rootSignature->Init(_serializedRootSignatureBlob.GetBuffer(), _serializedRootSignatureBlob.GetBufferSize(), rootSignatureNativePtr, this);
-	return rootSignature;
-}
-
-IRDIGraphicsPipelineState* SD3D12Device::CreateGraphicsPipelineState(const SRDIGraphicsPipelineState* _desc) noexcept
+IRDIGraphicsPipelineState* SD3D12Device::CreateGraphicsPipelineState(const SRDIGraphicsPipelineStateDesc* _desc) noexcept
 {
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc = {};
-	desc.pRootSignature = static_cast<SD3D12RootSignature*>(_desc->mRootSignature)->GetNativePtr();
-	if (_desc->mVertexShader)
+
+	//RootSignature
 	{
-		desc.VS.pShaderBytecode = static_cast<SD3D12VertexShader*>(_desc->mVertexShader)->GetCompiledShaderBlob().GetBuffer();
-		desc.VS.BytecodeLength = static_cast<SD3D12VertexShader*>(_desc->mVertexShader)->GetCompiledShaderBlob().GetBufferSize();
+		SBlob rootSignatureBlob = CreateRootSignatureBlob(&_desc->mRootSignature);
+		ID3D12RootSignature* rootSignatureNativePtr = nullptr;
+		VERIFY_D3D_RETURN(GetNativePtr()->CreateRootSignature(0, rootSignatureBlob.GetBuffer(), rootSignatureBlob.GetBufferSize(), IID_PPV_ARGS(&rootSignatureNativePtr)));
+
+		desc.pRootSignature = rootSignatureNativePtr;
 	}
-	if (_desc->mHullShader)
+
+	//Shader
 	{
-		desc.HS.pShaderBytecode = static_cast<SD3D12HullShader*>(_desc->mHullShader)->GetCompiledShaderBlob().GetBuffer();
-		desc.HS.BytecodeLength = static_cast<SD3D12HullShader*>(_desc->mHullShader)->GetCompiledShaderBlob().GetBufferSize();
+		desc.VS.pShaderBytecode = _desc->mVertexShader.GetBuffer();
+		desc.VS.BytecodeLength = _desc->mVertexShader.GetBufferSize();
+		desc.HS.pShaderBytecode = _desc->mHullShader.GetBuffer();
+		desc.HS.BytecodeLength = _desc->mHullShader.GetBufferSize();
+		desc.DS.pShaderBytecode = _desc->mDomainShader.GetBuffer();
+		desc.DS.BytecodeLength = _desc->mDomainShader.GetBufferSize();
+		desc.GS.pShaderBytecode = _desc->mGeometryShader.GetBuffer();
+		desc.GS.BytecodeLength = _desc->mGeometryShader.GetBufferSize();
+		desc.PS.pShaderBytecode = _desc->mPixelShader.GetBuffer();
+		desc.PS.BytecodeLength = _desc->mPixelShader.GetBufferSize();
 	}
-	if (_desc->mDomainShader)
+
+	//Stream Output
 	{
-		desc.DS.pShaderBytecode = static_cast<SD3D12DomainShader*>(_desc->mDomainShader)->GetCompiledShaderBlob().GetBuffer();
-		desc.DS.BytecodeLength = static_cast<SD3D12DomainShader*>(_desc->mDomainShader)->GetCompiledShaderBlob().GetBufferSize();
+		desc.StreamOutput.pSODeclaration = nullptr;
+		desc.StreamOutput.NumEntries = 0;
+		desc.StreamOutput.pBufferStrides = nullptr;
+		desc.StreamOutput.NumStrides = 0;
+		desc.StreamOutput.RasterizedStream = 0;
 	}
-	if (_desc->mGeometryShader)
+
+	// BlendState
 	{
-		desc.GS.pShaderBytecode = static_cast<SD3D12GeometryShader*>(_desc->mGeometryShader)->GetCompiledShaderBlob().GetBuffer();
-		desc.GS.BytecodeLength = static_cast<SD3D12GeometryShader*>(_desc->mGeometryShader)->GetCompiledShaderBlob().GetBufferSize();
+		desc.BlendState.AlphaToCoverageEnable = false;
+		desc.BlendState.IndependentBlendEnable = false;
+		desc.BlendState.RenderTarget[0].BlendEnable = _desc->mBlendState.mBlendEnable;
+		desc.BlendState.RenderTarget[0].LogicOpEnable = _desc->mBlendState.mLogicOpEnable;
+		desc.BlendState.RenderTarget[0].SrcBlend = ConvertBlendFactoryToD3D12(_desc->mBlendState.mSrcBlend);
+		desc.BlendState.RenderTarget[0].DestBlend = ConvertBlendFactoryToD3D12(_desc->mBlendState.mDestBlend);
+		desc.BlendState.RenderTarget[0].BlendOp = ConvertBlendOperatorToD3D12(_desc->mBlendState.mBlendOperator);
+		desc.BlendState.RenderTarget[0].SrcBlendAlpha = ConvertBlendFactoryToD3D12(_desc->mBlendState.mSrcAlphaBlend);
+		desc.BlendState.RenderTarget[0].DestBlendAlpha = ConvertBlendFactoryToD3D12(_desc->mBlendState.mDestAlphaBlend);
+		desc.BlendState.RenderTarget[0].BlendOpAlpha = ConvertBlendOperatorToD3D12(_desc->mBlendState.mBlendAlphaOperator);
+		desc.BlendState.RenderTarget[0].LogicOp = ConvertLogicOperatorToD3D12(_desc->mBlendState.mLogicOperator);
+		desc.BlendState.RenderTarget[0].RenderTargetWriteMask = ConvertColorWriteMaskToD3D12(_desc->mBlendState.mColorWriteMask);
 	}
-	if (_desc->mPixelShader)
-	{
-		desc.PS.pShaderBytecode = static_cast<SD3D12PixelShader*>(_desc->mPixelShader)->GetCompiledShaderBlob().GetBuffer();
-		desc.PS.BytecodeLength = static_cast<SD3D12PixelShader*>(_desc->mPixelShader)->GetCompiledShaderBlob().GetBufferSize();
-	}
-	desc.StreamOutput.pSODeclaration = nullptr;
-	desc.StreamOutput.NumEntries = 0;
-	desc.StreamOutput.pBufferStrides = nullptr;
-	desc.StreamOutput.NumStrides = 0;
-	desc.StreamOutput.RasterizedStream = 0;
-	desc.BlendState.AlphaToCoverageEnable = false;
-	desc.BlendState.IndependentBlendEnable = false;
-	desc.BlendState.RenderTarget[0].BlendEnable = _desc->mBlendState.mBlendEnable;
-	desc.BlendState.RenderTarget[0].LogicOpEnable = _desc->mBlendState.mLogicOpEnable;
-	desc.BlendState.RenderTarget[0].SrcBlend = ConvertBlendFactoryToD3D12(_desc->mBlendState.mSrcBlend);
-	desc.BlendState.RenderTarget[0].DestBlend = ConvertBlendFactoryToD3D12(_desc->mBlendState.mDestBlend);
-	desc.BlendState.RenderTarget[0].BlendOp = ConvertBlendOperatorToD3D12(_desc->mBlendState.mBlendOperator);
-	desc.BlendState.RenderTarget[0].SrcBlendAlpha = ConvertBlendFactoryToD3D12(_desc->mBlendState.mSrcAlphaBlend);
-	desc.BlendState.RenderTarget[0].DestBlendAlpha = ConvertBlendFactoryToD3D12(_desc->mBlendState.mDestAlphaBlend);
-	desc.BlendState.RenderTarget[0].BlendOpAlpha = ConvertBlendOperatorToD3D12(_desc->mBlendState.mBlendAlphaOperator);
-	desc.BlendState.RenderTarget[0].LogicOp = ConvertLogicOperatorToD3D12(_desc->mBlendState.mLogicOperator);
-	desc.BlendState.RenderTarget[0].RenderTargetWriteMask = ConvertColorWriteMaskToD3D12(_desc->mBlendState.mColorWriteMask);
+
 	desc.SampleMask = UINT_MAX;
-	desc.RasterizerState.FillMode = ConvertFillModeToD3D12(_desc->mRasterizationState.mFillMode);
-	desc.RasterizerState.CullMode = ConvertCullModeToD3D12(_desc->mRasterizationState.mCullMode);
-	desc.RasterizerState.FrontCounterClockwise = true;
-	desc.RasterizerState.DepthBias = _desc->mRasterizationState.mDepthBias;
-	desc.RasterizerState.DepthBiasClamp = _desc->mRasterizationState.mDepthBiasClamp;
-	desc.RasterizerState.SlopeScaledDepthBias = _desc->mRasterizationState.mSlopeScaledDepthBias;
-	desc.RasterizerState.DepthClipEnable = _desc->mRasterizationState.mDepthClipEnable;
-	desc.RasterizerState.MultisampleEnable = false;
-	desc.RasterizerState.AntialiasedLineEnable = true;
-	desc.RasterizerState.ForcedSampleCount = 0;
-	desc.RasterizerState.ConservativeRaster = ConvertConservativeRasterizationModeToD3D12(_desc->mRasterizationState.mConservativeRasterizationMode);
-	desc.DepthStencilState.DepthEnable = _desc->mDepthStencilState.mDepthWriteEnable;
-	desc.DepthStencilState.DepthWriteMask = _desc->mDepthStencilState.mDepthWriteEnable ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ZERO;
-	desc.DepthStencilState.DepthFunc = ConvertComparisonFuncToD3D12(_desc->mDepthStencilState.mDepthCompareFunc);
-	desc.DepthStencilState.StencilEnable = _desc->mDepthStencilState.mStencilTestEnable;
-	desc.DepthStencilState.StencilReadMask = _desc->mDepthStencilState.mStencilReadMask;
-	desc.DepthStencilState.StencilWriteMask = _desc->mDepthStencilState.mStencilWriteMask;
-	desc.DepthStencilState.FrontFace.StencilFailOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mFrontFaceDepthStencilOperator.mStencilFailOp);
-	desc.DepthStencilState.FrontFace.StencilDepthFailOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mFrontFaceDepthStencilOperator.mStencilDepthFailOp);
-	desc.DepthStencilState.FrontFace.StencilPassOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mFrontFaceDepthStencilOperator.mStencilPassOp);
-	desc.DepthStencilState.FrontFace.StencilFunc = ConvertComparisonFuncToD3D12(_desc->mDepthStencilState.mFrontFaceDepthStencilOperator.mStencilCompareFunc);
-	desc.DepthStencilState.BackFace.StencilFailOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mBackFaceDepthStencilOperator.mStencilFailOp);
-	desc.DepthStencilState.BackFace.StencilDepthFailOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mBackFaceDepthStencilOperator.mStencilDepthFailOp);
-	desc.DepthStencilState.BackFace.StencilPassOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mBackFaceDepthStencilOperator.mStencilPassOp);
-	desc.DepthStencilState.BackFace.StencilFunc = ConvertComparisonFuncToD3D12(_desc->mDepthStencilState.mBackFaceDepthStencilOperator.mStencilCompareFunc);
-	desc.InputLayout = static_cast<SD3D12InputLayout*>(_desc->mInputLayout)->GetD3D12InputLayout();
+
+	//RasterizerState
+	{
+		desc.RasterizerState.FillMode = ConvertFillModeToD3D12(_desc->mRasterizationState.mFillMode);
+		desc.RasterizerState.CullMode = ConvertCullModeToD3D12(_desc->mRasterizationState.mCullMode);
+		desc.RasterizerState.FrontCounterClockwise = true;
+		desc.RasterizerState.DepthBias = _desc->mRasterizationState.mDepthBias;
+		desc.RasterizerState.DepthBiasClamp = _desc->mRasterizationState.mDepthBiasClamp;
+		desc.RasterizerState.SlopeScaledDepthBias = _desc->mRasterizationState.mSlopeScaledDepthBias;
+		desc.RasterizerState.DepthClipEnable = _desc->mRasterizationState.mDepthClipEnable;
+		desc.RasterizerState.MultisampleEnable = false;
+		desc.RasterizerState.AntialiasedLineEnable = true;
+		desc.RasterizerState.ForcedSampleCount = 0;
+		desc.RasterizerState.ConservativeRaster = ConvertConservativeRasterizationModeToD3D12(_desc->mRasterizationState.mConservativeRasterizationMode);
+	}
+
+	//DepthStencilState
+	{
+		desc.DepthStencilState.DepthEnable = _desc->mDepthStencilState.mDepthWriteEnable;
+		desc.DepthStencilState.DepthWriteMask = _desc->mDepthStencilState.mDepthWriteEnable ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ZERO;
+		desc.DepthStencilState.DepthFunc = ConvertComparisonFuncToD3D12(_desc->mDepthStencilState.mDepthCompareFunc);
+		desc.DepthStencilState.StencilEnable = _desc->mDepthStencilState.mStencilTestEnable;
+		desc.DepthStencilState.StencilReadMask = _desc->mDepthStencilState.mStencilReadMask;
+		desc.DepthStencilState.StencilWriteMask = _desc->mDepthStencilState.mStencilWriteMask;
+		desc.DepthStencilState.FrontFace.StencilFailOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mFrontFaceDepthStencilOperator.mStencilFailOp);
+		desc.DepthStencilState.FrontFace.StencilDepthFailOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mFrontFaceDepthStencilOperator.mStencilDepthFailOp);
+		desc.DepthStencilState.FrontFace.StencilPassOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mFrontFaceDepthStencilOperator.mStencilPassOp);
+		desc.DepthStencilState.FrontFace.StencilFunc = ConvertComparisonFuncToD3D12(_desc->mDepthStencilState.mFrontFaceDepthStencilOperator.mStencilCompareFunc);
+		desc.DepthStencilState.BackFace.StencilFailOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mBackFaceDepthStencilOperator.mStencilFailOp);
+		desc.DepthStencilState.BackFace.StencilDepthFailOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mBackFaceDepthStencilOperator.mStencilDepthFailOp);
+		desc.DepthStencilState.BackFace.StencilPassOp = ConvertStencilOpToD3D12(_desc->mDepthStencilState.mBackFaceDepthStencilOperator.mStencilPassOp);
+		desc.DepthStencilState.BackFace.StencilFunc = ConvertComparisonFuncToD3D12(_desc->mDepthStencilState.mBackFaceDepthStencilOperator.mStencilCompareFunc);
+	}
+
+	//InputLayout
+	std::vector<D3D12_INPUT_ELEMENT_DESC> inputElements;
+	{
+		for (auto& _ele : _desc->mInputLayout.mInputElements)
+		{
+			D3D12_INPUT_ELEMENT_DESC elementDesc;
+			elementDesc.SemanticName = _ele.mSemanticName.c_str();
+			elementDesc.SemanticIndex = 0;
+			elementDesc.Format = ConvertPixelFormatToD3D(_ele.mFormat);
+			elementDesc.InputSlot = 0;
+			elementDesc.AlignedByteOffset = _ele.mAlignedByteOffset;
+			elementDesc.InputSlotClass = D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+			elementDesc.InstanceDataStepRate = 0;
+
+			inputElements.push_back(elementDesc);
+		}
+
+		desc.InputLayout.pInputElementDescs = inputElements.data();
+		desc.InputLayout.NumElements = static_cast<UINT>(inputElements.size());
+	}
+
+
 	desc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE::D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
 	desc.PrimitiveTopologyType = ConvertPrimitiveTopologyTypeToD3D12(_desc->mPrimitiveTopologyType);
-	desc.NumRenderTargets = _desc->mRenderTargetCount;
-	desc.RTVFormats[0] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[0]);
-	desc.RTVFormats[1] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[1]);
-	desc.RTVFormats[2] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[2]);
-	desc.RTVFormats[3] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[3]);
-	desc.RTVFormats[4] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[4]);
-	desc.RTVFormats[5] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[5]);
-	desc.RTVFormats[6] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[6]);
-	desc.RTVFormats[7] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[7]);
-	desc.DSVFormat = ConvertPixelFormatToD3D(_desc->mDepthStencilFormat);
+
+	//RTFormat
+	{
+		desc.NumRenderTargets = _desc->mRenderTargetCount;
+		desc.RTVFormats[0] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[0]);
+		desc.RTVFormats[1] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[1]);
+		desc.RTVFormats[2] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[2]);
+		desc.RTVFormats[3] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[3]);
+		desc.RTVFormats[4] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[4]);
+		desc.RTVFormats[5] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[5]);
+		desc.RTVFormats[6] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[6]);
+		desc.RTVFormats[7] = ConvertPixelFormatToD3D(_desc->mRenderTargetFormat[7]);
+		desc.DSVFormat = ConvertPixelFormatToD3D(_desc->mDepthStencilFormat);
+	}
+
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.NodeMask = 0;
@@ -421,16 +305,29 @@ IRDIGraphicsPipelineState* SD3D12Device::CreateGraphicsPipelineState(const SRDIG
 	VERIFY_D3D_RETURN(GetNativePtr()->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&nativePipelineState)));
 
 	SD3D12GraphicsPipelineState* pipelineState = mGraphicsPipelineStatePool.AllocateElement();
-	pipelineState->Init(nativePipelineState, this);
+	pipelineState->Init(nativePipelineState, desc.pRootSignature, this);
 	return pipelineState;
 }
 
-IRDIComputePipelineState* SD3D12Device::CreateComputePipelineState(const SRDIComputePipelineState* _desc) noexcept
+IRDIComputePipelineState* SD3D12Device::CreateComputePipelineState(const SRDIComputePipelineStateDesc* _desc) noexcept
 {
 	D3D12_COMPUTE_PIPELINE_STATE_DESC desc = {};
-	desc.pRootSignature = static_cast<SD3D12RootSignature*>(_desc->mRootSignature)->GetNativePtr();
-	desc.CS.pShaderBytecode = static_cast<SD3D12ComputeShader*>(_desc->mComputeShader)->GetCompiledShaderBlob().GetBuffer();
-	desc.CS.BytecodeLength = static_cast<SD3D12ComputeShader*>(_desc->mComputeShader)->GetCompiledShaderBlob().GetBufferSize();
+
+	//RootSignature
+	{
+		SBlob rootSignatureBlob = CreateRootSignatureBlob(&_desc->mRootSignature);
+		ID3D12RootSignature* rootSignatureNativePtr = nullptr;
+		VERIFY_D3D_RETURN(GetNativePtr()->CreateRootSignature(0, rootSignatureBlob.GetBuffer(), rootSignatureBlob.GetBufferSize(), IID_PPV_ARGS(&rootSignatureNativePtr)));
+
+		desc.pRootSignature = rootSignatureNativePtr;
+	}
+
+	//Shader
+	{
+		desc.CS.pShaderBytecode = _desc->mComputeShader.GetBuffer();
+		desc.CS.BytecodeLength = _desc->mComputeShader.GetBufferSize();
+	}
+
 	desc.NodeMask = 0;
 	desc.CachedPSO.pCachedBlob = _desc->mCachedPSO.GetBuffer();
 	desc.CachedPSO.CachedBlobSizeInBytes = _desc->mCachedPSO.GetBufferSize();
@@ -440,7 +337,7 @@ IRDIComputePipelineState* SD3D12Device::CreateComputePipelineState(const SRDICom
 	VERIFY_D3D_RETURN(GetNativePtr()->CreateComputePipelineState(&desc, IID_PPV_ARGS(&nativePipelineState)));
 
 	SD3D12ComputePipelineState* pipelineState = mComputePipelineStatePool.AllocateElement();
-	pipelineState->Init(nativePipelineState, this);
+	pipelineState->Init(nativePipelineState, desc.pRootSignature, this);
 	return pipelineState;
 }
 
@@ -658,126 +555,6 @@ IRDISamplerHeapRange* SD3D12Device::CreateDescriptorRange(uint16_t _samplerCount
 	return mShaderVisibleDescriptorHeap.AllocateSamplerHeapRange(_samplerCount);
 }
 
-IRDIVertexShader* SD3D12Device::CreateVertexShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
-{
-	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::VS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
-
-	if (!res)
-		return nullptr;
-
-	SD3D12VertexShader* vertexShader = mVertexShaderPool.AllocateElement();
-	vertexShader->Init(std::move(compiledShaderBlob), this);
-	return vertexShader;
-}
-
-IRDIHullShader* SD3D12Device::CreateHullShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
-{
-	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::HS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
-
-	if (!res)
-		return nullptr;
-
-	SD3D12HullShader* hullShader = mHullShaderPool.AllocateElement();
-	hullShader->Init(std::move(compiledShaderBlob), this);
-	return hullShader;
-}
-
-IRDIDomainShader* SD3D12Device::CreateDomainShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
-{
-	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::DS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
-
-	if (!res)
-		return nullptr;
-
-	SD3D12DomainShader* domainShader = mDomainShaderPool.AllocateElement();
-	domainShader->Init(std::move(compiledShaderBlob), this);
-	return domainShader;
-}
-
-IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
-{
-	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::GS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
-
-	if (!res)
-		return nullptr;
-
-	SD3D12GeometryShader* geometryShader = mGeometryShaderPool.AllocateElement();
-	geometryShader->Init(std::move(compiledShaderBlob), this);
-	return geometryShader;
-}
-
-IRDIPixelShader* SD3D12Device::CreatePixelShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
-{
-	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::PS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
-
-	if (!res)
-		return nullptr;
-
-	SD3D12PixelShader* pixelShader = mPixelShaderPool.AllocateElement();
-	pixelShader->Init(std::move(compiledShaderBlob), this);
-	return pixelShader;
-}
-
-IRDIComputeShader* SD3D12Device::CreateComputeShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
-{
-	SBlob compiledShaderBlob;
-	bool res = CreateShader(_hlslShader, ED3DShaderTarget::CS, _shaderMacro, &compiledShaderBlob, _shaderCompileError);
-
-	if (!res)
-		return nullptr;
-
-	SD3D12ComputeShader* computeShader = mComputeShaderPool.AllocateElement();
-	computeShader->Init(std::move(compiledShaderBlob), this);
-	return computeShader;
-}
-
-IRDIVertexShader* SD3D12Device::CreateVertexShader(SConstBufferView _compiledShader) noexcept
-{
-	SD3D12VertexShader* vertexShader = mVertexShaderPool.AllocateElement();
-	vertexShader->Init(_compiledShader, this);
-	return vertexShader;
-}
-
-IRDIHullShader* SD3D12Device::CreateHullShader(SConstBufferView _compiledShader) noexcept
-{
-	SD3D12HullShader* hullShader = mHullShaderPool.AllocateElement();
-	hullShader->Init(_compiledShader, this);
-	return hullShader;
-}
-
-IRDIDomainShader* SD3D12Device::CreateDomainShader(SConstBufferView _compiledShader) noexcept
-{
-	SD3D12DomainShader* domainShader = mDomainShaderPool.AllocateElement();
-	domainShader->Init(_compiledShader, this);
-	return domainShader;
-}
-
-IRDIGeometryShader* SD3D12Device::CreateGeometryShader(SConstBufferView _compiledShader) noexcept
-{
-	SD3D12GeometryShader* geometryShader = mGeometryShaderPool.AllocateElement();
-	geometryShader->Init(_compiledShader, this);
-	return geometryShader;
-}
-
-IRDIPixelShader* SD3D12Device::CreatePixelShader(SConstBufferView _compiledShader) noexcept
-{
-	SD3D12PixelShader* pixelShader = mPixelShaderPool.AllocateElement();
-	pixelShader->Init(_compiledShader, this);
-	return pixelShader;
-}
-
-IRDIComputeShader* SD3D12Device::CreateComputeShader(SConstBufferView _compiledShader) noexcept
-{
-	SD3D12ComputeShader* computeShader = mComputeShaderPool.AllocateElement();
-	computeShader->Init(_compiledShader, this);
-	return computeShader;
-}
-
 void SD3D12Device::ReleaseCommandAllocator(SD3D12CommandAllocator* _commandAllocator) noexcept
 {
 	_commandAllocator->GetNativePtr()->Release();
@@ -796,26 +573,17 @@ void SD3D12Device::ReleaseSwapChain(SD3D12SwapChain* _swapChain) noexcept
 	mSwapChainPool.DeallocateElement(_swapChain);
 }
 
-void SD3D12Device::ReleaseInputLayout(SD3D12InputLayout* _inputLayout) noexcept
-{
-	mInputLayoutPool.DeallocateElement(_inputLayout);
-}
-
-void SD3D12Device::ReleaseRootSignature(SD3D12RootSignature* _rootSignature) noexcept
-{
-	_rootSignature->GetNativePtr()->Release();
-	mRootSignaturePool.DeallocateElement(_rootSignature);
-}
-
 void SD3D12Device::ReleaseGraphicsPipelineState(SD3D12GraphicsPipelineState* _graphicPipelineState) noexcept
 {
 	_graphicPipelineState->GetNativePtr()->Release();
+	_graphicPipelineState->GetRootSignatureNativePtr()->Release();
 	mGraphicsPipelineStatePool.DeallocateElement(_graphicPipelineState);
 }
 
 void SD3D12Device::ReleaseComputePipelineState(SD3D12ComputePipelineState* _computePipelineState) noexcept
 {
 	_computePipelineState->GetNativePtr()->Release();
+	_computePipelineState->GetRootSignatureNativePtr()->Release();
 	mComputePipelineStatePool.DeallocateElement(_computePipelineState);
 }
 
@@ -949,101 +717,108 @@ ID3D12Resource* SD3D12Device::CreateCommittedResource(ERDIHeapType _heapType, co
 	return nativeResourcePtr;
 }
 
-bool SD3D12Device::CreateShader(SConstBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept
+SBlob SD3D12Device::CreateRootSignatureBlob(const SRDIRootSignature* _rootSignature) noexcept
 {
-	static D3D_SHADER_MACRO shaderMacro[64] = {};
-	static char macroBuffer[64][128] = {};
-	static SRDIShaderMacro emptyShaderMacros;
+	static D3D12_DESCRIPTOR_RANGE descriptorRange[30] = {};
+	static D3D12_ROOT_PARAMETER rootParameters[10] = {};
+	static D3D12_STATIC_SAMPLER_DESC staticSamplerDesc[30] = {};
 
-	if (_shaderMacro == nullptr)
-		_shaderMacro = &emptyShaderMacros;
+	D3D12_ROOT_SIGNATURE_DESC desc = {};
 
-	for (size_t i = 0; i != _shaderMacro->mDefinedMacro.size(); ++i)
+	for (size_t i = 0, j = 0; i != _rootSignature->mRootParameters.size(); ++i)
 	{
-		std::string_view macro = _shaderMacro->mDefinedMacro[i];
-
-		for (size_t j = 0; j != macro.size(); ++j)
-			macroBuffer[i][j] = macro[j];
-		macroBuffer[i][macro.size()] = '\0';
-
-		shaderMacro[i].Name = macroBuffer[i];
-		shaderMacro[i].Definition = nullptr;
-	}
-
-	shaderMacro[_shaderMacro->mDefinedMacro.size()].Name = nullptr;
-	shaderMacro[_shaderMacro->mDefinedMacro.size()].Definition = nullptr;
-
-	ID3DBlob* shaderBlob;
-	ID3DBlob* errorBlob;
-	HRESULT res = D3DCompile(_hlslShader.GetBuffer(), _hlslShader.GetBufferSize(), nullptr, shaderMacro, &mD3DInclude, GetShaderEntryPoint(_shaderTarget), ConvertShaderTargetToStr(_shaderTarget), mShaderCompileFlag, 0, &shaderBlob, &errorBlob);
-
-	if (res == 0)
-		_shaderBlob->ResizeBlob(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize());
-	else
-		GenerateErrorInfo(errorBlob, _shaderCompileError);
-
-	if (shaderBlob != nullptr)
-		shaderBlob->Release();
-	if (errorBlob != nullptr)
-		errorBlob->Release();
-
-	return res == 0;
-}
-
-void SD3D12Device::GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _errorInfo)
-{
-	if (_errorInfo == nullptr)
-		return;
-
-	if (_errorBlob == nullptr || _errorBlob->GetBufferSize() == 0)
-	{
-		_errorInfo->mParsedErrorString.clear();
-		_errorInfo->mErrorString.clear();
-		return;
-	}
-
-	std::string compiledError = reinterpret_cast<const char*>(_errorBlob->GetBufferPointer());
-	_errorInfo->mErrorString = compiledError;
-	const char* errorStr = _errorInfo->mErrorString.c_str();
-
-	size_t begin = 0;
-	while (true)
-	{
-		size_t end = _errorInfo->mErrorString.find_first_of(L'\n', begin);
-		if (end == std::string::npos)
+		auto& _ele = _rootSignature->mRootParameters[i];
+		switch (_ele.mType)
+		{
+		case ERDIRootParameterType::CBV:
+			rootParameters[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_CBV;
+			rootParameters[i].Descriptor.RegisterSpace = _ele.mRegisterSpace;
+			rootParameters[i].Descriptor.ShaderRegister = _ele.mCbvRootParameter.mCbvShaderRegister;
 			break;
+		case ERDIRootParameterType::DescriptorTable:
+		{
+			CHECK(_ele.mDescriptorTableRootParameter.mSrvNumDescriptors != 0 || _ele.mDescriptorTableRootParameter.mUavNumDescriptors != 0);
 
-		_errorInfo->mParsedErrorString.push_back(std::string_view(errorStr + begin, errorStr + end));
-		begin = end + 1;
+			uint32_t rangeCount = 0;
+
+			rootParameters[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rootParameters[i].DescriptorTable.pDescriptorRanges = &descriptorRange[j];
+			if (_ele.mDescriptorTableRootParameter.mSrvNumDescriptors != 0)
+			{
+				descriptorRange[j].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+				descriptorRange[j].RegisterSpace = _ele.mRegisterSpace;
+				descriptorRange[j].NumDescriptors = _ele.mDescriptorTableRootParameter.mSrvNumDescriptors;
+				descriptorRange[j].BaseShaderRegister = _ele.mDescriptorTableRootParameter.mSrvStartShaderRegister;
+				descriptorRange[j].OffsetInDescriptorsFromTableStart = 0;
+				++j;
+				++rangeCount;
+			}
+
+			if (_ele.mDescriptorTableRootParameter.mUavNumDescriptors != 0)
+			{
+				descriptorRange[j].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+				descriptorRange[j].RegisterSpace = _ele.mRegisterSpace;
+				descriptorRange[j].NumDescriptors = _ele.mDescriptorTableRootParameter.mUavNumDescriptors;
+				descriptorRange[j].BaseShaderRegister = _ele.mDescriptorTableRootParameter.mUavStartShaderRegister;
+				descriptorRange[j].OffsetInDescriptorsFromTableStart = _ele.mDescriptorTableRootParameter.mSrvStartShaderRegister;
+				++j;
+				++rangeCount;
+			}
+			rootParameters[i].DescriptorTable.NumDescriptorRanges = rangeCount;
+			break;
+		}
+		case ERDIRootParameterType::SamplerTable:
+		{
+			CHECK(_ele.mSamplerTableRootParameter.mSamplerNumDescriptors != 0);
+
+			rootParameters[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+			rootParameters[i].DescriptorTable.pDescriptorRanges = &descriptorRange[j];
+			rootParameters[i].DescriptorTable.NumDescriptorRanges = 1;
+			descriptorRange[j].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE::D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+			descriptorRange[j].RegisterSpace = _ele.mRegisterSpace;
+			descriptorRange[j].NumDescriptors = _ele.mSamplerTableRootParameter.mSamplerNumDescriptors;
+			descriptorRange[j].BaseShaderRegister = _ele.mSamplerTableRootParameter.mSamplerStartShaderRegister;
+			descriptorRange[j].OffsetInDescriptorsFromTableStart = 0;
+			++j;
+			break;
+		}
+		}
+		rootParameters[i].ShaderVisibility = ConvertShaderVisibilityToD3D12(_ele.mShaderVisibility);
 	}
-}
 
-void SD3D12Device::ReleaseVertexShader(SD3D12VertexShader* _shader) noexcept
-{
-	mVertexShaderPool.DeallocateElement(_shader);
-}
+	for (size_t i = 0; i != _rootSignature->mStaticSamplerDescs.size(); ++i)
+	{
+		auto& _ele = _rootSignature->mStaticSamplerDescs[i];
 
-void SD3D12Device::ReleaseHullShader(SD3D12HullShader* _shader) noexcept
-{
-	mHullShaderPool.DeallocateElement(_shader);
-}
+		staticSamplerDesc[i].Filter = ConvertFilterToD3D12(_ele.mFilter);
+		staticSamplerDesc[i].AddressU = ConvertAddressModeToD3D12(_ele.mAddressU);
+		staticSamplerDesc[i].AddressV = ConvertAddressModeToD3D12(_ele.mAddressV);
+		staticSamplerDesc[i].AddressW = ConvertAddressModeToD3D12(_ele.mAddressW);
+		staticSamplerDesc[i].MipLODBias = _ele.mMipLODBias;
+		staticSamplerDesc[i].MaxAnisotropy = _ele.mMaxAnisotropy;
+		staticSamplerDesc[i].ComparisonFunc = ConvertComparisonFuncToD3D12(_ele.mComparisonFunc);
+		staticSamplerDesc[i].BorderColor = ConvertStaticBorderColorToD3D12(_ele.mBorderColor);
+		staticSamplerDesc[i].MinLOD = _ele.mMinLod;
+		staticSamplerDesc[i].MaxLOD = _ele.mMaxLod;
+		staticSamplerDesc[i].ShaderRegister = _ele.mShaderRegister;
+		staticSamplerDesc[i].RegisterSpace = _ele.mRegisterSpace;
+		staticSamplerDesc[i].ShaderVisibility = ConvertShaderVisibilityToD3D12(_ele.mShaderVisibility);
+	}
 
-void SD3D12Device::ReleaseDomainShader(SD3D12DomainShader* _shader) noexcept
-{
-	mDomainShaderPool.DeallocateElement(_shader);
-}
+	desc.NumParameters = static_cast<uint32_t>(_rootSignature->mRootParameters.size());
+	desc.pParameters = rootParameters;
+	desc.NumStaticSamplers = static_cast<uint32_t>(_rootSignature->mStaticSamplerDescs.size());
+	desc.pStaticSamplers = staticSamplerDesc;
+	desc.Flags = D3D12_ROOT_SIGNATURE_FLAGS::D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-void SD3D12Device::ReleaseGeometryShader(SD3D12GeometryShader* _shader) noexcept
-{
-	mGeometryShaderPool.DeallocateElement(_shader);
-}
+	ID3DBlob* serlizedD3DBlob = nullptr;
 
-void SD3D12Device::ReleasePixelShader(SD3D12PixelShader* _shader) noexcept
-{
-	mPixelShaderPool.DeallocateElement(_shader);
-}
+	HRESULT res = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &serlizedD3DBlob, nullptr);
 
-void SD3D12Device::ReleaseComputeShader(SD3D12ComputeShader* _shader) noexcept
-{
-	mComputeShaderPool.DeallocateElement(_shader);
+	SBlob serializedBlob(serlizedD3DBlob->GetBufferPointer(), serlizedD3DBlob->GetBufferSize());
+
+	if (serlizedD3DBlob != nullptr)
+		serlizedD3DBlob->Release();
+
+	return serializedBlob;
 }

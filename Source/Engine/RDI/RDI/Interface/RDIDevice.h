@@ -15,10 +15,8 @@ struct SRDITextureCubeArrayResourceDesc;
 struct SRDISamplerResourceDesc;
 
 struct SRDISwapChainDesc;
-struct SRDIVertexInputLayoutDesc;
-struct SRDIRootSignatureDesc;
-struct SRDIGraphicsPipelineState;
-struct SRDIComputePipelineState;
+struct SRDIGraphicsPipelineStateDesc;
+struct SRDIComputePipelineStateDesc;
 
 struct SRDIShaderMacro;
 struct SRDIAdditionalInclude;
@@ -29,9 +27,7 @@ enum class ERDICommandListType;
 __interface IRDIAdapter;
 __interface IRDISwapChain;
 __interface IRDICommandList;
-__interface IRDIInputLayout;
 __interface IRDICommandQueue;
-__interface IRDIRootSignature;
 __interface IRDICommandAllocator;
 __interface IRDISamplerHeapRange;
 __interface IRDIDescriptorHeapRange;
@@ -48,13 +44,6 @@ __interface IRDITextureCube;
 __interface IRDITextureCubeArray;
 __interface IRDISampler;
 
-__interface IRDIVertexShader;
-__interface IRDIHullShader;
-__interface IRDIDomainShader;
-__interface IRDIGeometryShader;
-__interface IRDIPixelShader;
-__interface IRDIComputeShader;
-
 __interface IRDIDevice
 {
 	IRDIAdapter* GetAdapter() noexcept;
@@ -66,13 +55,8 @@ __interface IRDIDevice
 
 	IRDISwapChain* CreateSwapChain(const SRDISwapChainDesc* _swapChainDesc) noexcept;
 
-	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept;
-
-	IRDIRootSignature* CreateRootSignature(const SRDIRootSignatureDesc* _desc, SRDIErrorInfo* _rootSignatureError) noexcept;
-	IRDIRootSignature* CreateRootSignature(const SConstBufferView _serializedRootSignatureBlob) noexcept;
-
-	IRDIGraphicsPipelineState* CreateGraphicsPipelineState(const SRDIGraphicsPipelineState* _desc) noexcept;
-	IRDIComputePipelineState* CreateComputePipelineState(const SRDIComputePipelineState* _desc) noexcept;
+	IRDIGraphicsPipelineState* CreateGraphicsPipelineState(const SRDIGraphicsPipelineStateDesc* _desc) noexcept;
+	IRDIComputePipelineState* CreateComputePipelineState(const SRDIComputePipelineStateDesc* _desc) noexcept;
 
 	IRDIBuffer* CreateBuffer(const SRDIBufferResourceDesc* _desc) noexcept;
 	IRDITexture1D* CreateTexture1D(const SRDITexture1DResourceDesc* _desc) noexcept;
@@ -86,18 +70,4 @@ __interface IRDIDevice
 
 	IRDIDescriptorHeapRange* CreateDescriptorRange(uint16_t _srvCount, uint16_t _uavCount) noexcept;
 	IRDISamplerHeapRange* CreateDescriptorRange(uint16_t _samplerCount) noexcept;
-
-	IRDIVertexShader* CreateVertexShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIHullShader* CreateHullShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIDomainShader* CreateDomainShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIGeometryShader* CreateGeometryShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIPixelShader* CreatePixelShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-	IRDIComputeShader* CreateComputeShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept;
-
-	IRDIVertexShader* CreateVertexShader(SConstBufferView _compiledShader) noexcept;
-	IRDIHullShader* CreateHullShader(SConstBufferView _compiledShader) noexcept;
-	IRDIDomainShader* CreateDomainShader(SConstBufferView _compiledShader) noexcept;
-	IRDIGeometryShader* CreateGeometryShader(SConstBufferView _compiledShader) noexcept;
-	IRDIPixelShader* CreatePixelShader(SConstBufferView _compiledShader) noexcept;
-	IRDIComputeShader* CreateComputeShader(SConstBufferView _compiledShader) noexcept;
 };

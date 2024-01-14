@@ -3,13 +3,10 @@
 #include "RDI/Interface/RDIDevice.h"
 
 #include "D3D/Helper/D3DHelper.h"
-#include "D3D/D3D12/D3D12Shader.h"
 #include "D3D/D3D12/D3D12Adapter.h"
 #include "D3D/D3D12/D3D12SwapChain.h"
-#include "D3D/D3D12/D3D12InputLayout.h"
 #include "D3D/D3D12/D3D12CommandList.h"
 #include "D3D/D3D12/D3D12CommandQueue.h"
-#include "D3D/D3D12/D3D12RootSignature.h"
 #include "D3D/D3D12/D3D12PipelineState.h"
 #include "D3D/D3D12/D3D12DescriptorHeap.h"
 #include "D3D/D3D12/D3D12CommandAllocator.h"
@@ -42,13 +39,8 @@ public:
 
 	IRDISwapChain* CreateSwapChain(const SRDISwapChainDesc* _swapChainDesc) noexcept override;
 
-	IRDIInputLayout* CreateInputLayout(const SRDIVertexInputLayoutDesc* _desc) noexcept override;
-
-	IRDIRootSignature* CreateRootSignature(const SRDIRootSignatureDesc* _desc, SRDIErrorInfo* _rootSignatureError) noexcept override;
-	IRDIRootSignature* CreateRootSignature(const SConstBufferView _serializedRootSignatureBlob) noexcept override;
-
-	IRDIGraphicsPipelineState* CreateGraphicsPipelineState(const SRDIGraphicsPipelineState* _desc) noexcept override;
-	IRDIComputePipelineState* CreateComputePipelineState(const SRDIComputePipelineState* _desc) noexcept override;
+	IRDIGraphicsPipelineState* CreateGraphicsPipelineState(const SRDIGraphicsPipelineStateDesc* _desc) noexcept override;
+	IRDIComputePipelineState* CreateComputePipelineState(const SRDIComputePipelineStateDesc* _desc) noexcept override;
 
 	IRDIBuffer* CreateBuffer(const SRDIBufferResourceDesc* _desc) noexcept override;
 	IRDITexture1D* CreateTexture1D(const SRDITexture1DResourceDesc* _desc) noexcept override;
@@ -63,27 +55,11 @@ public:
 	IRDIDescriptorHeapRange* CreateDescriptorRange(uint16_t _srvCount, uint16_t _uavCount) noexcept;
 	IRDISamplerHeapRange* CreateDescriptorRange(uint16_t _samplerCount) noexcept;
 
-	IRDIVertexShader* CreateVertexShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIHullShader* CreateHullShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIDomainShader* CreateDomainShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIGeometryShader* CreateGeometryShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIPixelShader* CreatePixelShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-	IRDIComputeShader* CreateComputeShader(SConstBufferView _hlslShader, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept override;
-
-	IRDIVertexShader* CreateVertexShader(SConstBufferView _compiledShader) noexcept override;
-	IRDIHullShader* CreateHullShader(SConstBufferView _compiledShader) noexcept override;
-	IRDIDomainShader* CreateDomainShader(SConstBufferView _compiledShader) noexcept override;
-	IRDIGeometryShader* CreateGeometryShader(SConstBufferView _compiledShader) noexcept override;
-	IRDIPixelShader* CreatePixelShader(SConstBufferView _compiledShader) noexcept override;
-	IRDIComputeShader* CreateComputeShader(SConstBufferView _compiledShader) noexcept override;
-
 public:
 	void ReleaseCommandAllocator(SD3D12CommandAllocator* _commandAllocator) noexcept;
 	void ReleaseCommandList(SD3D12CommandList* _commandList) noexcept;
 
 	void ReleaseSwapChain(SD3D12SwapChain* _swapChain) noexcept;
-	void ReleaseInputLayout(SD3D12InputLayout* _inputLayout) noexcept;
-	void ReleaseRootSignature(SD3D12RootSignature* _rootSignature) noexcept;
 
 	void ReleaseGraphicsPipelineState(SD3D12GraphicsPipelineState* _graphicPipelineState) noexcept;
 	void ReleaseComputePipelineState(SD3D12ComputePipelineState* _computePipelineState) noexcept;
@@ -98,13 +74,6 @@ public:
 	void ReleaseTextureCubeArray(SD3D12TextureCubeArray* _textureCubeArray) noexcept;
 	void ReleaseSampler(SD3D12Sampler* _sampler) noexcept;
 
-	void ReleaseVertexShader(SD3D12VertexShader* _shader) noexcept;
-	void ReleaseHullShader(SD3D12HullShader* _shader) noexcept;
-	void ReleaseDomainShader(SD3D12DomainShader* _shader) noexcept;
-	void ReleaseGeometryShader(SD3D12GeometryShader* _shader) noexcept;
-	void ReleasePixelShader(SD3D12PixelShader* _shader) noexcept;
-	void ReleaseComputeShader(SD3D12ComputeShader* _shader) noexcept;
-
 public:
 	SD3D12DescriptorHeap* GetDescriptorHeap() noexcept { return &mDescriptorHeap; }
 	SD3D12ShaderVisibleDescriptorHeap* GetShaderVisibleDescriptorHeap() noexcept { return &mShaderVisibleDescriptorHeap; }
@@ -115,8 +84,7 @@ public:
 	D3D12_RESOURCE_FLAGS MakeD3D12ResourceFlag(ERDIResourceUsage _resourceUsage) noexcept;
 	D3D12_CLEAR_VALUE MakeD3D12ClearValue(ERDIResourceUsage _resourceUsage, ERDIPixelFormat _pixelFormat, ERDIPixelFormat _rtvPixelFormat, ERDIPixelFormat _dsvPixelFormat, Math::SFColor _clearColor, float _clearDepth, uint8_t _clearStencil) noexcept;
 	ID3D12Resource* CreateCommittedResource(ERDIHeapType _heapType, const D3D12_RESOURCE_DESC* _desc, const D3D12_CLEAR_VALUE* _clearValue) noexcept;
-	bool CreateShader(SConstBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SBlob* _shaderBlob, SRDIErrorInfo* _shaderCompileError) noexcept;
-	void GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _errorInfo);
+	SBlob CreateRootSignatureBlob(const SRDIRootSignature* _rootSignature) noexcept;
 
 private:
 	ID3D12Device* mD3D12DeviceNativePtr = nullptr;
@@ -142,9 +110,6 @@ private:
 
 	TElementPool<SD3D12SwapChain> mSwapChainPool;
 
-	TElementPool<SD3D12InputLayout> mInputLayoutPool;
-	TElementPool<SD3D12RootSignature> mRootSignaturePool;
-
 	TElementPool<SD3D12GraphicsPipelineState> mGraphicsPipelineStatePool;
 	TElementPool<SD3D12ComputePipelineState> mComputePipelineStatePool;
 
@@ -158,15 +123,5 @@ private:
 	TElementPool<SD3D12TextureCubeArray> mTextureCubeArrayPool;
 	TElementPool<SD3D12Sampler> mSamplerPool;
 
-	TElementPool<SD3D12VertexShader> mVertexShaderPool;
-	TElementPool<SD3D12HullShader> mHullShaderPool;
-	TElementPool<SD3D12DomainShader> mDomainShaderPool;
-	TElementPool<SD3D12GeometryShader> mGeometryShaderPool;
-	TElementPool<SD3D12PixelShader> mPixelShaderPool;
-	TElementPool<SD3D12ComputeShader> mComputeShaderPool;
-
 	uint32_t mDescriptorHandleIncrement[EnumToInt(D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES)] = {};
-
-	uint32_t mShaderCompileFlag = 0;
-	D3DInclude mD3DInclude;
 };

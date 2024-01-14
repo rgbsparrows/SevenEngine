@@ -11,6 +11,10 @@
 
 #pragma comment(lib, "d3dcompiler.lib")
 
+struct SRDIErrorInfo;
+
+void GenerateErrorInfo(ID3DBlob* _errorBlob, SRDIErrorInfo* _errorInfo);
+
 enum class ED3DShaderTarget
 {
 	VS,
