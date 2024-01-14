@@ -216,3 +216,139 @@
         * 创建与Set
     * 一些可缓存的相关机制需要提前确认
     * Shader编译行为交给Factory进行
+* RShader只返回Pipelinestate对象
+* Shader对象的缓存由Pipelinestate对象自行处理
+
+* 期盼
+    1. Shader本身对ShaderInstance隐藏
+    2. Shader最好能够支持刷新机制
+        * 刷新机制中，既包括对Shader的修改，包含对默认管线状态与默认编译宏的修改
+* XX
+    * Shader
+        * Shader本身，出于优化的角度考虑，应当将PSO缓存与Shader缓存相分开，其对于ShaderBlob的缓存，仅应当作为Shader对象的内部优化，不应对外公开
+    * ShaderInstance
+        * ShaderInstance不建议访问到全部的管线状态Desc，同时，Shader的BufferView其逻辑上也没有机会访问到
+        * 所以，单独将需要访问的部分概念下状态与Shader编译宏抽出，其作为Shader实例化时实际发生的变更的数据来源
+    * RShaderInstanceParameter
+    ``` cpp
+
+    struct RCachedPSO
+    {
+        RShaderInstanceParameter parameter;
+        RDIPipelineState* pso;
+    }
+
+    struct RCachedShader
+    {
+        //SRDIShaderMacro mShaderMacro;
+        SBlob mCompiledShader;
+	    SRange mVsRange;
+	    SRange mHsRange;
+	    SRange mDsRange;
+	    SRange mGsRange;
+	    SRange mPsRange;
+    }
+
+    class RShader
+    {
+
+        map<RShaderInstanceParameterIdentify, CachedPSO> psoMap;
+
+        map<shaderIdentify, RCachedShader> CachedShaderMap;
+
+        XXX MAKEpso(RShaderInstanceParameter PARAM);
+
+        void ForceRefrash()
+        {
+            // Load
+
+            shaderIdentify = GenerateByLoadInfo();
+
+            map<RShaderInstanceParameterIdentify, CachedPSO> rawcachedPso = psoMap;
+
+            CachedShaderMap.clear();
+            psoMap.Clear();
+
+            for (auto _ele : rawcachedPso)
+            {
+                MAKEpso(_ELE.SECTION.parameter);
+            }
+
+        }
+
+        private MergePS(LEFT, RIGHT);
+
+        RShaderIdentify = shaderIdentify;
+
+    }
+
+
+    enum class EShaderInstanceParameterEle
+    {
+        ShaderMacro,
+        InputLayout,
+        PrimitiveTopologyType,
+        XXX
+    };
+    
+    REGIST_ENUM_FLAG_FORM_ENUM(EShaderInstanceParameterFlag, EShaderInstanceParameterEle)
+
+    struct RShaderInstanceParameter
+    {
+        SRDIShaderMacro mShaderMacro;
+	    SRDIVertexInputLayout mInputLayout;
+	    ERDIPrimitiveTopologyType mPrimitiveTopologyType = ERDIPrimitiveTopologyType::TRIANGLE;
+	    SRDIBlendState mBlendState;
+	    SRDIRasterizationState mRasterizationState;
+	    SRDIDepthStencilState mDepthStencilState;
+	    uint32_t mRenderTargetCount = 1;
+	    ERDIPixelFormat mRenderTargetFormat[8] = {};
+	    ERDIPixelFormat mDepthStencilFormat = ERDIPixelFormat::D24_UNORM_S8_UINT;
+
+        EShaderInstanceParameterFlag mFlag = EShaderInstanceParameterFlag::None;
+    }
+
+    using RShaderInstanceParameterIdentify = TTypeHandle<CalcStrHash("shaderparameter"), uint64_t>;
+
+    RShaderInstanceParameterIdentify MakeShaderInstanceParameterIdentify(const RShaderInstanceParameter& _param)
+    {
+        if (_param & ConvertToEnumFlag(EShaderInstanceParameterEle::ShaderMacro))
+        {
+            XX;
+        }
+    }
+    
+
+    class RShaderInstance
+    {
+        RShaderInstanceParameterIdentify mIdentify;
+        RShaderInstanceParameter mCacheShaderInstanceParameter;
+        IRDIGraphicsRootSignature* mCacheRootSignature;
+    }
+    ```
+
+* 流程上应该是这样
+    * 正常渲染执行
+        * ShaderInstance创建，指定Shader，指定Affector
+        * ShaderInstance构造时，如果指定Shader未加载，那么加载对应的Shader
+        * Affector获取Shader的默认MicorPipelineState，并在此基础上修改，同时指定Flag，标识自己修改了哪些内容
+        * 将修改后的MicroPipelineState传入Shader的MakePso函数当中，MakePso函数返回对应的Identify以及PSO对象，MicroPipelineState数据
+            * 在创建PSO对象时，其会存储传入的MicroPipelineState的对象内容（可能会清空未标记Flag的部分，以避免可能的污染问题）
+            * 假设失败，那么Identify为Identify::Error
+        * 渲染时，访问ShaderInstance，直接获取对应对象及MicroPSO数据，并据此完成渲染工作，或是在存在问题时报错/跳过某些步骤
+    * Shader强制刷新
+        * 刷新工作由ShaderManager触发，其根据传入指令的不同，决定刷新部分/全部Shader
+        * Shader的实际刷新工作在RShader::Refrash中完成
+            * 其内部进行两件事
+                1. 更新Shader的标识，以间接通知ShaderInstance，其BaseShader发生了变更
+                    * 标识怎么生成以后再想，主要的复杂点在于如果要做Shader的硬盘缓存与加载，那么标识怎么能有效的标识信息
+                2. 暂存MicroPipelineState数据后清空全部Shader，PSO对象，并根据数据重新生成PSO对象，以及间接生成Shader对象
+            * 如果有硬盘缓存机制
+                * 那么还需要增加对Shader硬盘存储内容的刷新
+    * Shader的硬盘缓存与加载工作
+        * 数据直接存，存完了加载
+        * 核心在于刷新与数据标识
+            * 这部分内容之前没有考虑过
+            * 核心问题在于有效的标识数据ID
+
+    * MicroPipelineState

@@ -147,7 +147,6 @@ SBlob SD3D12Factory::CompileComputeShader(SConstBufferView _hlslShader, const SR
 SBlob SD3D12Factory::CompileShader(SConstBufferView _hlslShader, ED3DShaderTarget _shaderTarget, const SRDIShaderMacro* _shaderMacro, SRDIErrorInfo* _shaderCompileError) noexcept
 {
 	static D3D_SHADER_MACRO shaderMacro[64] = {};
-	static char macroBuffer[64][128] = {};
 	static SRDIShaderMacro emptyShaderMacros;
 
 	SBlob shaderBlob;
@@ -155,20 +154,16 @@ SBlob SD3D12Factory::CompileShader(SConstBufferView _hlslShader, ED3DShaderTarge
 	if (_shaderMacro == nullptr)
 		_shaderMacro = &emptyShaderMacros;
 
-	for (size_t i = 0; i != _shaderMacro->mDefinedMacro.size(); ++i)
+	for (size_t i = 0; i != _shaderMacro->mDefinedMacroItem.size(); ++i)
 	{
-		std::string_view macro = _shaderMacro->mDefinedMacro[i];
+		const SRDIShaderMacroItem& macroItem = _shaderMacro->mDefinedMacroItem[i];
 
-		for (size_t j = 0; j != macro.size(); ++j)
-			macroBuffer[i][j] = macro[j];
-		macroBuffer[i][macro.size()] = '\0';
-
-		shaderMacro[i].Name = macroBuffer[i];
-		shaderMacro[i].Definition = nullptr;
+		shaderMacro[i].Name = macroItem.mMacroName.c_str();
+		shaderMacro[i].Definition = macroItem.mMacroDefinition.c_str();
 	}
 
-	shaderMacro[_shaderMacro->mDefinedMacro.size()].Name = nullptr;
-	shaderMacro[_shaderMacro->mDefinedMacro.size()].Definition = nullptr;
+	shaderMacro[_shaderMacro->mDefinedMacroItem.size()].Name = nullptr;
+	shaderMacro[_shaderMacro->mDefinedMacroItem.size()].Definition = nullptr;
 
 	ID3DBlob* shaderD3DBlob;
 	ID3DBlob* errorD3DBlob;

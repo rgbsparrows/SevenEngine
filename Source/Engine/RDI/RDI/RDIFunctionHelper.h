@@ -374,9 +374,16 @@ struct SRDISamplerResourceDesc
 #pragma region shader compile
 
 //尽可能的让信息储存在Shader/材质文件本身当中，以排除掉由程序额外指定参数对代码阅读所造成的困扰，所以这里剔除掉宏参数，只保留宏本身
+
+struct SRDIShaderMacroItem
+{
+	std::string mMacroName;
+	std::string mMacroDefinition;
+};
+
 struct SRDIShaderMacro
 {
-	std::vector<std::string_view> mDefinedMacro;
+	std::vector<SRDIShaderMacroItem> mDefinedMacroItem;
 };
 
 #pragma endregion
