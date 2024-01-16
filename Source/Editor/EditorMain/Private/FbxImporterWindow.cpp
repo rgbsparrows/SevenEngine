@@ -241,19 +241,19 @@ void SUIFbxImporterWindow::ProcessFbxMesh(fbxsdk::FbxMesh* _mesh)
 				newVertex.mPosition = Math::SFloat3(vertexPosition);
 			}
 
-			if ((vertexSemanticFlag | ConvertToEnumFlag(EVertexSemantic::Color)) == ConvertToEnumFlag(EVertexSemantic::Color))
+			if (IsEnumFlagSet(vertexSemanticFlag, EVertexSemantic::Color))
 			{
 				fbxsdk::FbxColor vertexColor = GetFbxVertexElement(_mesh, polyIndex, controlPointIndex, vertexIndex, _mesh->GetElementVertexColor());
 				newVertex.mColor = Math::SFColor(vertexColor);
 			}
 
-			if ((vertexSemanticFlag | ConvertToEnumFlag(EVertexSemantic::Normal)) == ConvertToEnumFlag(EVertexSemantic::Normal))
+			if (IsEnumFlagSet(vertexSemanticFlag, EVertexSemantic::Normal))
 			{
 				fbxsdk::FbxVector4 vertexNormal = GetFbxVertexElement(_mesh, polyIndex, controlPointIndex, vertexIndex, _mesh->GetElementNormal());
 				newVertex.mNormal = Math::SFloat3(vertexNormal);
 			}
 
-			if ((vertexSemanticFlag | ConvertToEnumFlag(EVertexSemantic::Tangent)) == ConvertToEnumFlag(EVertexSemantic::Tangent))
+			if (IsEnumFlagSet(vertexSemanticFlag, EVertexSemantic::Tangent))
 			{
 				fbxsdk::FbxVector4 vertexTangent = GetFbxVertexElement(_mesh, polyIndex, controlPointIndex, vertexIndex, _mesh->GetElementTangent());
 				fbxsdk::FbxVector4 vertexBinormal = GetFbxVertexElement(_mesh, polyIndex, controlPointIndex, vertexIndex, _mesh->GetElementBinormal());
@@ -265,8 +265,8 @@ void SUIFbxImporterWindow::ProcessFbxMesh(fbxsdk::FbxMesh* _mesh)
 
 			for (int32_t i = 0; i != _mesh->GetElementUVCount() && i != 8; ++i)
 			{
-				EVertexSemanticFlag uvFlag = ConvertToEnumFlag(static_cast<EVertexSemantic>(EnumToInt(EVertexSemantic::Uv0) + i));
-				if ((vertexSemanticFlag | uvFlag) == uvFlag)
+				EVertexSemantic uvFlag = static_cast<EVertexSemantic>(EnumToInt(EVertexSemantic::Uv0) + i);
+				if (IsEnumFlagSet(vertexSemanticFlag, uvFlag))
 				{
 					fbxsdk::FbxVector2 vertexUv = GetFbxVertexElement(_mesh, polyIndex, controlPointIndex, vertexIndex, _mesh->GetElementUV(i));
 					newVertex.mUv[i] = Math::SFloat2(vertexUv);

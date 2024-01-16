@@ -104,3 +104,17 @@ namespace TemplateUtilDetail
 		UnderlyingType mValue = UnderlyingType();
 	};
 }
+
+namespace std
+{
+	template<uint64_t _handleHash, std::unsigned_integral _underlyingType>
+	struct hash<TemplateUtilDetail::THandleType<_handleHash, _underlyingType>>
+	{
+		using HandleType = TemplateUtilDetail::THandleType<_handleHash, _underlyingType>;
+
+		std::size_t operator()(HandleType value) const
+		{
+			return std::hash<HandleType::UnderlyingType>()(static_cast<HandleType::UnderlyingType>(value));
+		}
+	};
+}

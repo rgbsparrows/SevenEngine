@@ -19,6 +19,17 @@ constexpr inline _enumType operator _baseOperator##=(_enumType & _left, _enumTyp
 	return _left = _left _baseOperator _right;														\
 }
 
+#define __REGIST_IS_SET_FUNC_FOR_ENUM(_enumFlagType)												\
+constexpr inline bool IsEnumFlagSet(_enumFlagType _enumFlag, _enumFlagType _enumFlagSet) noexcept	\
+{																									\
+	return (_enumFlag & _enumFlagSet) == _enumFlagSet;												\
+}																									\
+																									\
+constexpr inline bool IsEnumFlagSet(_enumFlagType _enumFlag) noexcept								\
+{																									\
+	return EnumToInt(_enumFlag) != 0;																\
+}																									\
+
 #define __REGIST_ENUM_FLAG_CONVERT_FUNC(_enumFlagType, _baseEnumType)									\
 constexpr inline auto ConvertToEnumFlag(_baseEnumType _baseEnum) noexcept								\
 {																										\
@@ -35,17 +46,26 @@ constexpr inline auto ConvertToEnumFlag(std::initializer_list<_baseEnumType> _ba
 }
 
 
+#define __REGIST_IS_SET_FUNC_FOR_ENUM_FLAG(_enumFlagType, _baseEnumType)								\
+constexpr inline bool IsEnumFlagSet(_enumFlagType _enumFlag, _baseEnumType _baseEnumFlagSet) noexcept	\
+{																										\
+	return IsEnumFlagSet(_enumFlag, ConvertToEnumFlag(_baseEnumFlagSet));								\
+}																										\
+
+
 #define REGIST_ENUM_FLAG(_enumType)\
 __REGIST_ARITHMETIC_OPERATOR_FOR_ENUM(_enumType, |)\
 __REGIST_ARITHMETIC_OPERATOR_FOR_ENUM(_enumType, &)\
 __REGIST_ARITHMETIC_OPERATOR_FOR_ENUM(_enumType, ^)\
 __REGIST_ASSIGNMENT_OPERATOR_FOR_ENUM(_enumType, |)\
 __REGIST_ASSIGNMENT_OPERATOR_FOR_ENUM(_enumType, &)\
-__REGIST_ASSIGNMENT_OPERATOR_FOR_ENUM(_enumType, ^)
+__REGIST_ASSIGNMENT_OPERATOR_FOR_ENUM(_enumType, ^)\
+__REGIST_IS_SET_FUNC_FOR_ENUM(_enumType)
 
 #define REGIST_ENUM_FLAG_FORM_ENUM(_enumFlagType, _baseEnumType)	\
 REGIST_ENUM_FLAG(_enumFlagType)										\
-__REGIST_ENUM_FLAG_CONVERT_FUNC(_enumFlagType, _baseEnumType)
+__REGIST_ENUM_FLAG_CONVERT_FUNC(_enumFlagType, _baseEnumType)		\
+__REGIST_IS_SET_FUNC_FOR_ENUM_FLAG(_enumFlagType, _baseEnumType)	
 
 #define DECLARE_NAMED_CONCEPT_WITH_MEMBER(_conceptType, _member) template <typename _type> concept _conceptType = requires(_type& _value) { _value._member; };	
 #define DECLARE_NAMED_CONCEPT_WITH_MEMBER_FUNC(_conceptType, _memberFunc) template <typename _type> concept _conceptType = requires(_type& _value) { _value._memberFunc(); };	

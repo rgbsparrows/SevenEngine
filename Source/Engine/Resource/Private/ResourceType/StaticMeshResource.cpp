@@ -48,46 +48,46 @@ void SStaticMeshResource::RefrashContent() noexcept
 	for (size_t i = 0; i != mSubMeshList.size(); ++i)
 		meshData.mSubMeshRange.push_back(mSubMeshList[i].mSubMeshRange);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Position)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Position))
 		meshData.mPositionBuffer = mPositionBuffer;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Color)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Color))
 		meshData.mColorBuffer = mColorBuffer;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Normal)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Normal))
 		meshData.mNormalBuffer = mNormalBuffer;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Tangent)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Tangent))
 		meshData.mTangentBuffer = mTangentBuffer;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendIndices)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendIndices))
 		meshData.mBlendIndicesBuffer = mBlendIndicesBuffer;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendWeight)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendWeight))
 		meshData.mBlendWeightBuffer = mBlendWeightBuffer;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv0)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv0))
 		meshData.mUvBuffer[0] = mUvBuffer[0];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv1)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv1))
 		meshData.mUvBuffer[1] = mUvBuffer[1];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv2)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv2))
 		meshData.mUvBuffer[2] = mUvBuffer[2];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv3)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv3))
 		meshData.mUvBuffer[3] = mUvBuffer[3];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv4)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv4))
 		meshData.mUvBuffer[4] = mUvBuffer[4];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv5)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv5))
 		meshData.mUvBuffer[5] = mUvBuffer[5];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv6)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv6))
 		meshData.mUvBuffer[6] = mUvBuffer[6];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv7)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv7))
 		meshData.mUvBuffer[7] = mUvBuffer[7];
 
 	meshData.mSubMeshRange.resize(mSubMeshList.size());
@@ -104,105 +104,105 @@ void SStaticMeshResource::SetVertexSemantic(EVertexSemanticFlag _vertexSemanticF
 
 	size_t vertexCount = mPositionBuffer.size();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Position)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Position))
 		mPositionBuffer.resize(vertexCount);
 	else mPositionBuffer.clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Color)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Color))
 		mColorBuffer.resize(vertexCount);
 	else mColorBuffer.clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Normal)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Normal))
 		mNormalBuffer.resize(vertexCount);
 	else mNormalBuffer.clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Tangent)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Tangent))
 		mTangentBuffer.resize(vertexCount);
 	else mTangentBuffer.clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendIndices)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendIndices))
 		mBlendIndicesBuffer.resize(vertexCount);
 	else mBlendIndicesBuffer.clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendWeight)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendWeight))
 		mBlendWeightBuffer.resize(vertexCount);
 	else mBlendWeightBuffer.clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv0)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv0))
 		mUvBuffer[0].resize(vertexCount);
 	else mUvBuffer[0].clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv1)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv1))
 		mUvBuffer[1].resize(vertexCount);
 	else mUvBuffer[1].clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv2)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv2))
 		mUvBuffer[2].resize(vertexCount);
 	else mUvBuffer[2].clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv3)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv3))
 		mUvBuffer[3].resize(vertexCount);
 	else mUvBuffer[3].clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv4)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv4))
 		mUvBuffer[4].resize(vertexCount);
 	else mUvBuffer[4].clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv5)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv5))
 		mUvBuffer[5].resize(vertexCount);
 	else mUvBuffer[5].clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv6)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv6))
 		mUvBuffer[6].resize(vertexCount);
 	else mUvBuffer[6].clear();
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv7)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv7))
 		mUvBuffer[7].resize(vertexCount);
 	else mUvBuffer[7].clear();
 }
 
 void SStaticMeshResource::ResizeVertexCount(size_t _vertexCount) noexcept
 {
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Position)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Position))
 		mPositionBuffer.resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Color)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Color))
 		mColorBuffer.resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Normal)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Normal))
 		mNormalBuffer.resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Tangent)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Tangent))
 		mTangentBuffer.resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendIndices)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendIndices))
 		mBlendIndicesBuffer.resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendWeight)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendWeight))
 		mBlendWeightBuffer.resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv0)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv0))
 		mUvBuffer[0].resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv1)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv1))
 		mUvBuffer[1].resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv2)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv2))
 		mUvBuffer[2].resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv3)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv3))
 		mUvBuffer[3].resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv4)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv4))
 		mUvBuffer[4].resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv5)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv5))
 		mUvBuffer[5].resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv6)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv6))
 		mUvBuffer[6].resize(_vertexCount);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv7)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv7))
 		mUvBuffer[7].resize(_vertexCount);
 }
 
@@ -220,46 +220,46 @@ void SStaticMeshResource::SetVertex(const SFullVertex& _vertex, size_t _vertexIn
 {
 	CHECK(_vertexIndex < mPositionBuffer.size());
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Position)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Position))
 		mPositionBuffer[_vertexIndex] = _vertex.mPosition;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Color)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Color))
 		mColorBuffer[_vertexIndex] = _vertex.mColor;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Normal)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Normal))
 		mNormalBuffer[_vertexIndex] = _vertex.mNormal;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Tangent)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Tangent))
 		mTangentBuffer[_vertexIndex] = _vertex.mTangent;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendIndices)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendIndices))
 		mBlendIndicesBuffer[_vertexIndex] = _vertex.mBlendIndices;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendWeight)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendWeight))
 		mBlendWeightBuffer[_vertexIndex] = _vertex.mBlendWeight;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv0)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv0))
 		mUvBuffer[0][_vertexIndex] = _vertex.mUv[0];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv1)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv1))
 		mUvBuffer[1][_vertexIndex] = _vertex.mUv[1];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv2)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv2))
 		mUvBuffer[2][_vertexIndex] = _vertex.mUv[2];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv3)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv3))
 		mUvBuffer[3][_vertexIndex] = _vertex.mUv[3];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv4)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv4))
 		mUvBuffer[4][_vertexIndex] = _vertex.mUv[4];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv5)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv5))
 		mUvBuffer[5][_vertexIndex] = _vertex.mUv[5];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv6)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv6))
 		mUvBuffer[6][_vertexIndex] = _vertex.mUv[6];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv7)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv7))
 		mUvBuffer[7][_vertexIndex] = _vertex.mUv[7];
 }
 
@@ -269,46 +269,46 @@ SFullVertex SStaticMeshResource::GetVertex(size_t _vertexIndex) const noexcept
 
 	SFullVertex vertex;
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Position)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Position))
 		vertex.mPosition = mPositionBuffer[_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Color)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Color))
 		vertex.mColor = mColorBuffer[_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Normal)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Normal))
 		vertex.mNormal = mNormalBuffer[_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Tangent)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Tangent))
 		vertex.mTangent = mTangentBuffer[_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendIndices)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendIndices))
 		vertex.mBlendIndices = mBlendIndicesBuffer[_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::BlendWeight)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::BlendWeight))
 		vertex.mBlendWeight = mBlendWeightBuffer[_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv0)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv0))
 		vertex.mUv[0] = mUvBuffer[0][_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv1)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv1))
 		vertex.mUv[1] = mUvBuffer[1][_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv2)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv2))
 		vertex.mUv[2] = mUvBuffer[2][_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv3)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv3))
 		vertex.mUv[3] = mUvBuffer[3][_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv4)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv4))
 		vertex.mUv[4] = mUvBuffer[4][_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv5)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv5))
 		vertex.mUv[5] = mUvBuffer[5][_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv6)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv6))
 		vertex.mUv[6] = mUvBuffer[6][_vertexIndex];
 
-	if ((mVertexSemantic & ConvertToEnumFlag(EVertexSemantic::Uv7)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, EVertexSemantic::Uv7))
 		vertex.mUv[7] = mUvBuffer[7][_vertexIndex];
 
 	return vertex;
@@ -403,7 +403,7 @@ Math::SFloat2* SStaticMeshResource::GetUvBuffer(size_t _uvChannel) noexcept
 
 	EVertexSemantic vertexSemantic = static_cast<EVertexSemantic>(EnumToInt(EVertexSemantic::Uv0) + _uvChannel);
 
-	if ((mVertexSemantic & ConvertToEnumFlag(vertexSemantic)) != EVertexSemanticFlag::None)
+	if (IsEnumFlagSet(mVertexSemantic, ConvertToEnumFlag(vertexSemantic)))
 		return &mUvBuffer[_uvChannel][0];
 
 	return nullptr;

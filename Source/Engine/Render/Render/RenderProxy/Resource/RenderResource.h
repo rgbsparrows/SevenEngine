@@ -9,7 +9,7 @@ __interface IRDIComputePipelineState;
 
 #pragma region Mesh
 
-enum class EVertexSemantic
+enum class EVertexSemantic : uint32_t
 {
 	Position,
 	Color,
